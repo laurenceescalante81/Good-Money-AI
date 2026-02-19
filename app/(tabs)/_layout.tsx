@@ -12,19 +12,19 @@ function NativeTabLayout() {
     <NativeTabs>
       <NativeTabs.Trigger name="index">
         <Icon sf={{ default: "chart.pie", selected: "chart.pie.fill" }} />
-        <Label>Dashboard</Label>
+        <Label>Overview</Label>
+      </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="mortgage">
+        <Icon sf={{ default: "house", selected: "house.fill" }} />
+        <Label>Mortgage</Label>
+      </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="super">
+        <Icon sf={{ default: "chart.line.uptrend.xyaxis", selected: "chart.line.uptrend.xyaxis" }} />
+        <Label>Super</Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="budget">
-        <Icon sf={{ default: "creditcard", selected: "creditcard.fill" }} />
+        <Icon sf={{ default: "dollarsign.circle", selected: "dollarsign.circle.fill" }} />
         <Label>Budget</Label>
-      </NativeTabs.Trigger>
-      <NativeTabs.Trigger name="transactions">
-        <Icon sf={{ default: "list.bullet.rectangle", selected: "list.bullet.rectangle.fill" }} />
-        <Label>Activity</Label>
-      </NativeTabs.Trigger>
-      <NativeTabs.Trigger name="goals">
-        <Icon sf={{ default: "target", selected: "target" }} />
-        <Label>Goals</Label>
       </NativeTabs.Trigger>
     </NativeTabs>
   );
@@ -52,26 +52,37 @@ function ClassicTabLayout() {
         },
         tabBarBackground: () =>
           isIOS ? (
-            <BlurView
-              intensity={100}
-              tint={isDark ? "dark" : "light"}
-              style={StyleSheet.absoluteFill}
-            />
+            <BlurView intensity={100} tint={isDark ? "dark" : "light"} style={StyleSheet.absoluteFill} />
           ) : isWeb ? (
             <View style={[StyleSheet.absoluteFill, { backgroundColor: isDark ? "#000" : "#fff" }]} />
           ) : null,
-        tabBarLabelStyle: {
-          fontFamily: "DMSans_500Medium",
-          fontSize: 11,
-        },
+        tabBarLabelStyle: { fontFamily: "DMSans_500Medium", fontSize: 11 },
       }}
     >
       <Tabs.Screen
         name="index"
         options={{
-          title: "Dashboard",
+          title: "Overview",
           tabBarIcon: ({ color, focused }) => (
             <Ionicons name={focused ? "pie-chart" : "pie-chart-outline"} size={22} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="mortgage"
+        options={{
+          title: "Mortgage",
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons name={focused ? "home" : "home-outline"} size={22} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="super"
+        options={{
+          title: "Super",
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons name={focused ? "trending-up" : "trending-up-outline"} size={22} color={color} />
           ),
         }}
       />
@@ -80,25 +91,7 @@ function ClassicTabLayout() {
         options={{
           title: "Budget",
           tabBarIcon: ({ color, focused }) => (
-            <Ionicons name={focused ? "card" : "card-outline"} size={22} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="transactions"
-        options={{
-          title: "Activity",
-          tabBarIcon: ({ color, focused }) => (
-            <Ionicons name={focused ? "receipt" : "receipt-outline"} size={22} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="goals"
-        options={{
-          title: "Goals",
-          tabBarIcon: ({ color, focused }) => (
-            <Ionicons name={focused ? "flag" : "flag-outline"} size={22} color={color} />
+            <Ionicons name={focused ? "wallet" : "wallet-outline"} size={22} color={color} />
           ),
         }}
       />
@@ -107,8 +100,6 @@ function ClassicTabLayout() {
 }
 
 export default function TabLayout() {
-  if (isLiquidGlassAvailable()) {
-    return <NativeTabLayout />;
-  }
+  if (isLiquidGlassAvailable()) return <NativeTabLayout />;
   return <ClassicTabLayout />;
 }

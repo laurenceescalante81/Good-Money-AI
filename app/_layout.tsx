@@ -16,7 +16,9 @@ function RootLayoutNav() {
     <Stack screenOptions={{ headerBackTitle: "Back" }}>
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen name="add-transaction" options={{ headerShown: false, presentation: "modal" }} />
-      <Stack.Screen name="add-budget" options={{ headerShown: false, presentation: "modal" }} />
+      <Stack.Screen name="setup-mortgage" options={{ headerShown: false, presentation: "modal" }} />
+      <Stack.Screen name="setup-super" options={{ headerShown: false, presentation: "modal" }} />
+      <Stack.Screen name="add-insurance" options={{ headerShown: false, presentation: "modal" }} />
       <Stack.Screen name="add-goal" options={{ headerShown: false, presentation: "modal" }} />
       <Stack.Screen name="settings" options={{ headerShown: false, presentation: "modal" }} />
     </Stack>
@@ -32,9 +34,7 @@ export default function RootLayout() {
   });
 
   useEffect(() => {
-    if (fontsLoaded) {
-      SplashScreen.hideAsync();
-    }
+    if (fontsLoaded) SplashScreen.hideAsync();
   }, [fontsLoaded]);
 
   if (!fontsLoaded) return null;
