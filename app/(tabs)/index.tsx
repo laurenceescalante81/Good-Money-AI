@@ -92,10 +92,10 @@ export default function DashboardScreen() {
 
         <View style={styles.body}>
           {(mortgage || superDetails || expenses > 0) && (
-            <View style={styles.optiSection}>
-              <View style={styles.optiHeader}>
-                <Ionicons name="sparkles" size={18} color={Colors.light.tint} />
-                <Text style={styles.sectionTitle}>Optimisation Opportunities</Text>
+            <LinearGradient colors={[Colors.light.tint, Colors.light.navy]} style={styles.optiGradient}>
+              <View style={styles.optiGradientHeader}>
+                <Ionicons name="sparkles" size={20} color="#fff" />
+                <Text style={styles.optiGradientTitle}>Optimisation Opportunities</Text>
               </View>
               {mortgage && mortgage.repaymentType === "principal_interest" && (() => {
                 const rate = mortgage.interestRate / 100 / 12;
@@ -117,15 +117,15 @@ export default function DashboardScreen() {
                 const extraTotalInt = paid - mortgage.loanAmount;
                 const saved = Math.max(0, baseTotalInt - extraTotalInt);
                 return (
-                  <Pressable onPress={() => router.push("/(tabs)/mortgage")} style={styles.optiCard}>
-                    <View style={[styles.optiIcon, { backgroundColor: Colors.light.mortgage + "15" }]}>
-                      <Ionicons name="home-outline" size={20} color={Colors.light.mortgage} />
+                  <Pressable onPress={() => router.push("/(tabs)/mortgage")} style={({ pressed }) => [styles.optiCard, pressed && { opacity: 0.85 }]}>
+                    <View style={styles.optiIconCircle}>
+                      <Ionicons name="home-outline" size={20} color="#fff" />
                     </View>
                     <View style={styles.optiInfo}>
                       <Text style={styles.optiLabel}>Mortgage: +$500/mo</Text>
-                      <Text style={[styles.optiValue, { color: Colors.light.income }]}>Save {fmt(Math.round(saved))} in interest</Text>
+                      <Text style={styles.optiValue}>Save {fmt(Math.round(saved))} in interest</Text>
                     </View>
-                    <Ionicons name="chevron-forward" size={18} color={Colors.light.textMuted} />
+                    <Ionicons name="chevron-forward" size={18} color="rgba(255,255,255,0.5)" />
                   </Pressable>
                 );
               })()}
@@ -140,15 +140,15 @@ export default function DashboardScreen() {
                 for (let i = 0; i < yearsToRetirement; i++) extraBalance = (extraBalance + totalContrib) * (1 + growthRate);
                 const gain = extraBalance - baseBalance;
                 return (
-                  <Pressable onPress={() => router.push("/(tabs)/super")} style={styles.optiCard}>
-                    <View style={[styles.optiIcon, { backgroundColor: Colors.light.super + "15" }]}>
-                      <Ionicons name="trending-up-outline" size={20} color={Colors.light.super} />
+                  <Pressable onPress={() => router.push("/(tabs)/super")} style={({ pressed }) => [styles.optiCard, pressed && { opacity: 0.85 }]}>
+                    <View style={styles.optiIconCircle}>
+                      <Ionicons name="trending-up-outline" size={20} color="#fff" />
                     </View>
                     <View style={styles.optiInfo}>
                       <Text style={styles.optiLabel}>Super: +$200/mo sacrifice</Text>
-                      <Text style={[styles.optiValue, { color: Colors.light.super }]}>+{fmt(Math.round(gain))} at retirement</Text>
+                      <Text style={styles.optiValue}>+{fmt(Math.round(gain))} at retirement</Text>
                     </View>
-                    <Ionicons name="chevron-forward" size={18} color={Colors.light.textMuted} />
+                    <Ionicons name="chevron-forward" size={18} color="rgba(255,255,255,0.5)" />
                   </Pressable>
                 );
               })()}
@@ -157,19 +157,19 @@ export default function DashboardScreen() {
                 let invested = 0;
                 for (let i = 0; i < 10; i++) invested = (invested + annualSaving) * 1.07;
                 return (
-                  <Pressable onPress={() => router.push("/(tabs)/budget")} style={styles.optiCard}>
-                    <View style={[styles.optiIcon, { backgroundColor: Colors.light.budget + "15" }]}>
-                      <Ionicons name="wallet-outline" size={20} color={Colors.light.budget} />
+                  <Pressable onPress={() => router.push("/(tabs)/budget")} style={({ pressed }) => [styles.optiCard, pressed && { opacity: 0.85 }]}>
+                    <View style={styles.optiIconCircle}>
+                      <Ionicons name="wallet-outline" size={20} color="#fff" />
                     </View>
                     <View style={styles.optiInfo}>
                       <Text style={styles.optiLabel}>Budget: cut 10% spending</Text>
-                      <Text style={[styles.optiValue, { color: Colors.light.budget }]}>{fmt(Math.round(invested))} over 10 years</Text>
+                      <Text style={styles.optiValue}>{fmt(Math.round(invested))} over 10 years</Text>
                     </View>
-                    <Ionicons name="chevron-forward" size={18} color={Colors.light.textMuted} />
+                    <Ionicons name="chevron-forward" size={18} color="rgba(255,255,255,0.5)" />
                   </Pressable>
                 );
               })()}
-            </View>
+            </LinearGradient>
           )}
 
           <Text style={styles.sectionTitle}>Financial Snapshot</Text>
@@ -292,13 +292,14 @@ const styles = StyleSheet.create({
   body: { paddingHorizontal: 20, paddingTop: 24 },
   sectionTitle: { fontFamily: "DMSans_700Bold", fontSize: 18, color: Colors.light.text, marginBottom: 14 },
   section: { marginTop: 24 },
-  optiSection: { marginBottom: 24 },
-  optiHeader: { flexDirection: "row", alignItems: "center", gap: 8 },
-  optiCard: { flexDirection: "row", alignItems: "center", gap: 12, backgroundColor: Colors.light.card, borderRadius: 14, padding: 14, marginBottom: 8 },
-  optiIcon: { width: 40, height: 40, borderRadius: 12, alignItems: "center", justifyContent: "center" },
+  optiGradient: { borderRadius: 20, padding: 20, marginBottom: 24 },
+  optiGradientHeader: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 14 },
+  optiGradientTitle: { fontFamily: "DMSans_700Bold", fontSize: 18, color: "#fff" },
+  optiCard: { flexDirection: "row", alignItems: "center", gap: 12, backgroundColor: "rgba(255,255,255,0.12)", borderRadius: 14, padding: 14, marginBottom: 8 },
+  optiIconCircle: { width: 40, height: 40, borderRadius: 20, backgroundColor: "rgba(255,255,255,0.15)", alignItems: "center", justifyContent: "center" },
   optiInfo: { flex: 1 },
-  optiLabel: { fontFamily: "DMSans_500Medium", fontSize: 13, color: Colors.light.textSecondary },
-  optiValue: { fontFamily: "DMSans_700Bold", fontSize: 15, marginTop: 2 },
+  optiLabel: { fontFamily: "DMSans_500Medium", fontSize: 13, color: "rgba(255,255,255,0.7)" },
+  optiValue: { fontFamily: "DMSans_700Bold", fontSize: 15, color: "#fff", marginTop: 2 },
   pillarGrid: { flexDirection: "row", flexWrap: "wrap", gap: 12 },
   pillarCard: { width: "48%", backgroundColor: Colors.light.card, borderRadius: 16, padding: 16, flexGrow: 1, flexBasis: "45%" },
   pillarIcon: { width: 44, height: 44, borderRadius: 14, alignItems: "center", justifyContent: "center", marginBottom: 12 },

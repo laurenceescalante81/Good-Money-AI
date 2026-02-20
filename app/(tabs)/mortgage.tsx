@@ -2,6 +2,7 @@ import React from "react";
 import { StyleSheet, Text, View, ScrollView, Pressable, Platform, Alert } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import Colors from "@/constants/colors";
 import { useFinance } from "@/contexts/FinanceContext";
@@ -77,14 +78,6 @@ export default function MortgageScreen() {
           </View>
         </View>
 
-        <View style={styles.heroCard}>
-          <Text style={styles.heroLabel}>Monthly Repayment</Text>
-          <Text style={styles.heroAmount}>{fmtDec(calc.monthly)}</Text>
-          {mortgage.extraRepayment > 0 && (
-            <Text style={styles.heroExtra}>Includes {fmt(mortgage.extraRepayment)} extra</Text>
-          )}
-        </View>
-
         {(() => {
           const testExtras = [100, 250, 500, 1000];
           const rate = mortgage.interestRate / 100 / 12;
@@ -125,54 +118,54 @@ export default function MortgageScreen() {
           const bestScenario = calcSaving(500);
 
           return (
-            <View style={styles.valueSection}>
-              <View style={styles.valueTitleRow}>
-                <Ionicons name="sparkles" size={18} color={Colors.light.mortgage} />
-                <Text style={styles.valueTitle}>Optimise Your Mortgage</Text>
+            <LinearGradient colors={[Colors.light.mortgage, "#1a6b5a"]} style={styles.valueBanner}>
+              <View style={styles.valueBannerHeader}>
+                <Ionicons name="sparkles" size={20} color="#fff" />
+                <Text style={styles.valueBannerTitle}>Optimise Your Mortgage</Text>
               </View>
 
               {currentExtraSaving && mortgage.extraRepayment > 0 ? (
-                <View style={styles.valueCard}>
-                  <Text style={styles.valueCardLabel}>Your {fmt(mortgage.extraRepayment)}/mo extra repayment saves</Text>
-                  <View style={styles.valueBigRow}>
-                    <View style={styles.valueBigItem}>
-                      <Text style={styles.valueBigAmount}>{fmt(Math.round(currentExtraSaving.savedPerYear))}</Text>
-                      <Text style={styles.valueBigLabel}>per year</Text>
+                <>
+                  <Text style={styles.valueBannerSubtitle}>Your {fmt(mortgage.extraRepayment)}/mo extra repayment saves</Text>
+                  <View style={styles.valueBannerRow}>
+                    <View style={styles.valueBannerItem}>
+                      <Text style={styles.valueBannerBigNum}>{fmt(Math.round(currentExtraSaving.savedPerYear))}</Text>
+                      <Text style={styles.valueBannerSmall}>per year</Text>
                     </View>
-                    <View style={styles.valueDivider} />
-                    <View style={styles.valueBigItem}>
-                      <Text style={styles.valueBigAmount}>{fmt(Math.round(currentExtraSaving.saved10yr))}</Text>
-                      <Text style={styles.valueBigLabel}>over 10 years</Text>
+                    <View style={styles.valueBannerDivider} />
+                    <View style={styles.valueBannerItem}>
+                      <Text style={styles.valueBannerBigNum}>{fmt(Math.round(currentExtraSaving.saved10yr))}</Text>
+                      <Text style={styles.valueBannerSmall}>over 10 years</Text>
                     </View>
                   </View>
-                  <View style={styles.valueHighlight}>
-                    <Ionicons name="time-outline" size={16} color={Colors.light.income} />
-                    <Text style={styles.valueHighlightText}>
-                      Pay off {currentExtraSaving.yearsSaved.toFixed(1)} years early, saving {fmt(Math.round(currentExtraSaving.savedLife))} total interest
+                  <View style={styles.valueBannerPill}>
+                    <Ionicons name="time-outline" size={14} color="#fff" />
+                    <Text style={styles.valueBannerPillText}>
+                      Pay off {currentExtraSaving.yearsSaved.toFixed(1)} years early — {fmt(Math.round(currentExtraSaving.savedLife))} total saved
                     </Text>
                   </View>
-                </View>
+                </>
               ) : (
-                <View style={styles.valueCard}>
-                  <Text style={styles.valueCardLabel}>Adding $500/mo extra repayment could save</Text>
-                  <View style={styles.valueBigRow}>
-                    <View style={styles.valueBigItem}>
-                      <Text style={styles.valueBigAmount}>{fmt(Math.round(bestScenario.savedPerYear))}</Text>
-                      <Text style={styles.valueBigLabel}>per year</Text>
+                <>
+                  <Text style={styles.valueBannerSubtitle}>Adding $500/mo extra could save you</Text>
+                  <View style={styles.valueBannerRow}>
+                    <View style={styles.valueBannerItem}>
+                      <Text style={styles.valueBannerBigNum}>{fmt(Math.round(bestScenario.savedPerYear))}</Text>
+                      <Text style={styles.valueBannerSmall}>per year</Text>
                     </View>
-                    <View style={styles.valueDivider} />
-                    <View style={styles.valueBigItem}>
-                      <Text style={styles.valueBigAmount}>{fmt(Math.round(bestScenario.saved10yr))}</Text>
-                      <Text style={styles.valueBigLabel}>over 10 years</Text>
+                    <View style={styles.valueBannerDivider} />
+                    <View style={styles.valueBannerItem}>
+                      <Text style={styles.valueBannerBigNum}>{fmt(Math.round(bestScenario.saved10yr))}</Text>
+                      <Text style={styles.valueBannerSmall}>over 10 years</Text>
                     </View>
                   </View>
-                  <View style={styles.valueHighlight}>
-                    <Ionicons name="time-outline" size={16} color={Colors.light.income} />
-                    <Text style={styles.valueHighlightText}>
-                      {bestScenario.yearsSaved.toFixed(1)} years earlier payoff, {fmt(Math.round(bestScenario.savedLife))} less interest
+                  <View style={styles.valueBannerPill}>
+                    <Ionicons name="time-outline" size={14} color="#fff" />
+                    <Text style={styles.valueBannerPillText}>
+                      {bestScenario.yearsSaved.toFixed(1)} years earlier payoff — {fmt(Math.round(bestScenario.savedLife))} less interest
                     </Text>
                   </View>
-                </View>
+                </>
               )}
 
               <View style={styles.scenarioGrid}>
@@ -180,17 +173,25 @@ export default function MortgageScreen() {
                   const s = calcSaving(extra);
                   const isActive = mortgage.extraRepayment === extra;
                   return (
-                    <View key={extra} style={[styles.scenarioItem, isActive && { borderColor: Colors.light.mortgage, borderWidth: 1.5 }]}>
+                    <View key={extra} style={[styles.scenarioItem, isActive && styles.scenarioItemActive]}>
                       <Text style={styles.scenarioExtra}>+{fmt(extra)}/mo</Text>
-                      <Text style={[styles.scenarioSaved, { color: Colors.light.income }]}>{fmt(Math.round(s.savedLife))}</Text>
+                      <Text style={styles.scenarioSaved}>{fmt(Math.round(s.savedLife))}</Text>
                       <Text style={styles.scenarioYears}>{s.yearsSaved.toFixed(1)}yr faster</Text>
                     </View>
                   );
                 })}
               </View>
-            </View>
+            </LinearGradient>
           );
         })()}
+
+        <View style={styles.heroCard}>
+          <Text style={styles.heroLabel}>Monthly Repayment</Text>
+          <Text style={styles.heroAmount}>{fmtDec(calc.monthly)}</Text>
+          {mortgage.extraRepayment > 0 && (
+            <Text style={styles.heroExtra}>Includes {fmt(mortgage.extraRepayment)} extra</Text>
+          )}
+        </View>
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Loan Details</Text>
@@ -255,23 +256,23 @@ const styles = StyleSheet.create({
   lvrBarFill: { height: 8, borderRadius: 4 },
   savingBadge: { flexDirection: "row", alignItems: "center", gap: 8, backgroundColor: Colors.light.income + "10", borderRadius: 10, padding: 12, marginTop: 4 },
   savingText: { fontFamily: "DMSans_500Medium", fontSize: 13, color: Colors.light.income, flex: 1 },
-  valueSection: { paddingHorizontal: 20, marginTop: 20 },
-  valueTitleRow: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 12 },
-  valueTitle: { fontFamily: "DMSans_700Bold", fontSize: 16, color: Colors.light.text },
-  valueCard: { backgroundColor: Colors.light.card, borderRadius: 16, padding: 16, gap: 14 },
-  valueCardLabel: { fontFamily: "DMSans_500Medium", fontSize: 13, color: Colors.light.textSecondary },
-  valueBigRow: { flexDirection: "row", alignItems: "center" },
-  valueBigItem: { flex: 1, alignItems: "center" as const },
-  valueBigAmount: { fontFamily: "DMSans_700Bold", fontSize: 22, color: Colors.light.income },
-  valueBigLabel: { fontFamily: "DMSans_400Regular", fontSize: 11, color: Colors.light.textMuted, marginTop: 2 },
-  valueDivider: { width: 1, height: 36, backgroundColor: Colors.light.gray200, marginHorizontal: 8 },
-  valueHighlight: { flexDirection: "row", alignItems: "center", gap: 8, backgroundColor: Colors.light.income + "10", borderRadius: 10, padding: 12 },
-  valueHighlightText: { fontFamily: "DMSans_500Medium", fontSize: 12, color: Colors.light.income, flex: 1 },
-  scenarioGrid: { flexDirection: "row", flexWrap: "wrap" as const, gap: 8, marginTop: 12 },
-  scenarioItem: { flex: 1, minWidth: "22%" as any, backgroundColor: Colors.light.card, borderRadius: 12, padding: 10, alignItems: "center" as const },
-  scenarioExtra: { fontFamily: "DMSans_600SemiBold", fontSize: 11, color: Colors.light.textSecondary },
-  scenarioSaved: { fontFamily: "DMSans_700Bold", fontSize: 13, marginTop: 4 },
-  scenarioYears: { fontFamily: "DMSans_400Regular", fontSize: 10, color: Colors.light.textMuted, marginTop: 2 },
+  valueBanner: { marginHorizontal: 20, borderRadius: 20, padding: 20, marginBottom: 16 },
+  valueBannerHeader: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 8 },
+  valueBannerTitle: { fontFamily: "DMSans_700Bold", fontSize: 18, color: "#fff" },
+  valueBannerSubtitle: { fontFamily: "DMSans_500Medium", fontSize: 13, color: "rgba(255,255,255,0.75)", marginBottom: 12 },
+  valueBannerRow: { flexDirection: "row", alignItems: "center", marginBottom: 12 },
+  valueBannerItem: { flex: 1, alignItems: "center" as const },
+  valueBannerBigNum: { fontFamily: "DMSans_700Bold", fontSize: 26, color: "#fff" },
+  valueBannerSmall: { fontFamily: "DMSans_400Regular", fontSize: 11, color: "rgba(255,255,255,0.65)", marginTop: 2 },
+  valueBannerDivider: { width: 1, height: 40, backgroundColor: "rgba(255,255,255,0.2)", marginHorizontal: 8 },
+  valueBannerPill: { flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: "rgba(255,255,255,0.15)", borderRadius: 10, paddingVertical: 8, paddingHorizontal: 12, marginBottom: 14 },
+  valueBannerPillText: { fontFamily: "DMSans_500Medium", fontSize: 12, color: "#fff", flex: 1 },
+  scenarioGrid: { flexDirection: "row", flexWrap: "wrap" as const, gap: 8 },
+  scenarioItem: { flex: 1, minWidth: "22%" as any, backgroundColor: "rgba(255,255,255,0.12)", borderRadius: 12, padding: 10, alignItems: "center" as const, borderWidth: 1, borderColor: "transparent" },
+  scenarioItemActive: { borderColor: "#fff", backgroundColor: "rgba(255,255,255,0.2)" },
+  scenarioExtra: { fontFamily: "DMSans_600SemiBold", fontSize: 11, color: "rgba(255,255,255,0.7)" },
+  scenarioSaved: { fontFamily: "DMSans_700Bold", fontSize: 13, color: "#fff", marginTop: 4 },
+  scenarioYears: { fontFamily: "DMSans_400Regular", fontSize: 10, color: "rgba(255,255,255,0.6)", marginTop: 2 },
   emptyState: { flex: 1, alignItems: "center", justifyContent: "center", paddingHorizontal: 40, paddingTop: 60 },
   emptyIcon: { width: 100, height: 100, borderRadius: 30, alignItems: "center", justifyContent: "center", marginBottom: 20 },
   emptyText: { fontFamily: "DMSans_700Bold", fontSize: 20, color: Colors.light.text, marginBottom: 8 },

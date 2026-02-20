@@ -2,6 +2,7 @@ import React from "react";
 import { StyleSheet, Text, View, ScrollView, Pressable, Platform, Alert } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import Colors from "@/constants/colors";
 import { useFinance } from "@/contexts/FinanceContext";
@@ -75,12 +76,6 @@ export default function SuperScreen() {
           </View>
         </View>
 
-        <View style={styles.heroCard}>
-          <Text style={styles.heroLabel}>Current Balance</Text>
-          <Text style={styles.heroAmount}>{fmt(superDetails.balance)}</Text>
-          <Text style={styles.heroSub}>{superDetails.fund}</Text>
-        </View>
-
         {(() => {
           const currentAge = 30;
           const retirementAge = 67;
@@ -105,31 +100,30 @@ export default function SuperScreen() {
           const extraMonthlyIncome200 = (extra200 * 0.04) / 12;
 
           return (
-            <View style={styles.valueSection}>
-              <View style={styles.valueTitleRow}>
-                <Ionicons name="rocket-outline" size={18} color={Colors.light.super} />
-                <Text style={styles.valueTitle}>Grow Your Super</Text>
+            <LinearGradient colors={[Colors.light.super, "#1a3a6b"]} style={styles.valueBanner}>
+              <View style={styles.valueBannerHeader}>
+                <Ionicons name="rocket-outline" size={20} color="#fff" />
+                <Text style={styles.valueBannerTitle}>Grow Your Super</Text>
               </View>
 
-              <View style={styles.valueCard}>
-                <Text style={styles.valueCardLabel}>Adding $200/mo salary sacrifice could give you</Text>
-                <View style={styles.valueBigRow}>
-                  <View style={styles.valueBigItem}>
-                    <Text style={[styles.valueBigAmount, { color: Colors.light.super }]}>{fmt(Math.round(extra200))}</Text>
-                    <Text style={styles.valueBigLabel}>extra at retirement</Text>
-                  </View>
-                  <View style={styles.valueDivider} />
-                  <View style={styles.valueBigItem}>
-                    <Text style={[styles.valueBigAmount, { color: Colors.light.income }]}>+{fmt(Math.round(extraMonthlyIncome200))}</Text>
-                    <Text style={styles.valueBigLabel}>per month extra income</Text>
-                  </View>
+              <Text style={styles.valueBannerSubtitle}>Adding $200/mo salary sacrifice could give you</Text>
+              <View style={styles.valueBannerRow}>
+                <View style={styles.valueBannerItem}>
+                  <Text style={styles.valueBannerBigNum}>{fmt(Math.round(extra200))}</Text>
+                  <Text style={styles.valueBannerSmall}>extra at retirement</Text>
                 </View>
-                <View style={[styles.valueHighlight, { backgroundColor: Colors.light.super + "10" }]}>
-                  <Ionicons name="information-circle-outline" size={16} color={Colors.light.super} />
-                  <Text style={[styles.valueHighlightText, { color: Colors.light.super }]}>
-                    Pre-tax contributions are taxed at only 15% vs your marginal rate
-                  </Text>
+                <View style={styles.valueBannerDivider} />
+                <View style={styles.valueBannerItem}>
+                  <Text style={styles.valueBannerBigNum}>+{fmt(Math.round(extraMonthlyIncome200))}</Text>
+                  <Text style={styles.valueBannerSmall}>per month extra income</Text>
                 </View>
+              </View>
+
+              <View style={styles.valueBannerPill}>
+                <Ionicons name="information-circle-outline" size={14} color="#fff" />
+                <Text style={styles.valueBannerPillText}>
+                  Pre-tax contributions are taxed at only 15% vs your marginal rate
+                </Text>
               </View>
 
               <View style={styles.scenarioGrid}>
@@ -140,15 +134,21 @@ export default function SuperScreen() {
                   return (
                     <View key={extra} style={styles.scenarioItem}>
                       <Text style={styles.scenarioExtra}>+${extra}/mo</Text>
-                      <Text style={[styles.scenarioSaved, { color: Colors.light.super }]}>{fmt(Math.round(gain))}</Text>
+                      <Text style={styles.scenarioSaved}>{fmt(Math.round(gain))}</Text>
                       <Text style={styles.scenarioYears}>+{fmt(Math.round(monthlyGain))}/mo</Text>
                     </View>
                   );
                 })}
               </View>
-            </View>
+            </LinearGradient>
           );
         })()}
+
+        <View style={styles.heroCard}>
+          <Text style={styles.heroLabel}>Current Balance</Text>
+          <Text style={styles.heroAmount}>{fmt(superDetails.balance)}</Text>
+          <Text style={styles.heroSub}>{superDetails.fund}</Text>
+        </View>
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Contributions</Text>
@@ -227,23 +227,22 @@ const styles = StyleSheet.create({
   milestoneBarBg: { height: 10, backgroundColor: Colors.light.gray100, borderRadius: 5, overflow: "hidden" },
   milestoneBarFill: { height: 10, borderRadius: 5, backgroundColor: Colors.light.super },
   milestoneText: { fontFamily: "DMSans_400Regular", fontSize: 13, color: Colors.light.textMuted, marginTop: 8, textAlign: "right" },
-  valueSection: { paddingHorizontal: 20, marginTop: 20 },
-  valueTitleRow: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 12 },
-  valueTitle: { fontFamily: "DMSans_700Bold", fontSize: 16, color: Colors.light.text },
-  valueCard: { backgroundColor: Colors.light.card, borderRadius: 16, padding: 16, gap: 14 },
-  valueCardLabel: { fontFamily: "DMSans_500Medium", fontSize: 13, color: Colors.light.textSecondary },
-  valueBigRow: { flexDirection: "row", alignItems: "center" },
-  valueBigItem: { flex: 1, alignItems: "center" as const },
-  valueBigAmount: { fontFamily: "DMSans_700Bold", fontSize: 22, color: Colors.light.income },
-  valueBigLabel: { fontFamily: "DMSans_400Regular", fontSize: 11, color: Colors.light.textMuted, marginTop: 2 },
-  valueDivider: { width: 1, height: 36, backgroundColor: Colors.light.gray200, marginHorizontal: 8 },
-  valueHighlight: { flexDirection: "row", alignItems: "center", gap: 8, backgroundColor: Colors.light.income + "10", borderRadius: 10, padding: 12 },
-  valueHighlightText: { fontFamily: "DMSans_500Medium", fontSize: 12, color: Colors.light.income, flex: 1 },
-  scenarioGrid: { flexDirection: "row", flexWrap: "wrap" as const, gap: 8, marginTop: 12 },
-  scenarioItem: { flex: 1, minWidth: "22%" as any, backgroundColor: Colors.light.card, borderRadius: 12, padding: 10, alignItems: "center" as const },
-  scenarioExtra: { fontFamily: "DMSans_600SemiBold", fontSize: 11, color: Colors.light.textSecondary },
-  scenarioSaved: { fontFamily: "DMSans_700Bold", fontSize: 13, marginTop: 4 },
-  scenarioYears: { fontFamily: "DMSans_400Regular", fontSize: 10, color: Colors.light.textMuted, marginTop: 2 },
+  valueBanner: { marginHorizontal: 20, borderRadius: 20, padding: 20, marginBottom: 16 },
+  valueBannerHeader: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 8 },
+  valueBannerTitle: { fontFamily: "DMSans_700Bold", fontSize: 18, color: "#fff" },
+  valueBannerSubtitle: { fontFamily: "DMSans_500Medium", fontSize: 13, color: "rgba(255,255,255,0.75)", marginBottom: 12 },
+  valueBannerRow: { flexDirection: "row", alignItems: "center", marginBottom: 12 },
+  valueBannerItem: { flex: 1, alignItems: "center" as const },
+  valueBannerBigNum: { fontFamily: "DMSans_700Bold", fontSize: 26, color: "#fff" },
+  valueBannerSmall: { fontFamily: "DMSans_400Regular", fontSize: 11, color: "rgba(255,255,255,0.65)", marginTop: 2 },
+  valueBannerDivider: { width: 1, height: 40, backgroundColor: "rgba(255,255,255,0.2)", marginHorizontal: 8 },
+  valueBannerPill: { flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: "rgba(255,255,255,0.15)", borderRadius: 10, paddingVertical: 8, paddingHorizontal: 12, marginBottom: 14 },
+  valueBannerPillText: { fontFamily: "DMSans_500Medium", fontSize: 12, color: "#fff", flex: 1 },
+  scenarioGrid: { flexDirection: "row", flexWrap: "wrap" as const, gap: 8 },
+  scenarioItem: { flex: 1, minWidth: "22%" as any, backgroundColor: "rgba(255,255,255,0.12)", borderRadius: 12, padding: 10, alignItems: "center" as const },
+  scenarioExtra: { fontFamily: "DMSans_600SemiBold", fontSize: 11, color: "rgba(255,255,255,0.7)" },
+  scenarioSaved: { fontFamily: "DMSans_700Bold", fontSize: 13, color: "#fff", marginTop: 4 },
+  scenarioYears: { fontFamily: "DMSans_400Regular", fontSize: 10, color: "rgba(255,255,255,0.6)", marginTop: 2 },
   emptyState: { flex: 1, alignItems: "center", justifyContent: "center", paddingHorizontal: 40, paddingTop: 60 },
   emptyIcon: { width: 100, height: 100, borderRadius: 30, alignItems: "center", justifyContent: "center", marginBottom: 20 },
   emptyText: { fontFamily: "DMSans_700Bold", fontSize: 20, color: Colors.light.text, marginBottom: 8 },

@@ -2,6 +2,7 @@ import React, { useState, useMemo } from "react";
 import { StyleSheet, Text, View, FlatList, Pressable, Platform, Alert, Modal, TextInput } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import * as Haptics from "expo-haptics";
 import Colors from "@/constants/colors";
@@ -107,6 +108,61 @@ export default function BudgetScreen() {
               </Pressable>
             </View>
 
+            {expenses > 0 && (() => {
+              const topCat = sortedCats.length > 0 ? sortedCats[0] : null;
+              const savingsRate = income > 0 ? ((income - expenses) / income) * 100 : 0;
+              const monthlySpareIfCut10 = expenses * 0.1;
+              const annualSaving10 = monthlySpareIfCut10 * 12;
+              const investedGrowth = (() => {
+                let bal = 0;
+                for (let i = 0; i < 10; i++) {
+                  bal = (bal + annualSaving10) * 1.07;
+                }
+                return bal;
+              })();
+
+              return (
+                <LinearGradient colors={[Colors.light.budget, "#1a4a6b"]} style={styles.valueBanner}>
+                  <View style={styles.valueBannerHeader}>
+                    <Ionicons name="trending-down-outline" size={20} color="#fff" />
+                    <Text style={styles.valueBannerTitle}>Your Savings Potential</Text>
+                  </View>
+
+                  <Text style={styles.valueBannerSubtitle}>Cutting spending by just 10% would save</Text>
+                  <View style={styles.valueBannerRow}>
+                    <View style={styles.valueBannerItem}>
+                      <Text style={styles.valueBannerBigNum}>{fmt(Math.round(annualSaving10))}</Text>
+                      <Text style={styles.valueBannerSmall}>per year</Text>
+                    </View>
+                    <View style={styles.valueBannerDivider} />
+                    <View style={styles.valueBannerItem}>
+                      <Text style={styles.valueBannerBigNum}>{fmt(Math.round(investedGrowth))}</Text>
+                      <Text style={styles.valueBannerSmall}>over 10yrs invested</Text>
+                    </View>
+                  </View>
+
+                  {topCat && (
+                    <View style={styles.valueBannerPill}>
+                      <Ionicons name="bulb-outline" size={14} color="#fff" />
+                      <Text style={styles.valueBannerPillText}>
+                        Top spend: {topCat[0]} at {fmt(topCat[1])}/mo ({income > 0 ? Math.round((topCat[1] / income) * 100) : 0}% of income)
+                      </Text>
+                    </View>
+                  )}
+
+                  <View style={styles.savingsRateRow}>
+                    <Text style={styles.savingsRateLabel}>Savings Rate</Text>
+                    <View style={styles.savingsRateBarBg}>
+                      <View style={[styles.savingsRateBarFill, { width: `${Math.min(Math.max(savingsRate, 0), 100)}%`, backgroundColor: savingsRate >= 20 ? "#4ade80" : savingsRate >= 10 ? "#fbbf24" : "#f87171" }]} />
+                    </View>
+                    <Text style={styles.savingsRatePct}>
+                      {Math.round(savingsRate)}%
+                    </Text>
+                  </View>
+                </LinearGradient>
+              );
+            })()}
+
             <View style={styles.summaryRow}>
               <View style={[styles.summaryCard, { backgroundColor: Colors.light.income + "10" }]}>
                 <Text style={styles.summaryLabel}>Income</Text>
@@ -117,67 +173,6 @@ export default function BudgetScreen() {
                 <Text style={[styles.summaryVal, { color: Colors.light.expense }]}>{fmt(expenses)}</Text>
               </View>
             </View>
-
-            {expenses > 0 && (
-              <View style={styles.valueSection}>
-                <View style={styles.valueTitleRow}>
-                  <Ionicons name="trending-down-outline" size={18} color={Colors.light.budget} />
-                  <Text style={styles.valueTitle}>Your Savings Potential</Text>
-                </View>
-                <View style={styles.valueCard}>
-                  {(() => {
-                    const topCat = sortedCats.length > 0 ? sortedCats[0] : null;
-                    const savingsRate = income > 0 ? ((income - expenses) / income) * 100 : 0;
-                    const monthlySpareIfCut10 = expenses * 0.1;
-                    const annualSaving10 = monthlySpareIfCut10 * 12;
-                    const decade10 = annualSaving10 * 10;
-                    const investedGrowth = (() => {
-                      let bal = 0;
-                      for (let i = 0; i < 10; i++) {
-                        bal = (bal + annualSaving10) * 1.07;
-                      }
-                      return bal;
-                    })();
-
-                    return (
-                      <>
-                        <Text style={styles.valueCardLabel}>
-                          Cutting spending by just 10% would save
-                        </Text>
-                        <View style={styles.valueBigRow}>
-                          <View style={styles.valueBigItem}>
-                            <Text style={[styles.valueBigAmount, { color: Colors.light.income }]}>{fmt(Math.round(annualSaving10))}</Text>
-                            <Text style={styles.valueBigLabel}>per year</Text>
-                          </View>
-                          <View style={styles.valueDivider} />
-                          <View style={styles.valueBigItem}>
-                            <Text style={[styles.valueBigAmount, { color: Colors.light.budget }]}>{fmt(Math.round(investedGrowth))}</Text>
-                            <Text style={styles.valueBigLabel}>over 10yrs invested</Text>
-                          </View>
-                        </View>
-                        {topCat && (
-                          <View style={[styles.valueHighlight, { backgroundColor: Colors.light.budget + "10" }]}>
-                            <Ionicons name="bulb-outline" size={16} color={Colors.light.budget} />
-                            <Text style={[styles.valueHighlightText, { color: Colors.light.budget }]}>
-                              Top spend: {topCat[0]} at {fmt(topCat[1])}/mo ({income > 0 ? Math.round((topCat[1] / income) * 100) : 0}% of income)
-                            </Text>
-                          </View>
-                        )}
-                        <View style={styles.savingsRateRow}>
-                          <Text style={styles.savingsRateLabel}>Savings Rate</Text>
-                          <View style={styles.savingsRateBarBg}>
-                            <View style={[styles.savingsRateBarFill, { width: `${Math.min(Math.max(savingsRate, 0), 100)}%`, backgroundColor: savingsRate >= 20 ? Colors.light.income : savingsRate >= 10 ? Colors.light.insurance : Colors.light.expense }]} />
-                          </View>
-                          <Text style={[styles.savingsRatePct, { color: savingsRate >= 20 ? Colors.light.income : savingsRate >= 10 ? Colors.light.insurance : Colors.light.expense }]}>
-                            {Math.round(savingsRate)}%
-                          </Text>
-                        </View>
-                      </>
-                    );
-                  })()}
-                </View>
-              </View>
-            )}
 
             {sortedCats.length > 0 && (
               <View style={styles.catSection}>
@@ -350,23 +345,22 @@ const styles = StyleSheet.create({
   txAmount: { fontFamily: "DMSans_600SemiBold", fontSize: 14 },
   txDate: { fontFamily: "DMSans_400Regular", fontSize: 11, color: Colors.light.textMuted, marginTop: 2 },
   separator: { height: 1, backgroundColor: Colors.light.gray100, marginLeft: 72 },
-  valueSection: { paddingHorizontal: 20, marginBottom: 20 },
-  valueTitleRow: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 12 },
-  valueTitle: { fontFamily: "DMSans_700Bold", fontSize: 16, color: Colors.light.text },
-  valueCard: { backgroundColor: Colors.light.card, borderRadius: 16, padding: 16, gap: 14 },
-  valueCardLabel: { fontFamily: "DMSans_500Medium", fontSize: 13, color: Colors.light.textSecondary },
-  valueBigRow: { flexDirection: "row", alignItems: "center" },
-  valueBigItem: { flex: 1, alignItems: "center" as const },
-  valueBigAmount: { fontFamily: "DMSans_700Bold", fontSize: 22, color: Colors.light.income },
-  valueBigLabel: { fontFamily: "DMSans_400Regular", fontSize: 11, color: Colors.light.textMuted, marginTop: 2 },
-  valueDivider: { width: 1, height: 36, backgroundColor: Colors.light.gray200, marginHorizontal: 8 },
-  valueHighlight: { flexDirection: "row", alignItems: "center", gap: 8, backgroundColor: Colors.light.income + "10", borderRadius: 10, padding: 12 },
-  valueHighlightText: { fontFamily: "DMSans_500Medium", fontSize: 12, color: Colors.light.income, flex: 1 },
+  valueBanner: { marginHorizontal: 20, borderRadius: 20, padding: 20, marginBottom: 16 },
+  valueBannerHeader: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 8 },
+  valueBannerTitle: { fontFamily: "DMSans_700Bold", fontSize: 18, color: "#fff" },
+  valueBannerSubtitle: { fontFamily: "DMSans_500Medium", fontSize: 13, color: "rgba(255,255,255,0.75)", marginBottom: 12 },
+  valueBannerRow: { flexDirection: "row", alignItems: "center", marginBottom: 12 },
+  valueBannerItem: { flex: 1, alignItems: "center" as const },
+  valueBannerBigNum: { fontFamily: "DMSans_700Bold", fontSize: 26, color: "#fff" },
+  valueBannerSmall: { fontFamily: "DMSans_400Regular", fontSize: 11, color: "rgba(255,255,255,0.65)", marginTop: 2 },
+  valueBannerDivider: { width: 1, height: 40, backgroundColor: "rgba(255,255,255,0.2)", marginHorizontal: 8 },
+  valueBannerPill: { flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: "rgba(255,255,255,0.15)", borderRadius: 10, paddingVertical: 8, paddingHorizontal: 12, marginBottom: 14 },
+  valueBannerPillText: { fontFamily: "DMSans_500Medium", fontSize: 12, color: "#fff", flex: 1 },
   savingsRateRow: { flexDirection: "row", alignItems: "center", gap: 10 },
-  savingsRateLabel: { fontFamily: "DMSans_500Medium", fontSize: 12, color: Colors.light.textSecondary },
-  savingsRateBarBg: { flex: 1, height: 8, backgroundColor: Colors.light.gray100, borderRadius: 4, overflow: "hidden" as const },
+  savingsRateLabel: { fontFamily: "DMSans_500Medium", fontSize: 12, color: "rgba(255,255,255,0.7)" },
+  savingsRateBarBg: { flex: 1, height: 8, backgroundColor: "rgba(255,255,255,0.15)", borderRadius: 4, overflow: "hidden" as const },
   savingsRateBarFill: { height: 8, borderRadius: 4 },
-  savingsRatePct: { fontFamily: "DMSans_700Bold", fontSize: 14 },
+  savingsRatePct: { fontFamily: "DMSans_700Bold", fontSize: 14, color: "#fff" },
   emptyTx: { alignItems: "center", paddingVertical: 40 },
   emptyTxText: { fontFamily: "DMSans_600SemiBold", fontSize: 15, color: Colors.light.textSecondary, marginTop: 12 },
   emptyTxSub: { fontFamily: "DMSans_400Regular", fontSize: 12, color: Colors.light.textMuted, marginTop: 4 },
