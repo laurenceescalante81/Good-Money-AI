@@ -7,6 +7,7 @@ import { KeyboardProvider } from "react-native-keyboard-controller";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { queryClient } from "@/lib/query-client";
 import { FinanceProvider } from "@/contexts/FinanceContext";
+import { RewardsProvider } from "@/contexts/RewardsContext";
 import { useFonts, DMSans_400Regular, DMSans_500Medium, DMSans_600SemiBold, DMSans_700Bold } from "@expo-google-fonts/dm-sans";
 
 SplashScreen.preventAutoHideAsync();
@@ -47,7 +48,9 @@ export default function RootLayout() {
         <GestureHandlerRootView>
           <KeyboardProvider>
             <FinanceProvider>
-              <RootLayoutNav />
+              <RewardsProvider>
+                <RootLayoutNav />
+              </RewardsProvider>
             </FinanceProvider>
           </KeyboardProvider>
         </GestureHandlerRootView>
