@@ -86,46 +86,6 @@ export default function MortgageScreen() {
           )}
         </View>
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Loan Details</Text>
-          <View style={styles.card}>
-            <StatRow label="Lender" value={mortgage.lender || "Not specified"} />
-            <StatRow label="Loan Amount" value={fmt(mortgage.loanAmount)} />
-            <StatRow label="Interest Rate" value={`${mortgage.interestRate}% p.a.`} />
-            <StatRow label="Loan Term" value={`${mortgage.loanTermYears} years`} />
-            <StatRow label="Type" value={mortgage.repaymentType === "principal_interest" ? "P&I" : "Interest Only"} />
-            <StatRow label="Years Remaining" value={`${calc.yearsRemaining.toFixed(1)} years`} />
-          </View>
-        </View>
-
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Property & Equity</Text>
-          <View style={styles.card}>
-            <StatRow label="Property Value" value={fmt(mortgage.propertyValue)} />
-            <StatRow label="Equity" value={fmt(equity)} color={equity >= 0 ? Colors.light.income : Colors.light.expense} />
-            <StatRow label="LVR" value={`${lvr.toFixed(1)}%`} color={lvr > 80 ? Colors.light.expense : Colors.light.income} />
-            <View style={styles.lvrBarBg}>
-              <View style={[styles.lvrBarFill, { width: `${Math.min(lvr, 100)}%`, backgroundColor: lvr > 80 ? Colors.light.expense : Colors.light.mortgage }]} />
-            </View>
-          </View>
-        </View>
-
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Interest Breakdown</Text>
-          <View style={styles.card}>
-            <StatRow label="Total Interest (life of loan)" value={fmt(Math.max(0, calc.totalInterest))} color={Colors.light.expense} />
-            <StatRow label="Total Repayment" value={fmt(calc.totalPayment)} />
-            {mortgage.extraRepayment > 0 && (
-              <View style={styles.savingBadge}>
-                <Ionicons name="sparkles" size={16} color={Colors.light.income} />
-                <Text style={styles.savingText}>
-                  Extra repayments could save you {fmt(Math.round(extraSaving))} in interest
-                </Text>
-              </View>
-            )}
-          </View>
-        </View>
-
         {(() => {
           const testExtras = [100, 250, 500, 1000];
           const rate = mortgage.interestRate / 100 / 12;
@@ -232,6 +192,47 @@ export default function MortgageScreen() {
             </LinearGradient>
           );
         })()}
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Loan Details</Text>
+          <View style={styles.card}>
+            <StatRow label="Lender" value={mortgage.lender || "Not specified"} />
+            <StatRow label="Loan Amount" value={fmt(mortgage.loanAmount)} />
+            <StatRow label="Interest Rate" value={`${mortgage.interestRate}% p.a.`} />
+            <StatRow label="Loan Term" value={`${mortgage.loanTermYears} years`} />
+            <StatRow label="Type" value={mortgage.repaymentType === "principal_interest" ? "P&I" : "Interest Only"} />
+            <StatRow label="Years Remaining" value={`${calc.yearsRemaining.toFixed(1)} years`} />
+          </View>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Property & Equity</Text>
+          <View style={styles.card}>
+            <StatRow label="Property Value" value={fmt(mortgage.propertyValue)} />
+            <StatRow label="Equity" value={fmt(equity)} color={equity >= 0 ? Colors.light.income : Colors.light.expense} />
+            <StatRow label="LVR" value={`${lvr.toFixed(1)}%`} color={lvr > 80 ? Colors.light.expense : Colors.light.income} />
+            <View style={styles.lvrBarBg}>
+              <View style={[styles.lvrBarFill, { width: `${Math.min(lvr, 100)}%`, backgroundColor: lvr > 80 ? Colors.light.expense : Colors.light.mortgage }]} />
+            </View>
+          </View>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Interest Breakdown</Text>
+          <View style={styles.card}>
+            <StatRow label="Total Interest (life of loan)" value={fmt(Math.max(0, calc.totalInterest))} color={Colors.light.expense} />
+            <StatRow label="Total Repayment" value={fmt(calc.totalPayment)} />
+            {mortgage.extraRepayment > 0 && (
+              <View style={styles.savingBadge}>
+                <Ionicons name="sparkles" size={16} color={Colors.light.income} />
+                <Text style={styles.savingText}>
+                  Extra repayments could save you {fmt(Math.round(extraSaving))} in interest
+                </Text>
+              </View>
+            )}
+          </View>
+        </View>
+
       </ScrollView>
     </View>
   );

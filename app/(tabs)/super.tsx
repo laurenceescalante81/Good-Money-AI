@@ -82,56 +82,6 @@ export default function SuperScreen() {
           <Text style={styles.heroSub}>{superDetails.fund}</Text>
         </View>
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Contributions</Text>
-          <View style={styles.card}>
-            <StatRow label="Salary" value={fmt(superDetails.salary) + "/yr"} />
-            <StatRow label="Employer Rate (SG)" value={`${superDetails.employerRate}%`} />
-            <StatRow label="Annual Contribution" value={fmt(Math.round(annualContrib))} color={Colors.light.super} />
-            <StatRow label="Monthly Contribution" value={fmt(Math.round(monthlyContrib))} />
-          </View>
-        </View>
-
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Retirement Projection</Text>
-          <View style={styles.card}>
-            <StatRow label="Projected at 67" value={fmt(Math.round(proj.atRetirement))} color={Colors.light.super} />
-            <StatRow label="Years to Retirement" value={`${proj.yearsToRetirement} years`} />
-            <StatRow label="Monthly Income (est.)" value={fmt(Math.round(proj.monthlyInRetirement))} color={Colors.light.income} />
-            <View style={styles.projNote}>
-              <Ionicons name="information-circle-outline" size={14} color={Colors.light.textMuted} />
-              <Text style={styles.projNoteText}>Based on 7% annual growth and 4% drawdown rate</Text>
-            </View>
-          </View>
-        </View>
-
-        {nextMilestone && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Next Milestone</Text>
-            <View style={styles.milestoneCard}>
-              <View style={styles.milestoneHeader}>
-                <Ionicons name="flag" size={20} color={Colors.light.super} />
-                <Text style={styles.milestoneLabel}>{nextMilestone.label}</Text>
-              </View>
-              <View style={styles.milestoneBarBg}>
-                <View style={[styles.milestoneBarFill, { width: `${Math.min(milestoneProgress, 100)}%` }]} />
-              </View>
-              <Text style={styles.milestoneText}>
-                {fmt(nextMilestone.amount - superDetails.balance)} to go
-              </Text>
-            </View>
-          </View>
-        )}
-
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Fund Details</Text>
-          <View style={styles.card}>
-            <StatRow label="Fund" value={superDetails.fund} />
-            <StatRow label="Investment Option" value={superDetails.investmentOption} />
-            <StatRow label="Last Updated" value={new Date(superDetails.lastUpdated).toLocaleDateString("en-AU")} />
-          </View>
-        </View>
-
         {(() => {
           const currentAge = 30;
           const retirementAge = 67;
@@ -199,6 +149,57 @@ export default function SuperScreen() {
             </LinearGradient>
           );
         })()}
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Contributions</Text>
+          <View style={styles.card}>
+            <StatRow label="Salary" value={fmt(superDetails.salary) + "/yr"} />
+            <StatRow label="Employer Rate (SG)" value={`${superDetails.employerRate}%`} />
+            <StatRow label="Annual Contribution" value={fmt(Math.round(annualContrib))} color={Colors.light.super} />
+            <StatRow label="Monthly Contribution" value={fmt(Math.round(monthlyContrib))} />
+          </View>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Retirement Projection</Text>
+          <View style={styles.card}>
+            <StatRow label="Projected at 67" value={fmt(Math.round(proj.atRetirement))} color={Colors.light.super} />
+            <StatRow label="Years to Retirement" value={`${proj.yearsToRetirement} years`} />
+            <StatRow label="Monthly Income (est.)" value={fmt(Math.round(proj.monthlyInRetirement))} color={Colors.light.income} />
+            <View style={styles.projNote}>
+              <Ionicons name="information-circle-outline" size={14} color={Colors.light.textMuted} />
+              <Text style={styles.projNoteText}>Based on 7% annual growth and 4% drawdown rate</Text>
+            </View>
+          </View>
+        </View>
+
+        {nextMilestone && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Next Milestone</Text>
+            <View style={styles.milestoneCard}>
+              <View style={styles.milestoneHeader}>
+                <Ionicons name="flag" size={20} color={Colors.light.super} />
+                <Text style={styles.milestoneLabel}>{nextMilestone.label}</Text>
+              </View>
+              <View style={styles.milestoneBarBg}>
+                <View style={[styles.milestoneBarFill, { width: `${Math.min(milestoneProgress, 100)}%` }]} />
+              </View>
+              <Text style={styles.milestoneText}>
+                {fmt(nextMilestone.amount - superDetails.balance)} to go
+              </Text>
+            </View>
+          </View>
+        )}
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Fund Details</Text>
+          <View style={styles.card}>
+            <StatRow label="Fund" value={superDetails.fund} />
+            <StatRow label="Investment Option" value={superDetails.investmentOption} />
+            <StatRow label="Last Updated" value={new Date(superDetails.lastUpdated).toLocaleDateString("en-AU")} />
+          </View>
+        </View>
+
       </ScrollView>
     </View>
   );
