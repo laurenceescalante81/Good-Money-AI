@@ -1,17 +1,17 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, Pressable, Alert, Platform, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Pressable, Alert, Platform, Dimensions, TextInput } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import Animated, { useSharedValue, useAnimatedStyle, withTiming, withSpring, withSequence, Easing, runOnJS } from 'react-native-reanimated';
-import { useRewards, Mission } from '@/contexts/RewardsContext';
+import { useRewards, Mission, TokenTransaction } from '@/contexts/RewardsContext';
 import Colors from '@/constants/colors';
 
 const { width: SCREEN_W } = Dimensions.get('window');
 const fmt = (n: number) => '$' + n.toLocaleString('en-AU', { maximumFractionDigits: 0 });
 
-type TabKey = 'hub' | 'missions' | 'badges' | 'redeem';
+type TabKey = 'hub' | 'missions' | 'badges' | 'redeem' | 'wallet';
 
 function SpinWheel() {
   const { canSpin, spinWheel, spinResetTime } = useRewards();
@@ -224,9 +224,10 @@ function BadgeItem({ badge }: { badge: { id: string; title: string; description:
 export default function RewardsScreen() {
   const insets = useSafeAreaInsets();
   const topInset = Platform.OS === 'web' ? 67 : insets.top;
-  const { state, missions, badges, rewards, checkIn, redeemReward, canSpin, canScratch, is2xWeekend, xpForLevel } = useRewards();
+  const { state, missions, badges, rewards, checkIn, redeemReward, convertPointsToTokens, canSpin, canScratch, is2xWeekend, xpForLevel, TOKEN_RATE } = useRewards();
   const [activeTab, setActiveTab] = useState<TabKey>('hub');
   const [checkedIn, setCheckedIn] = useState(false);
+  const [convertAmount, setConvertAmount] = useState('');
 
   useEffect(() => {
     const earned = checkIn();
@@ -261,8 +262,32 @@ export default function RewardsScreen() {
     ]);
   };
 
+  const handleConvert = () => {
+    const pts = parseInt(convertAmount);
+    if (isNaN(pts) || pts < TOKEN_RATE) {
+      Alert.alert('Minimum Conversion', `You need at least ${TOKEN_RATE} points to convert to 1 ppAUD token.`);
+      return;
+    }
+    if (pts > state.points) {
+      Alert.alert('Not Enough Points', `You only have ${state.points.toLocaleString()} points available.`);
+      return;
+    }
+    const tokens = Math.floor(pts / TOKEN_RATE);
+    Alert.alert('Convert to ppAUD', `Convert ${tokens * TOKEN_RATE} points into ${tokens} ppAUD tokens?`, [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Convert', onPress: () => {
+        const ok = convertPointsToTokens(pts);
+        if (ok) {
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+          setConvertAmount('');
+        }
+      }},
+    ]);
+  };
+
   const tabs: { key: TabKey; label: string }[] = [
     { key: 'hub', label: 'Hub' },
+    { key: 'wallet', label: 'Wallet' },
     { key: 'missions', label: 'Missions' },
     { key: 'badges', label: 'Badges' },
     { key: 'redeem', label: 'Redeem' },
@@ -289,6 +314,14 @@ export default function RewardsScreen() {
                   <Text style={s.pointsLabel}>PP POINTS</Text>
                   <Text style={s.pointsBig}>{state.points.toLocaleString()}<Text style={s.pointsSuffix}> pts</Text></Text>
                   <Text style={s.pointsCash}>{'\u2248'} ${cashValue} cash value</Text>
+                  {(state.tokenBalance ?? 0) > 0 && (
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 4 }}>
+                      <View style={{ width: 14, height: 14, borderRadius: 7, backgroundColor: '#D4AF37', alignItems: 'center', justifyContent: 'center' }}>
+                        <Text style={{ fontSize: 7, fontFamily: 'DMSans_700Bold' as const, color: '#0C1B2A' }}>pp</Text>
+                      </View>
+                      <Text style={{ fontSize: 12, fontFamily: 'DMSans_600SemiBold' as const, color: '#D4AF37' }}>{(state.tokenBalance ?? 0).toFixed(2)} ppAUD</Text>
+                    </View>
+                  )}
                 </View>
                 <View style={s.levelBadge}>
                   <Text style={s.levelBadgeLabel}>LEVEL</Text>
@@ -441,6 +474,145 @@ export default function RewardsScreen() {
               <View style={s.badgesGrid}>
                 {badges.map(b => <BadgeItem key={b.id} badge={b} />)}
               </View>
+            </>
+          )}
+
+          {activeTab === 'wallet' && (
+            <>
+              <View style={s.walletCard}>
+                <LinearGradient colors={['#1a2942', '#0f1c30']} style={s.walletCardInner}>
+                  <View style={s.walletHeaderRow}>
+                    <View style={s.walletLogoWrap}>
+                      <LinearGradient colors={['#D4AF37', '#F5D060']} style={s.walletLogo}>
+                        <Text style={s.walletLogoText}>pp</Text>
+                      </LinearGradient>
+                    </View>
+                    <View style={s.walletTokenInfo}>
+                      <Text style={s.walletTokenName}>ppAUD</Text>
+                      <Text style={s.walletTokenSub}>PocketPlan AUD Stablecoin</Text>
+                    </View>
+                    <View style={s.walletPegBadge}>
+                      <Text style={s.walletPegText}>1:1 AUD</Text>
+                    </View>
+                  </View>
+
+                  <Text style={s.walletBalanceLabel}>Token Balance</Text>
+                  <Text style={s.walletBalanceBig}>{(state.tokenBalance ?? 0).toLocaleString('en-AU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}<Text style={s.walletBalanceCurrency}> ppAUD</Text></Text>
+                  <Text style={s.walletBalanceAud}>{'\u2248'} ${(state.tokenBalance ?? 0).toLocaleString('en-AU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} AUD</Text>
+
+                  <View style={s.walletStatsRow}>
+                    <View style={s.walletStatItem}>
+                      <Text style={s.walletStatLabel}>Total Earned</Text>
+                      <Text style={s.walletStatValue}>{(state.totalTokensEarned ?? 0).toFixed(2)}</Text>
+                    </View>
+                    <View style={s.walletStatDivider} />
+                    <View style={s.walletStatItem}>
+                      <Text style={s.walletStatLabel}>Rate</Text>
+                      <Text style={s.walletStatValue}>{TOKEN_RATE} pts = 1</Text>
+                    </View>
+                    <View style={s.walletStatDivider} />
+                    <View style={s.walletStatItem}>
+                      <Text style={s.walletStatLabel}>Available Pts</Text>
+                      <Text style={s.walletStatValue}>{state.points.toLocaleString()}</Text>
+                    </View>
+                  </View>
+                </LinearGradient>
+              </View>
+
+              <View style={s.convertSection}>
+                <Text style={s.convertTitle}>Convert Points to ppAUD</Text>
+                <Text style={s.convertDesc}>{TOKEN_RATE} points = 1.00 ppAUD (pegged 1:1 to AUD)</Text>
+
+                <View style={s.convertInputRow}>
+                  <View style={s.convertInputWrap}>
+                    <TextInput
+                      style={s.convertInput}
+                      placeholder="Enter points"
+                      placeholderTextColor={Colors.light.gray500}
+                      keyboardType="number-pad"
+                      value={convertAmount}
+                      onChangeText={setConvertAmount}
+                    />
+                    <Text style={s.convertInputSuffix}>pts</Text>
+                  </View>
+                  <Ionicons name="arrow-forward" size={20} color={Colors.light.gray400} />
+                  <View style={s.convertOutputWrap}>
+                    <Text style={s.convertOutputValue}>
+                      {convertAmount && !isNaN(parseInt(convertAmount)) ? (Math.floor(parseInt(convertAmount) / TOKEN_RATE)).toFixed(2) : '0.00'}
+                    </Text>
+                    <Text style={s.convertOutputSuffix}>ppAUD</Text>
+                  </View>
+                </View>
+
+                <View style={s.convertQuickRow}>
+                  {[100, 500, 1000, 'Max'].map((val, i) => (
+                    <Pressable
+                      key={i}
+                      onPress={() => setConvertAmount(val === 'Max' ? String(state.points) : String(val))}
+                      style={s.convertQuickBtn}
+                    >
+                      <Text style={s.convertQuickText}>{val === 'Max' ? 'MAX' : val}</Text>
+                    </Pressable>
+                  ))}
+                </View>
+
+                <Pressable
+                  onPress={handleConvert}
+                  style={({ pressed }) => [s.convertBtn, pressed && { opacity: 0.85 }]}
+                >
+                  <Ionicons name="swap-horizontal" size={18} color="#fff" />
+                  <Text style={s.convertBtnText}>Convert to ppAUD</Text>
+                </Pressable>
+              </View>
+
+              <View style={s.tokenInfoSection}>
+                <Text style={s.tokenInfoTitle}>About ppAUD</Text>
+                <View style={s.tokenInfoRow}>
+                  <View style={[s.tokenInfoIcon, { backgroundColor: '#D4AF3720' }]}>
+                    <Ionicons name="shield-checkmark-outline" size={18} color="#D4AF37" />
+                  </View>
+                  <View style={s.tokenInfoContent}>
+                    <Text style={s.tokenInfoLabel}>AUD Stablecoin</Text>
+                    <Text style={s.tokenInfoDesc}>Pegged 1:1 to the Australian Dollar. Your tokens hold stable value.</Text>
+                  </View>
+                </View>
+                <View style={s.tokenInfoRow}>
+                  <View style={[s.tokenInfoIcon, { backgroundColor: '#6366F120' }]}>
+                    <Ionicons name="swap-horizontal-outline" size={18} color="#6366F1" />
+                  </View>
+                  <View style={s.tokenInfoContent}>
+                    <Text style={s.tokenInfoLabel}>Instant Conversion</Text>
+                    <Text style={s.tokenInfoDesc}>Convert your earned points to ppAUD tokens instantly at {TOKEN_RATE} pts per token.</Text>
+                  </View>
+                </View>
+                <View style={s.tokenInfoRow}>
+                  <View style={[s.tokenInfoIcon, { backgroundColor: '#10B98120' }]}>
+                    <Ionicons name="gift-outline" size={18} color="#10B981" />
+                  </View>
+                  <View style={s.tokenInfoContent}>
+                    <Text style={s.tokenInfoLabel}>Redeem for Rewards</Text>
+                    <Text style={s.tokenInfoDesc}>Use ppAUD tokens towards cashback, gift cards, and premium benefits.</Text>
+                  </View>
+                </View>
+              </View>
+
+              {(state.tokenTransactions ?? []).length > 0 && (
+                <View style={s.txnSection}>
+                  <Text style={s.txnTitle}>Transaction History</Text>
+                  {(state.tokenTransactions ?? []).slice(0, 10).map((txn) => (
+                    <View key={txn.id} style={s.txnRow}>
+                      <View style={s.txnIconWrap}>
+                        <Ionicons name={txn.type === 'convert' ? 'swap-horizontal' : txn.type === 'reward' ? 'gift' : 'flash'} size={16} color="#D4AF37" />
+                      </View>
+                      <View style={s.txnInfo}>
+                        <Text style={s.txnDesc}>{txn.description}</Text>
+                        <Text style={s.txnDate}>{new Date(txn.date).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</Text>
+                      </View>
+                      <Text style={s.txnAmount}>+{txn.amount.toFixed(2)}</Text>
+                    </View>
+                  ))}
+                </View>
+              )}
             </>
           )}
 
@@ -638,4 +810,58 @@ const s = StyleSheet.create({
   earnIcon: { width: 40, height: 40, borderRadius: 10, alignItems: 'center', justifyContent: 'center', marginRight: 12 },
   earnLabel: { fontSize: 14, fontFamily: 'DMSans_600SemiBold', color: '#fff', flex: 1 },
   earnPts: { fontSize: 14, fontFamily: 'DMSans_700Bold', color: '#4ade80' },
+
+  walletCard: { marginBottom: 20 },
+  walletCardInner: { borderRadius: 16, padding: 20, borderWidth: 1, borderColor: '#D4AF3730' },
+  walletHeaderRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 20 },
+  walletLogoWrap: { marginRight: 12 },
+  walletLogo: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
+  walletLogoText: { fontSize: 16, fontFamily: 'DMSans_700Bold', color: '#0C1B2A' },
+  walletTokenInfo: { flex: 1 },
+  walletTokenName: { fontSize: 18, fontFamily: 'DMSans_700Bold', color: '#D4AF37' },
+  walletTokenSub: { fontSize: 11, fontFamily: 'DMSans_400Regular', color: Colors.light.gray400 },
+  walletPegBadge: { backgroundColor: '#10B98120', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 },
+  walletPegText: { fontSize: 11, fontFamily: 'DMSans_700Bold', color: '#4ade80' },
+  walletBalanceLabel: { fontSize: 11, fontFamily: 'DMSans_600SemiBold', color: Colors.light.gray500, letterSpacing: 1, marginBottom: 4 },
+  walletBalanceBig: { fontSize: 36, fontFamily: 'DMSans_700Bold', color: '#D4AF37' },
+  walletBalanceCurrency: { fontSize: 16, color: Colors.light.gray400 },
+  walletBalanceAud: { fontSize: 13, fontFamily: 'DMSans_400Regular', color: Colors.light.gray400, marginTop: 2, marginBottom: 16 },
+  walletStatsRow: { flexDirection: 'row', justifyContent: 'space-around', paddingTop: 16, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.06)' },
+  walletStatItem: { alignItems: 'center', flex: 1 },
+  walletStatLabel: { fontSize: 10, fontFamily: 'DMSans_600SemiBold', color: Colors.light.gray500, letterSpacing: 0.5, marginBottom: 4 },
+  walletStatValue: { fontSize: 14, fontFamily: 'DMSans_700Bold', color: '#fff' },
+  walletStatDivider: { width: 1, height: 30, backgroundColor: 'rgba(255,255,255,0.08)' },
+
+  convertSection: { backgroundColor: '#132D46', borderRadius: 16, padding: 20, marginBottom: 16 },
+  convertTitle: { fontSize: 16, fontFamily: 'DMSans_700Bold', color: '#fff', marginBottom: 4 },
+  convertDesc: { fontSize: 12, fontFamily: 'DMSans_400Regular', color: Colors.light.gray400, marginBottom: 16 },
+  convertInputRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 12 },
+  convertInputWrap: { flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: '#1a2942', borderRadius: 10, borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)', paddingHorizontal: 12 },
+  convertInput: { flex: 1, height: 44, fontSize: 16, fontFamily: 'DMSans_600SemiBold', color: '#fff' },
+  convertInputSuffix: { fontSize: 13, fontFamily: 'DMSans_500Medium', color: Colors.light.gray500 },
+  convertOutputWrap: { flex: 1, backgroundColor: '#D4AF3710', borderRadius: 10, borderWidth: 1, borderColor: '#D4AF3730', height: 44, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12 },
+  convertOutputValue: { fontSize: 16, fontFamily: 'DMSans_700Bold', color: '#D4AF37', flex: 1 },
+  convertOutputSuffix: { fontSize: 13, fontFamily: 'DMSans_500Medium', color: '#D4AF37' },
+  convertQuickRow: { flexDirection: 'row', gap: 8, marginBottom: 16 },
+  convertQuickBtn: { backgroundColor: '#1a2942', paddingHorizontal: 14, paddingVertical: 6, borderRadius: 8, borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)' },
+  convertQuickText: { fontSize: 12, fontFamily: 'DMSans_600SemiBold', color: Colors.light.gray400 },
+  convertBtn: { backgroundColor: '#D4AF37', borderRadius: 12, paddingVertical: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
+  convertBtnText: { fontSize: 15, fontFamily: 'DMSans_700Bold', color: '#0C1B2A' },
+
+  tokenInfoSection: { backgroundColor: '#132D46', borderRadius: 16, padding: 20, marginBottom: 16 },
+  tokenInfoTitle: { fontSize: 16, fontFamily: 'DMSans_700Bold', color: '#fff', marginBottom: 16 },
+  tokenInfoRow: { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 16 },
+  tokenInfoIcon: { width: 36, height: 36, borderRadius: 10, alignItems: 'center', justifyContent: 'center', marginRight: 12 },
+  tokenInfoContent: { flex: 1 },
+  tokenInfoLabel: { fontSize: 14, fontFamily: 'DMSans_600SemiBold', color: '#fff', marginBottom: 2 },
+  tokenInfoDesc: { fontSize: 12, fontFamily: 'DMSans_400Regular', color: Colors.light.gray400 },
+
+  txnSection: { backgroundColor: '#132D46', borderRadius: 16, padding: 20, marginBottom: 16 },
+  txnTitle: { fontSize: 16, fontFamily: 'DMSans_700Bold', color: '#fff', marginBottom: 16 },
+  txnRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.04)' },
+  txnIconWrap: { width: 32, height: 32, borderRadius: 16, backgroundColor: '#D4AF3715', alignItems: 'center', justifyContent: 'center', marginRight: 12 },
+  txnInfo: { flex: 1 },
+  txnDesc: { fontSize: 13, fontFamily: 'DMSans_500Medium', color: '#fff' },
+  txnDate: { fontSize: 11, fontFamily: 'DMSans_400Regular', color: Colors.light.gray500, marginTop: 2 },
+  txnAmount: { fontSize: 15, fontFamily: 'DMSans_700Bold', color: '#D4AF37' },
 });

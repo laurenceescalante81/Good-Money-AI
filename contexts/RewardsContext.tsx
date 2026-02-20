@@ -32,6 +32,15 @@ export interface Reward {
   redeemed: boolean;
 }
 
+export interface TokenTransaction {
+  id: string;
+  type: 'convert' | 'reward' | 'bonus';
+  amount: number;
+  pointsSpent: number;
+  date: string;
+  description: string;
+}
+
 export interface RewardsState {
   points: number;
   totalPointsEarned: number;
@@ -46,6 +55,9 @@ export interface RewardsState {
   completedMissionIds: string[];
   unlockedBadgeIds: string[];
   redeemedRewardIds: string[];
+  tokenBalance: number;
+  totalTokensEarned: number;
+  tokenTransactions: TokenTransaction[];
 }
 
 interface RewardsContextValue {
@@ -59,11 +71,13 @@ interface RewardsContextValue {
   completeMission: (id: string) => void;
   redeemReward: (id: string) => boolean;
   addPoints: (amount: number) => void;
+  convertPointsToTokens: (points: number) => boolean;
   canSpin: boolean;
   canScratch: boolean;
   spinResetTime: string;
   xpForLevel: (lvl: number) => number;
   is2xWeekend: boolean;
+  TOKEN_RATE: number;
 }
 
 const RewardsContext = createContext<RewardsContextValue | null>(null);
@@ -94,6 +108,8 @@ function xpForLevel(lvl: number): number {
   return lvl * 2500;
 }
 
+const TOKEN_RATE = 100;
+
 const DEFAULT_STATE: RewardsState = {
   points: 0,
   totalPointsEarned: 0,
@@ -108,6 +124,9 @@ const DEFAULT_STATE: RewardsState = {
   completedMissionIds: [],
   unlockedBadgeIds: [],
   redeemedRewardIds: [],
+  tokenBalance: 0,
+  totalTokensEarned: 0,
+  tokenTransactions: [],
 };
 
 const MISSION_TEMPLATES: Omit<Mission, 'completed' | 'expiresAt'>[] = [
@@ -293,6 +312,33 @@ export function RewardsProvider({ children }: { children: ReactNode }) {
     });
   }, [updateState]);
 
+  const convertPointsToTokens = useCallback((pointsToConvert: number): boolean => {
+    if (pointsToConvert < TOKEN_RATE) return false;
+    const tokens = Math.floor(pointsToConvert / TOKEN_RATE);
+    const actualPointsSpent = tokens * TOKEN_RATE;
+    let success = false;
+    updateState(prev => {
+      if (prev.points < actualPointsSpent) return prev;
+      success = true;
+      const txn: TokenTransaction = {
+        id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+        type: 'convert',
+        amount: tokens,
+        pointsSpent: actualPointsSpent,
+        date: new Date().toISOString(),
+        description: `Converted ${actualPointsSpent} pts to ${tokens} ppAUD`,
+      };
+      return {
+        ...prev,
+        points: prev.points - actualPointsSpent,
+        tokenBalance: prev.tokenBalance + tokens,
+        totalTokensEarned: prev.totalTokensEarned + tokens,
+        tokenTransactions: [txn, ...prev.tokenTransactions],
+      };
+    });
+    return success;
+  }, [updateState]);
+
   const redeemReward = useCallback((id: string): boolean => {
     const reward = REWARD_TEMPLATES.find(r => r.id === id);
     if (!reward) return false;
@@ -330,8 +376,8 @@ export function RewardsProvider({ children }: { children: ReactNode }) {
   }, [state.redeemedRewardIds]);
 
   const value = useMemo(() => ({
-    state, missions, badges, rewards, checkIn, spinWheel, scratchCard, completeMission, redeemReward, addPoints, canSpin, canScratch, spinResetTime, xpForLevel, is2xWeekend,
-  }), [state, missions, badges, rewards, checkIn, spinWheel, scratchCard, completeMission, redeemReward, addPoints, canSpin, canScratch, spinResetTime, is2xWeekend]);
+    state, missions, badges, rewards, checkIn, spinWheel, scratchCard, completeMission, redeemReward, addPoints, convertPointsToTokens, canSpin, canScratch, spinResetTime, xpForLevel, is2xWeekend, TOKEN_RATE,
+  }), [state, missions, badges, rewards, checkIn, spinWheel, scratchCard, completeMission, redeemReward, addPoints, convertPointsToTokens, canSpin, canScratch, spinResetTime, is2xWeekend]);
 
   return <RewardsContext.Provider value={value}>{children}</RewardsContext.Provider>;
 }
