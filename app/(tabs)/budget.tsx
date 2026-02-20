@@ -7,6 +7,7 @@ import { router } from "expo-router";
 import * as Haptics from "expo-haptics";
 import Colors from "@/constants/colors";
 import { useFinance, Transaction } from "@/contexts/FinanceContext";
+import { useRewards } from "@/contexts/RewardsContext";
 
 const CATS: Record<string, { icon: string; color: string }> = {
   "Groceries": { icon: "cart-outline", color: "#F59E0B" },
@@ -60,6 +61,8 @@ export default function BudgetScreen() {
   const insets = useSafeAreaInsets();
   const topInset = Platform.OS === "web" ? 67 : insets.top;
   const { transactions, deleteTransaction, getTotalIncome, getTotalExpenses, getMonthlyTransactions, goals, updateGoalAmount, deleteGoal } = useFinance();
+  const { state: rewardsState, missions, completeMission } = useRewards();
+  const budgetMission = missions.find(m => m.id === 'add_transaction' && !m.completed);
   const [filter, setFilter] = useState<Filter>("all");
   const [goalModalVisible, setGoalModalVisible] = useState(false);
   const [selectedGoalId, setSelectedGoalId] = useState<string | null>(null);
@@ -253,6 +256,33 @@ export default function BudgetScreen() {
               </Pressable>
             )}
 
+            <Pressable onPress={() => router.push("/(tabs)/rewards")} style={({ pressed }) => [pressed && { opacity: 0.95 }]}>
+              <View style={styles.missionBanner}>
+                <View style={styles.missionBannerTop}>
+                  <View style={styles.missionPtsCircle}>
+                    <Ionicons name="star" size={14} color="#D4AF37" />
+                    <Text style={styles.missionPtsNum}>{rewardsState.points.toLocaleString()}</Text>
+                  </View>
+                  <View style={styles.missionStreakBadge}>
+                    <Ionicons name="flame" size={12} color="#F59E0B" />
+                    <Text style={styles.missionStreakNum}>{rewardsState.streak}</Text>
+                  </View>
+                </View>
+                {budgetMission && (
+                  <Pressable onPress={() => completeMission('add_transaction')} style={({ pressed }) => [styles.missionPrompt, pressed && { opacity: 0.85 }]}>
+                    <View style={[styles.missionPromptIcon, { backgroundColor: '#10B98120' }]}>
+                      <Ionicons name="receipt-outline" size={14} color="#10B981" />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.missionPromptTitle}>{budgetMission.title}</Text>
+                      <Text style={styles.missionPromptDesc}>{budgetMission.description}</Text>
+                    </View>
+                    <Text style={styles.missionPromptPts}>+{budgetMission.is2xActive ? budgetMission.basePoints * 2 : budgetMission.basePoints}</Text>
+                  </Pressable>
+                )}
+              </View>
+            </Pressable>
+
             <View style={styles.txHeader}>
               <Text style={styles.catTitle}>Transactions</Text>
               <View style={styles.filterRow}>
@@ -373,4 +403,15 @@ const styles = StyleSheet.create({
   modalCancelText: { fontFamily: "DMSans_600SemiBold", fontSize: 14, color: Colors.light.textSecondary },
   modalConfirm: { flex: 1, paddingVertical: 12, borderRadius: 10, backgroundColor: Colors.light.budget, alignItems: "center" },
   modalConfirmText: { fontFamily: "DMSans_600SemiBold", fontSize: 14, color: Colors.light.white },
+  missionBanner: { marginHorizontal: 20, marginBottom: 16, backgroundColor: Colors.light.card, borderRadius: 16, padding: 14 },
+  missionBannerTop: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 8 },
+  missionPtsCircle: { flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: "#D4AF3715", borderRadius: 10, paddingHorizontal: 10, paddingVertical: 5 },
+  missionPtsNum: { fontFamily: "DMSans_700Bold", fontSize: 13, color: "#D4AF37" },
+  missionStreakBadge: { flexDirection: "row", alignItems: "center", gap: 4, backgroundColor: "#F59E0B15", borderRadius: 10, paddingHorizontal: 8, paddingVertical: 5 },
+  missionStreakNum: { fontFamily: "DMSans_700Bold", fontSize: 13, color: "#F59E0B" },
+  missionPrompt: { flexDirection: "row", alignItems: "center", gap: 10, backgroundColor: Colors.light.background, borderRadius: 12, padding: 10 },
+  missionPromptIcon: { width: 28, height: 28, borderRadius: 8, alignItems: "center", justifyContent: "center" },
+  missionPromptTitle: { fontFamily: "DMSans_600SemiBold", fontSize: 12, color: Colors.light.text },
+  missionPromptDesc: { fontFamily: "DMSans_400Regular", fontSize: 10, color: Colors.light.textMuted, marginTop: 1 },
+  missionPromptPts: { fontFamily: "DMSans_700Bold", fontSize: 13, color: "#4ade80" },
 });

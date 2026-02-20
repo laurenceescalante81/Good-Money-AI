@@ -6,6 +6,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import Colors from "@/constants/colors";
 import { useFinance } from "@/contexts/FinanceContext";
+import { useRewards } from "@/contexts/RewardsContext";
 
 function fmt(n: number): string { return "$" + n.toLocaleString("en-AU", { minimumFractionDigits: 0, maximumFractionDigits: 0 }); }
 
@@ -22,6 +23,8 @@ export default function SuperScreen() {
   const insets = useSafeAreaInsets();
   const topInset = Platform.OS === "web" ? 67 : insets.top;
   const { superDetails, calculateSuperProjection, clearSuper } = useFinance();
+  const { state: rewardsState, missions, completeMission } = useRewards();
+  const superMission = missions.find(m => m.id === 'compare_super' && !m.completed);
 
   if (!superDetails) {
     return (
@@ -200,6 +203,33 @@ export default function SuperScreen() {
           </View>
         </View>
 
+        <Pressable onPress={() => router.push("/(tabs)/rewards")} style={({ pressed }) => [pressed && { opacity: 0.95 }]}>
+          <View style={styles.missionBanner}>
+            <View style={styles.missionBannerTop}>
+              <View style={styles.missionPtsCircle}>
+                <Ionicons name="star" size={14} color="#D4AF37" />
+                <Text style={styles.missionPtsNum}>{rewardsState.points.toLocaleString()}</Text>
+              </View>
+              <View style={styles.missionStreakBadge}>
+                <Ionicons name="flame" size={12} color="#F59E0B" />
+                <Text style={styles.missionStreakNum}>{rewardsState.streak}</Text>
+              </View>
+            </View>
+            {superMission && (
+              <Pressable onPress={() => completeMission('compare_super')} style={({ pressed }) => [styles.missionPrompt, pressed && { opacity: 0.85 }]}>
+                <View style={[styles.missionPromptIcon, { backgroundColor: '#8B5CF620' }]}>
+                  <Ionicons name="bar-chart-outline" size={14} color="#8B5CF6" />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.missionPromptTitle}>{superMission.title}</Text>
+                  <Text style={styles.missionPromptDesc}>{superMission.description}</Text>
+                </View>
+                <Text style={styles.missionPromptPts}>+{superMission.is2xActive ? superMission.basePoints * 2 : superMission.basePoints}</Text>
+              </Pressable>
+            )}
+          </View>
+        </Pressable>
+
       </ScrollView>
     </View>
   );
@@ -250,4 +280,15 @@ const styles = StyleSheet.create({
   emptySubtext: { fontFamily: "DMSans_400Regular", fontSize: 14, color: Colors.light.textSecondary, textAlign: "center", lineHeight: 22, marginBottom: 24 },
   setupBtn: { flexDirection: "row", alignItems: "center", gap: 8, backgroundColor: Colors.light.super, paddingVertical: 14, paddingHorizontal: 28, borderRadius: 14 },
   setupBtnText: { fontFamily: "DMSans_600SemiBold", fontSize: 15, color: Colors.light.white },
+  missionBanner: { marginHorizontal: 20, marginTop: 20, backgroundColor: Colors.light.card, borderRadius: 16, padding: 14 },
+  missionBannerTop: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 8 },
+  missionPtsCircle: { flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: "#D4AF3715", borderRadius: 10, paddingHorizontal: 10, paddingVertical: 5 },
+  missionPtsNum: { fontFamily: "DMSans_700Bold", fontSize: 13, color: "#D4AF37" },
+  missionStreakBadge: { flexDirection: "row", alignItems: "center", gap: 4, backgroundColor: "#F59E0B15", borderRadius: 10, paddingHorizontal: 8, paddingVertical: 5 },
+  missionStreakNum: { fontFamily: "DMSans_700Bold", fontSize: 13, color: "#F59E0B" },
+  missionPrompt: { flexDirection: "row", alignItems: "center", gap: 10, backgroundColor: Colors.light.background, borderRadius: 12, padding: 10 },
+  missionPromptIcon: { width: 28, height: 28, borderRadius: 8, alignItems: "center", justifyContent: "center" },
+  missionPromptTitle: { fontFamily: "DMSans_600SemiBold", fontSize: 12, color: Colors.light.text },
+  missionPromptDesc: { fontFamily: "DMSans_400Regular", fontSize: 10, color: Colors.light.textMuted, marginTop: 1 },
+  missionPromptPts: { fontFamily: "DMSans_700Bold", fontSize: 13, color: "#4ade80" },
 });
