@@ -91,87 +91,6 @@ export default function DashboardScreen() {
         </LinearGradient>
 
         <View style={styles.body}>
-          {(mortgage || superDetails || expenses > 0) && (
-            <LinearGradient colors={[Colors.light.tint, Colors.light.navy]} style={styles.optiGradient}>
-              <View style={styles.optiGradientHeader}>
-                <Ionicons name="sparkles" size={20} color="#fff" />
-                <Text style={styles.optiGradientTitle}>Optimisation Opportunities</Text>
-              </View>
-              {mortgage && mortgage.repaymentType === "principal_interest" && (() => {
-                const rate = mortgage.interestRate / 100 / 12;
-                const nMonths = mortgage.loanTermYears * 12;
-                const basePmt = rate === 0 ? mortgage.loanAmount / nMonths : mortgage.loanAmount * (rate * Math.pow(1 + rate, nMonths)) / (Math.pow(1 + rate, nMonths) - 1);
-                const totalPmt = (basePmt + 500);
-                let balance = mortgage.loanAmount;
-                let months = 0;
-                let paid = 0;
-                while (balance > 0 && months < nMonths * 2) {
-                  const interest = balance * rate;
-                  const principal = Math.min(totalPmt - interest, balance);
-                  if (principal <= 0) break;
-                  balance -= principal;
-                  paid += totalPmt;
-                  months++;
-                }
-                const baseTotalInt = (basePmt * nMonths) - mortgage.loanAmount;
-                const extraTotalInt = paid - mortgage.loanAmount;
-                const saved = Math.max(0, baseTotalInt - extraTotalInt);
-                return (
-                  <Pressable onPress={() => router.push("/(tabs)/mortgage")} style={({ pressed }) => [styles.optiCard, pressed && { opacity: 0.85 }]}>
-                    <View style={styles.optiIconCircle}>
-                      <Ionicons name="home-outline" size={20} color="#fff" />
-                    </View>
-                    <View style={styles.optiInfo}>
-                      <Text style={styles.optiLabel}>Mortgage: +$500/mo</Text>
-                      <Text style={styles.optiValue}>Save {fmt(Math.round(saved))} in interest</Text>
-                    </View>
-                    <Ionicons name="chevron-forward" size={18} color="rgba(255,255,255,0.5)" />
-                  </Pressable>
-                );
-              })()}
-              {superDetails && (() => {
-                const growthRate = 0.07;
-                const yearsToRetirement = 67 - 30;
-                const annualContrib = superDetails.salary * (superDetails.employerRate / 100);
-                let baseBalance = superDetails.balance;
-                for (let i = 0; i < yearsToRetirement; i++) baseBalance = (baseBalance + annualContrib) * (1 + growthRate);
-                let extraBalance = superDetails.balance;
-                const totalContrib = annualContrib + 2400;
-                for (let i = 0; i < yearsToRetirement; i++) extraBalance = (extraBalance + totalContrib) * (1 + growthRate);
-                const gain = extraBalance - baseBalance;
-                return (
-                  <Pressable onPress={() => router.push("/(tabs)/super")} style={({ pressed }) => [styles.optiCard, pressed && { opacity: 0.85 }]}>
-                    <View style={styles.optiIconCircle}>
-                      <Ionicons name="trending-up-outline" size={20} color="#fff" />
-                    </View>
-                    <View style={styles.optiInfo}>
-                      <Text style={styles.optiLabel}>Super: +$200/mo sacrifice</Text>
-                      <Text style={styles.optiValue}>+{fmt(Math.round(gain))} at retirement</Text>
-                    </View>
-                    <Ionicons name="chevron-forward" size={18} color="rgba(255,255,255,0.5)" />
-                  </Pressable>
-                );
-              })()}
-              {expenses > 0 && (() => {
-                const annualSaving = expenses * 0.1 * 12;
-                let invested = 0;
-                for (let i = 0; i < 10; i++) invested = (invested + annualSaving) * 1.07;
-                return (
-                  <Pressable onPress={() => router.push("/(tabs)/budget")} style={({ pressed }) => [styles.optiCard, pressed && { opacity: 0.85 }]}>
-                    <View style={styles.optiIconCircle}>
-                      <Ionicons name="wallet-outline" size={20} color="#fff" />
-                    </View>
-                    <View style={styles.optiInfo}>
-                      <Text style={styles.optiLabel}>Budget: cut 10% spending</Text>
-                      <Text style={styles.optiValue}>{fmt(Math.round(invested))} over 10 years</Text>
-                    </View>
-                    <Ionicons name="chevron-forward" size={18} color="rgba(255,255,255,0.5)" />
-                  </Pressable>
-                );
-              })()}
-            </LinearGradient>
-          )}
-
           <Text style={styles.sectionTitle}>Financial Snapshot</Text>
           <View style={styles.pillarGrid}>
             <PillarCard
@@ -268,6 +187,87 @@ export default function DashboardScreen() {
                 );
               })}
             </View>
+          )}
+
+          {(mortgage || superDetails || expenses > 0) && (
+            <LinearGradient colors={[Colors.light.tint, Colors.light.navy]} style={styles.optiGradient}>
+              <View style={styles.optiGradientHeader}>
+                <Ionicons name="sparkles" size={20} color="#fff" />
+                <Text style={styles.optiGradientTitle}>Optimisation Opportunities</Text>
+              </View>
+              {mortgage && mortgage.repaymentType === "principal_interest" && (() => {
+                const rate = mortgage.interestRate / 100 / 12;
+                const nMonths = mortgage.loanTermYears * 12;
+                const basePmt = rate === 0 ? mortgage.loanAmount / nMonths : mortgage.loanAmount * (rate * Math.pow(1 + rate, nMonths)) / (Math.pow(1 + rate, nMonths) - 1);
+                const totalPmt = (basePmt + 500);
+                let balance = mortgage.loanAmount;
+                let months = 0;
+                let paid = 0;
+                while (balance > 0 && months < nMonths * 2) {
+                  const interest = balance * rate;
+                  const principal = Math.min(totalPmt - interest, balance);
+                  if (principal <= 0) break;
+                  balance -= principal;
+                  paid += totalPmt;
+                  months++;
+                }
+                const baseTotalInt = (basePmt * nMonths) - mortgage.loanAmount;
+                const extraTotalInt = paid - mortgage.loanAmount;
+                const saved = Math.max(0, baseTotalInt - extraTotalInt);
+                return (
+                  <Pressable onPress={() => router.push("/(tabs)/mortgage")} style={({ pressed }) => [styles.optiCard, pressed && { opacity: 0.85 }]}>
+                    <View style={styles.optiIconCircle}>
+                      <Ionicons name="home-outline" size={20} color="#fff" />
+                    </View>
+                    <View style={styles.optiInfo}>
+                      <Text style={styles.optiLabel}>Mortgage: +$500/mo</Text>
+                      <Text style={styles.optiValue}>Save {fmt(Math.round(saved))} in interest</Text>
+                    </View>
+                    <Ionicons name="chevron-forward" size={18} color="rgba(255,255,255,0.5)" />
+                  </Pressable>
+                );
+              })()}
+              {superDetails && (() => {
+                const growthRate = 0.07;
+                const yearsToRetirement = 67 - 30;
+                const annualContrib = superDetails.salary * (superDetails.employerRate / 100);
+                let baseBalance = superDetails.balance;
+                for (let i = 0; i < yearsToRetirement; i++) baseBalance = (baseBalance + annualContrib) * (1 + growthRate);
+                let extraBalance = superDetails.balance;
+                const totalContrib = annualContrib + 2400;
+                for (let i = 0; i < yearsToRetirement; i++) extraBalance = (extraBalance + totalContrib) * (1 + growthRate);
+                const gain = extraBalance - baseBalance;
+                return (
+                  <Pressable onPress={() => router.push("/(tabs)/super")} style={({ pressed }) => [styles.optiCard, pressed && { opacity: 0.85 }]}>
+                    <View style={styles.optiIconCircle}>
+                      <Ionicons name="trending-up-outline" size={20} color="#fff" />
+                    </View>
+                    <View style={styles.optiInfo}>
+                      <Text style={styles.optiLabel}>Super: +$200/mo sacrifice</Text>
+                      <Text style={styles.optiValue}>+{fmt(Math.round(gain))} at retirement</Text>
+                    </View>
+                    <Ionicons name="chevron-forward" size={18} color="rgba(255,255,255,0.5)" />
+                  </Pressable>
+                );
+              })()}
+              {expenses > 0 && (() => {
+                const annualSaving = expenses * 0.1 * 12;
+                let invested = 0;
+                for (let i = 0; i < 10; i++) invested = (invested + annualSaving) * 1.07;
+                return (
+                  <Pressable onPress={() => router.push("/(tabs)/budget")} style={({ pressed }) => [styles.optiCard, pressed && { opacity: 0.85 }]}>
+                    <View style={styles.optiIconCircle}>
+                      <Ionicons name="wallet-outline" size={20} color="#fff" />
+                    </View>
+                    <View style={styles.optiInfo}>
+                      <Text style={styles.optiLabel}>Budget: cut 10% spending</Text>
+                      <Text style={styles.optiValue}>{fmt(Math.round(invested))} over 10 years</Text>
+                    </View>
+                    <Ionicons name="chevron-forward" size={18} color="rgba(255,255,255,0.5)" />
+                  </Pressable>
+                );
+              })()}
+            </LinearGradient>
           )}
         </View>
       </ScrollView>

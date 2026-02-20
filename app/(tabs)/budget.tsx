@@ -108,61 +108,6 @@ export default function BudgetScreen() {
               </Pressable>
             </View>
 
-            {expenses > 0 && (() => {
-              const topCat = sortedCats.length > 0 ? sortedCats[0] : null;
-              const savingsRate = income > 0 ? ((income - expenses) / income) * 100 : 0;
-              const monthlySpareIfCut10 = expenses * 0.1;
-              const annualSaving10 = monthlySpareIfCut10 * 12;
-              const investedGrowth = (() => {
-                let bal = 0;
-                for (let i = 0; i < 10; i++) {
-                  bal = (bal + annualSaving10) * 1.07;
-                }
-                return bal;
-              })();
-
-              return (
-                <LinearGradient colors={[Colors.light.budget, "#1a4a6b"]} style={styles.valueBanner}>
-                  <View style={styles.valueBannerHeader}>
-                    <Ionicons name="trending-down-outline" size={20} color="#fff" />
-                    <Text style={styles.valueBannerTitle}>Your Savings Potential</Text>
-                  </View>
-
-                  <Text style={styles.valueBannerSubtitle}>Cutting spending by just 10% would save</Text>
-                  <View style={styles.valueBannerRow}>
-                    <View style={styles.valueBannerItem}>
-                      <Text style={styles.valueBannerBigNum}>{fmt(Math.round(annualSaving10))}</Text>
-                      <Text style={styles.valueBannerSmall}>per year</Text>
-                    </View>
-                    <View style={styles.valueBannerDivider} />
-                    <View style={styles.valueBannerItem}>
-                      <Text style={styles.valueBannerBigNum}>{fmt(Math.round(investedGrowth))}</Text>
-                      <Text style={styles.valueBannerSmall}>over 10yrs invested</Text>
-                    </View>
-                  </View>
-
-                  {topCat && (
-                    <View style={styles.valueBannerPill}>
-                      <Ionicons name="bulb-outline" size={14} color="#fff" />
-                      <Text style={styles.valueBannerPillText}>
-                        Top spend: {topCat[0]} at {fmt(topCat[1])}/mo ({income > 0 ? Math.round((topCat[1] / income) * 100) : 0}% of income)
-                      </Text>
-                    </View>
-                  )}
-
-                  <View style={styles.savingsRateRow}>
-                    <Text style={styles.savingsRateLabel}>Savings Rate</Text>
-                    <View style={styles.savingsRateBarBg}>
-                      <View style={[styles.savingsRateBarFill, { width: `${Math.min(Math.max(savingsRate, 0), 100)}%`, backgroundColor: savingsRate >= 20 ? "#4ade80" : savingsRate >= 10 ? "#fbbf24" : "#f87171" }]} />
-                    </View>
-                    <Text style={styles.savingsRatePct}>
-                      {Math.round(savingsRate)}%
-                    </Text>
-                  </View>
-                </LinearGradient>
-              );
-            })()}
-
             <View style={styles.summaryRow}>
               <View style={[styles.summaryCard, { backgroundColor: Colors.light.income + "10" }]}>
                 <Text style={styles.summaryLabel}>Income</Text>
@@ -266,6 +211,62 @@ export default function BudgetScreen() {
               </View>
             </View>
           </View>
+        }
+        ListFooterComponent={
+          expenses > 0 ? (() => {
+            const topCat = sortedCats.length > 0 ? sortedCats[0] : null;
+            const savingsRate = income > 0 ? ((income - expenses) / income) * 100 : 0;
+            const monthlySpareIfCut10 = expenses * 0.1;
+            const annualSaving10 = monthlySpareIfCut10 * 12;
+            const investedGrowth = (() => {
+              let bal = 0;
+              for (let i = 0; i < 10; i++) {
+                bal = (bal + annualSaving10) * 1.07;
+              }
+              return bal;
+            })();
+
+            return (
+              <LinearGradient colors={[Colors.light.budget, "#1a4a6b"]} style={[styles.valueBanner, { marginTop: 20 }]}>
+                <View style={styles.valueBannerHeader}>
+                  <Ionicons name="trending-down-outline" size={20} color="#fff" />
+                  <Text style={styles.valueBannerTitle}>Your Savings Potential</Text>
+                </View>
+
+                <Text style={styles.valueBannerSubtitle}>Cutting spending by just 10% would save</Text>
+                <View style={styles.valueBannerRow}>
+                  <View style={styles.valueBannerItem}>
+                    <Text style={styles.valueBannerBigNum}>{fmt(Math.round(annualSaving10))}</Text>
+                    <Text style={styles.valueBannerSmall}>per year</Text>
+                  </View>
+                  <View style={styles.valueBannerDivider} />
+                  <View style={styles.valueBannerItem}>
+                    <Text style={styles.valueBannerBigNum}>{fmt(Math.round(investedGrowth))}</Text>
+                    <Text style={styles.valueBannerSmall}>over 10yrs invested</Text>
+                  </View>
+                </View>
+
+                {topCat && (
+                  <View style={styles.valueBannerPill}>
+                    <Ionicons name="bulb-outline" size={14} color="#fff" />
+                    <Text style={styles.valueBannerPillText}>
+                      Top spend: {topCat[0]} at {fmt(topCat[1])}/mo ({income > 0 ? Math.round((topCat[1] / income) * 100) : 0}% of income)
+                    </Text>
+                  </View>
+                )}
+
+                <View style={styles.savingsRateRow}>
+                  <Text style={styles.savingsRateLabel}>Savings Rate</Text>
+                  <View style={styles.savingsRateBarBg}>
+                    <View style={[styles.savingsRateBarFill, { width: `${Math.min(Math.max(savingsRate, 0), 100)}%`, backgroundColor: savingsRate >= 20 ? "#4ade80" : savingsRate >= 10 ? "#fbbf24" : "#f87171" }]} />
+                  </View>
+                  <Text style={styles.savingsRatePct}>
+                    {Math.round(savingsRate)}%
+                  </Text>
+                </View>
+              </LinearGradient>
+            );
+          })() : null
         }
         ListEmptyComponent={
           <View style={styles.emptyTx}>
