@@ -6,6 +6,7 @@ import { router } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
 import Colors from "@/constants/colors";
 import { useFinance } from "@/contexts/FinanceContext";
+import { useRewards } from "@/contexts/RewardsContext";
 
 function fmt(amount: number): string {
   return "$" + amount.toLocaleString("en-AU", { minimumFractionDigits: 0, maximumFractionDigits: 0 });
@@ -35,6 +36,8 @@ export default function DashboardScreen() {
     calculateSuperProjection, getTotalInsuranceCost, profileMode,
   } = useFinance();
 
+  const { state: rewardsState, missions, badges, xpForLevel, is2xWeekend } = useRewards();
+
   const income = getTotalIncome();
   const expenses = getTotalExpenses();
   const balance = income - expenses;
@@ -44,6 +47,14 @@ export default function DashboardScreen() {
 
   const totalGoalSaved = goals.reduce((s, g) => s + g.currentAmount, 0);
   const totalGoalTarget = goals.reduce((s, g) => s + g.targetAmount, 0);
+
+  const levelNames = ['Bronze', 'Silver', 'Gold', 'Platinum', 'Diamond', 'Elite', 'Legend', 'Mythic', 'Champion', 'Grand Master'];
+  const levelName = levelNames[Math.min(rewardsState.level - 1, levelNames.length - 1)];
+  const xpNeeded = xpForLevel(rewardsState.level);
+  const xpPct = xpNeeded > 0 ? Math.min((rewardsState.xp / xpNeeded) * 100, 100) : 0;
+  const activeMissions = missions.filter(m => !m.completed);
+  const completedMissionCount = missions.filter(m => m.completed).length;
+  const unlockedBadgeCount = badges.filter(b => b.unlocked).length;
 
   return (
     <View style={styles.container}>
@@ -171,6 +182,87 @@ export default function DashboardScreen() {
               })()}
             </LinearGradient>
           )}
+
+          <Pressable onPress={() => router.push("/(tabs)/rewards")} style={({ pressed }) => [pressed && { opacity: 0.95 }]}>
+            <LinearGradient colors={['#0C1B2A', '#1B3A5C']} style={styles.rewardsSummary}>
+              <View style={styles.rewardsSummaryHeader}>
+                <View style={styles.rewardsTitleRow}>
+                  <Ionicons name="star" size={18} color="#D4AF37" />
+                  <Text style={styles.rewardsSummaryTitle}>Rewards</Text>
+                </View>
+                <Ionicons name="chevron-forward" size={18} color="rgba(255,255,255,0.5)" />
+              </View>
+
+              <View style={styles.rewardsTopRow}>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.rewardsPointsBig}>{rewardsState.points.toLocaleString()}<Text style={styles.rewardsPointsSuffix}> pts</Text></Text>
+                  {(rewardsState.tokenBalance ?? 0) > 0 && (
+                    <View style={styles.rewardsTokenRow}>
+                      <View style={styles.rewardsTokenDot} />
+                      <Text style={styles.rewardsTokenText}>{(rewardsState.tokenBalance ?? 0).toFixed(2)} ppAUD</Text>
+                    </View>
+                  )}
+                </View>
+                <View style={styles.rewardsLevelBadge}>
+                  <Text style={styles.rewardsLevelNum}>{rewardsState.level}</Text>
+                  <Text style={styles.rewardsLevelName}>{levelName}</Text>
+                </View>
+              </View>
+
+              <View style={styles.rewardsXpRow}>
+                <View style={styles.rewardsXpBarBg}>
+                  <LinearGradient colors={['#6366F1', '#8B5CF6']} style={[styles.rewardsXpBarFill, { width: `${xpPct}%` }]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} />
+                </View>
+                <Text style={styles.rewardsXpText}>{rewardsState.xp}/{xpNeeded} XP</Text>
+              </View>
+
+              <View style={styles.rewardsStatsRow}>
+                <View style={styles.rewardsStatItem}>
+                  <Ionicons name="flame" size={14} color="#F59E0B" />
+                  <Text style={styles.rewardsStatValue}>{rewardsState.streak}</Text>
+                  <Text style={styles.rewardsStatLabel}>streak</Text>
+                </View>
+                <View style={styles.rewardsStatDivider} />
+                <View style={styles.rewardsStatItem}>
+                  <Ionicons name="checkmark-circle" size={14} color="#4ade80" />
+                  <Text style={styles.rewardsStatValue}>{completedMissionCount}/{missions.length}</Text>
+                  <Text style={styles.rewardsStatLabel}>missions</Text>
+                </View>
+                <View style={styles.rewardsStatDivider} />
+                <View style={styles.rewardsStatItem}>
+                  <Ionicons name="trophy" size={14} color="#D4AF37" />
+                  <Text style={styles.rewardsStatValue}>{unlockedBadgeCount}/{badges.length}</Text>
+                  <Text style={styles.rewardsStatLabel}>badges</Text>
+                </View>
+                {is2xWeekend && (
+                  <>
+                    <View style={styles.rewardsStatDivider} />
+                    <View style={styles.rewards2xBadge}>
+                      <Ionicons name="flash" size={12} color="#D4AF37" />
+                      <Text style={styles.rewards2xText}>2x</Text>
+                    </View>
+                  </>
+                )}
+              </View>
+
+              {activeMissions.length > 0 && (
+                <View style={styles.rewardsMissionsPreview}>
+                  {activeMissions.slice(0, 2).map(m => {
+                    const effectivePts = m.is2xActive ? m.basePoints * 2 : m.basePoints;
+                    return (
+                      <View key={m.id} style={styles.rewardsMissionRow}>
+                        <View style={[styles.rewardsMissionIcon, { backgroundColor: m.iconBg + '20' }]}>
+                          <Ionicons name={m.icon as any} size={14} color={m.iconBg} />
+                        </View>
+                        <Text style={styles.rewardsMissionName} numberOfLines={1}>{m.title}</Text>
+                        <Text style={styles.rewardsMissionPts}>+{effectivePts}</Text>
+                      </View>
+                    );
+                  })}
+                </View>
+              )}
+            </LinearGradient>
+          </Pressable>
 
           <Text style={styles.sectionTitle}>Financial Snapshot</Text>
           <View style={styles.pillarGrid}>
@@ -321,4 +413,33 @@ const styles = StyleSheet.create({
   goalBarBg: { height: 6, backgroundColor: Colors.light.gray100, borderRadius: 3, overflow: "hidden" },
   goalBarFill: { height: 6, borderRadius: 3, backgroundColor: Colors.light.budget },
   goalPct: { fontFamily: "DMSans_700Bold", fontSize: 15, color: Colors.light.budget },
+  rewardsSummary: { borderRadius: 20, padding: 18, marginBottom: 24 },
+  rewardsSummaryHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 14 },
+  rewardsTitleRow: { flexDirection: "row", alignItems: "center", gap: 8 },
+  rewardsSummaryTitle: { fontFamily: "DMSans_700Bold", fontSize: 17, color: "#fff" },
+  rewardsTopRow: { flexDirection: "row", alignItems: "center", marginBottom: 10 },
+  rewardsPointsBig: { fontFamily: "DMSans_700Bold", fontSize: 30, color: "#fff" },
+  rewardsPointsSuffix: { fontFamily: "DMSans_500Medium", fontSize: 14, color: "rgba(255,255,255,0.5)" },
+  rewardsTokenRow: { flexDirection: "row", alignItems: "center", gap: 6, marginTop: 4 },
+  rewardsTokenDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: "#D4AF37" },
+  rewardsTokenText: { fontFamily: "DMSans_500Medium", fontSize: 12, color: "#D4AF37" },
+  rewardsLevelBadge: { alignItems: "center", backgroundColor: "rgba(99,102,241,0.2)", borderRadius: 14, paddingHorizontal: 14, paddingVertical: 8, borderWidth: 1, borderColor: "rgba(99,102,241,0.3)" },
+  rewardsLevelNum: { fontFamily: "DMSans_700Bold", fontSize: 22, color: "#8B5CF6" },
+  rewardsLevelName: { fontFamily: "DMSans_500Medium", fontSize: 10, color: "rgba(255,255,255,0.5)", marginTop: 1 },
+  rewardsXpRow: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 14 },
+  rewardsXpBarBg: { flex: 1, height: 6, borderRadius: 3, backgroundColor: "rgba(255,255,255,0.1)", overflow: "hidden" },
+  rewardsXpBarFill: { height: 6, borderRadius: 3 },
+  rewardsXpText: { fontFamily: "DMSans_400Regular", fontSize: 10, color: "rgba(255,255,255,0.4)", width: 70, textAlign: "right" as const },
+  rewardsStatsRow: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 10, backgroundColor: "rgba(255,255,255,0.06)", borderRadius: 12, paddingVertical: 10, paddingHorizontal: 12 },
+  rewardsStatItem: { flexDirection: "row", alignItems: "center", gap: 4 },
+  rewardsStatValue: { fontFamily: "DMSans_700Bold", fontSize: 13, color: "#fff" },
+  rewardsStatLabel: { fontFamily: "DMSans_400Regular", fontSize: 11, color: "rgba(255,255,255,0.4)" },
+  rewardsStatDivider: { width: 1, height: 14, backgroundColor: "rgba(255,255,255,0.1)" },
+  rewards2xBadge: { flexDirection: "row", alignItems: "center", gap: 2, backgroundColor: "rgba(212,175,55,0.15)", borderRadius: 8, paddingHorizontal: 6, paddingVertical: 2 },
+  rewards2xText: { fontFamily: "DMSans_700Bold", fontSize: 11, color: "#D4AF37" },
+  rewardsMissionsPreview: { marginTop: 12, gap: 6 },
+  rewardsMissionRow: { flexDirection: "row", alignItems: "center", gap: 10, backgroundColor: "rgba(255,255,255,0.06)", borderRadius: 10, paddingVertical: 8, paddingHorizontal: 10 },
+  rewardsMissionIcon: { width: 28, height: 28, borderRadius: 8, alignItems: "center", justifyContent: "center" },
+  rewardsMissionName: { flex: 1, fontFamily: "DMSans_500Medium", fontSize: 12, color: "rgba(255,255,255,0.7)" },
+  rewardsMissionPts: { fontFamily: "DMSans_700Bold", fontSize: 12, color: "#4ade80" },
 });
