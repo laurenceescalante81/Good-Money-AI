@@ -43,6 +43,7 @@ server/
   routes.ts              # Express API routes (Basiq endpoints)
 contexts/
   FinanceContext.tsx      # Main state + AsyncStorage persistence
+  RewardsContext.tsx      # Rewards/gamification state + AsyncStorage persistence
 constants/
   colors.ts              # Design tokens
 ```
@@ -62,7 +63,20 @@ constants/
 - Supported: All major Australian banks (CBA, ANZ, NAB, Westpac, Macquarie, etc.)
 - Transactions can be imported into the budget tracker with category mapping
 
+## Rewards / Gamification System
+- RewardsContext manages all rewards state with AsyncStorage persistence
+- Points system: earn via check-ins (+50/day), spin wheel (25-500pts), scratch cards (50-500pts), missions (50-400pts)
+- Levels: Bronze through Grand Master, XP-based progression (level * 2500 XP per level)
+- Daily Streak: consecutive day tracking with weekly calendar, milestone bonuses at 14 and 30 days
+- Daily Spin: animated wheel with 8 segments, resets daily
+- Weekly Scratch: one bonus card per week, tap to reveal
+- Missions: 6 predefined tasks (review insurance, compare super, log transaction, etc.) with expiry timers, 2x active multipliers
+- Badges: 12 collectible badges for milestones (streaks, points thresholds, feature usage)
+- Redeem Store: cashback, gift cards, double points boosters (800-5000pts)
+- 2x Weekend: automatic double points on weekends
+
 ## Recent Changes
+- Feb 2026: Added comprehensive rewards/gamification system with points, levels, missions, spin wheel, scratch cards, badges, and redeem store
 - Feb 2026: Added Basiq Open Banking integration with Banks tab, connect-bank flow, transaction import
 - Complete rebuild focusing on four Australian finance pillars
 - Added insurance policy management with renewal tracking
