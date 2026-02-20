@@ -85,6 +85,113 @@ export default function MortgageScreen() {
           )}
         </View>
 
+        {(() => {
+          const testExtras = [100, 250, 500, 1000];
+          const rate = mortgage.interestRate / 100 / 12;
+          const nMonths = mortgage.loanTermYears * 12;
+
+          let baseMonthlyPmt: number;
+          if (mortgage.repaymentType === "interest_only") {
+            baseMonthlyPmt = mortgage.loanAmount * rate;
+          } else {
+            baseMonthlyPmt = rate === 0 ? mortgage.loanAmount / nMonths : mortgage.loanAmount * (rate * Math.pow(1 + rate, nMonths)) / (Math.pow(1 + rate, nMonths) - 1);
+          }
+          const baseTotalPaid = baseMonthlyPmt * nMonths;
+          const baseTotalInt = baseTotalPaid - mortgage.loanAmount;
+
+          const calcSaving = (extra: number) => {
+            if (mortgage.repaymentType === "interest_only" || rate === 0) return { savedPerYear: extra * 12 * 0.05, saved10yr: extra * 12 * 10 * 0.05, savedLife: 0, yearsSaved: 0 };
+            const totalMonthly = baseMonthlyPmt + extra;
+            let balance = mortgage.loanAmount;
+            let monthsPaid = 0;
+            let totalPaid = 0;
+            while (balance > 0 && monthsPaid < nMonths * 2) {
+              const interest = balance * rate;
+              const principal = Math.min(totalMonthly - interest, balance);
+              if (principal <= 0) break;
+              balance -= principal;
+              totalPaid += totalMonthly;
+              monthsPaid++;
+            }
+            const totalIntPaid = totalPaid - mortgage.loanAmount;
+            const savedLife = Math.max(0, baseTotalInt - totalIntPaid);
+            const yearsSaved = Math.max(0, (nMonths - monthsPaid) / 12);
+            const savedPerYear = mortgage.loanTermYears > 0 ? savedLife / mortgage.loanTermYears : 0;
+            const saved10yr = Math.min(savedLife, savedPerYear * 10);
+            return { savedPerYear, saved10yr, savedLife, yearsSaved };
+          };
+
+          const currentExtraSaving = mortgage.extraRepayment > 0 ? calcSaving(mortgage.extraRepayment) : null;
+          const bestScenario = calcSaving(500);
+
+          return (
+            <View style={styles.valueSection}>
+              <View style={styles.valueTitleRow}>
+                <Ionicons name="sparkles" size={18} color={Colors.light.mortgage} />
+                <Text style={styles.valueTitle}>Optimise Your Mortgage</Text>
+              </View>
+
+              {currentExtraSaving && mortgage.extraRepayment > 0 ? (
+                <View style={styles.valueCard}>
+                  <Text style={styles.valueCardLabel}>Your {fmt(mortgage.extraRepayment)}/mo extra repayment saves</Text>
+                  <View style={styles.valueBigRow}>
+                    <View style={styles.valueBigItem}>
+                      <Text style={styles.valueBigAmount}>{fmt(Math.round(currentExtraSaving.savedPerYear))}</Text>
+                      <Text style={styles.valueBigLabel}>per year</Text>
+                    </View>
+                    <View style={styles.valueDivider} />
+                    <View style={styles.valueBigItem}>
+                      <Text style={styles.valueBigAmount}>{fmt(Math.round(currentExtraSaving.saved10yr))}</Text>
+                      <Text style={styles.valueBigLabel}>over 10 years</Text>
+                    </View>
+                  </View>
+                  <View style={styles.valueHighlight}>
+                    <Ionicons name="time-outline" size={16} color={Colors.light.income} />
+                    <Text style={styles.valueHighlightText}>
+                      Pay off {currentExtraSaving.yearsSaved.toFixed(1)} years early, saving {fmt(Math.round(currentExtraSaving.savedLife))} total interest
+                    </Text>
+                  </View>
+                </View>
+              ) : (
+                <View style={styles.valueCard}>
+                  <Text style={styles.valueCardLabel}>Adding $500/mo extra repayment could save</Text>
+                  <View style={styles.valueBigRow}>
+                    <View style={styles.valueBigItem}>
+                      <Text style={styles.valueBigAmount}>{fmt(Math.round(bestScenario.savedPerYear))}</Text>
+                      <Text style={styles.valueBigLabel}>per year</Text>
+                    </View>
+                    <View style={styles.valueDivider} />
+                    <View style={styles.valueBigItem}>
+                      <Text style={styles.valueBigAmount}>{fmt(Math.round(bestScenario.saved10yr))}</Text>
+                      <Text style={styles.valueBigLabel}>over 10 years</Text>
+                    </View>
+                  </View>
+                  <View style={styles.valueHighlight}>
+                    <Ionicons name="time-outline" size={16} color={Colors.light.income} />
+                    <Text style={styles.valueHighlightText}>
+                      {bestScenario.yearsSaved.toFixed(1)} years earlier payoff, {fmt(Math.round(bestScenario.savedLife))} less interest
+                    </Text>
+                  </View>
+                </View>
+              )}
+
+              <View style={styles.scenarioGrid}>
+                {testExtras.map(extra => {
+                  const s = calcSaving(extra);
+                  const isActive = mortgage.extraRepayment === extra;
+                  return (
+                    <View key={extra} style={[styles.scenarioItem, isActive && { borderColor: Colors.light.mortgage, borderWidth: 1.5 }]}>
+                      <Text style={styles.scenarioExtra}>+{fmt(extra)}/mo</Text>
+                      <Text style={[styles.scenarioSaved, { color: Colors.light.income }]}>{fmt(Math.round(s.savedLife))}</Text>
+                      <Text style={styles.scenarioYears}>{s.yearsSaved.toFixed(1)}yr faster</Text>
+                    </View>
+                  );
+                })}
+              </View>
+            </View>
+          );
+        })()}
+
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Loan Details</Text>
           <View style={styles.card}>
@@ -148,6 +255,23 @@ const styles = StyleSheet.create({
   lvrBarFill: { height: 8, borderRadius: 4 },
   savingBadge: { flexDirection: "row", alignItems: "center", gap: 8, backgroundColor: Colors.light.income + "10", borderRadius: 10, padding: 12, marginTop: 4 },
   savingText: { fontFamily: "DMSans_500Medium", fontSize: 13, color: Colors.light.income, flex: 1 },
+  valueSection: { paddingHorizontal: 20, marginTop: 20 },
+  valueTitleRow: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 12 },
+  valueTitle: { fontFamily: "DMSans_700Bold", fontSize: 16, color: Colors.light.text },
+  valueCard: { backgroundColor: Colors.light.card, borderRadius: 16, padding: 16, gap: 14 },
+  valueCardLabel: { fontFamily: "DMSans_500Medium", fontSize: 13, color: Colors.light.textSecondary },
+  valueBigRow: { flexDirection: "row", alignItems: "center" },
+  valueBigItem: { flex: 1, alignItems: "center" as const },
+  valueBigAmount: { fontFamily: "DMSans_700Bold", fontSize: 22, color: Colors.light.income },
+  valueBigLabel: { fontFamily: "DMSans_400Regular", fontSize: 11, color: Colors.light.textMuted, marginTop: 2 },
+  valueDivider: { width: 1, height: 36, backgroundColor: Colors.light.gray200, marginHorizontal: 8 },
+  valueHighlight: { flexDirection: "row", alignItems: "center", gap: 8, backgroundColor: Colors.light.income + "10", borderRadius: 10, padding: 12 },
+  valueHighlightText: { fontFamily: "DMSans_500Medium", fontSize: 12, color: Colors.light.income, flex: 1 },
+  scenarioGrid: { flexDirection: "row", flexWrap: "wrap" as const, gap: 8, marginTop: 12 },
+  scenarioItem: { flex: 1, minWidth: "22%" as any, backgroundColor: Colors.light.card, borderRadius: 12, padding: 10, alignItems: "center" as const },
+  scenarioExtra: { fontFamily: "DMSans_600SemiBold", fontSize: 11, color: Colors.light.textSecondary },
+  scenarioSaved: { fontFamily: "DMSans_700Bold", fontSize: 13, marginTop: 4 },
+  scenarioYears: { fontFamily: "DMSans_400Regular", fontSize: 10, color: Colors.light.textMuted, marginTop: 2 },
   emptyState: { flex: 1, alignItems: "center", justifyContent: "center", paddingHorizontal: 40, paddingTop: 60 },
   emptyIcon: { width: 100, height: 100, borderRadius: 30, alignItems: "center", justifyContent: "center", marginBottom: 20 },
   emptyText: { fontFamily: "DMSans_700Bold", fontSize: 20, color: Colors.light.text, marginBottom: 8 },

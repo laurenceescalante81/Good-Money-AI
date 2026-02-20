@@ -81,6 +81,75 @@ export default function SuperScreen() {
           <Text style={styles.heroSub}>{superDetails.fund}</Text>
         </View>
 
+        {(() => {
+          const currentAge = 30;
+          const retirementAge = 67;
+          const yearsToRetirement = retirementAge - currentAge;
+          const growthRate = 0.07;
+
+          const projectWithExtra = (extraMonthly: number) => {
+            let balance = superDetails.balance;
+            const annualContrib = superDetails.salary * (superDetails.employerRate / 100);
+            const totalAnnualContrib = annualContrib + (extraMonthly * 12);
+            for (let i = 0; i < yearsToRetirement; i++) {
+              balance = (balance + totalAnnualContrib) * (1 + growthRate);
+            }
+            return balance;
+          };
+
+          const baseProjection = proj.atRetirement;
+          const extraAmounts = [50, 100, 250, 500];
+
+          const salarySacrifice200 = projectWithExtra(200);
+          const extra200 = salarySacrifice200 - baseProjection;
+          const extraMonthlyIncome200 = (extra200 * 0.04) / 12;
+
+          return (
+            <View style={styles.valueSection}>
+              <View style={styles.valueTitleRow}>
+                <Ionicons name="rocket-outline" size={18} color={Colors.light.super} />
+                <Text style={styles.valueTitle}>Grow Your Super</Text>
+              </View>
+
+              <View style={styles.valueCard}>
+                <Text style={styles.valueCardLabel}>Adding $200/mo salary sacrifice could give you</Text>
+                <View style={styles.valueBigRow}>
+                  <View style={styles.valueBigItem}>
+                    <Text style={[styles.valueBigAmount, { color: Colors.light.super }]}>{fmt(Math.round(extra200))}</Text>
+                    <Text style={styles.valueBigLabel}>extra at retirement</Text>
+                  </View>
+                  <View style={styles.valueDivider} />
+                  <View style={styles.valueBigItem}>
+                    <Text style={[styles.valueBigAmount, { color: Colors.light.income }]}>+{fmt(Math.round(extraMonthlyIncome200))}</Text>
+                    <Text style={styles.valueBigLabel}>per month extra income</Text>
+                  </View>
+                </View>
+                <View style={[styles.valueHighlight, { backgroundColor: Colors.light.super + "10" }]}>
+                  <Ionicons name="information-circle-outline" size={16} color={Colors.light.super} />
+                  <Text style={[styles.valueHighlightText, { color: Colors.light.super }]}>
+                    Pre-tax contributions are taxed at only 15% vs your marginal rate
+                  </Text>
+                </View>
+              </View>
+
+              <View style={styles.scenarioGrid}>
+                {extraAmounts.map(extra => {
+                  const projected = projectWithExtra(extra);
+                  const gain = projected - baseProjection;
+                  const monthlyGain = (gain * 0.04) / 12;
+                  return (
+                    <View key={extra} style={styles.scenarioItem}>
+                      <Text style={styles.scenarioExtra}>+${extra}/mo</Text>
+                      <Text style={[styles.scenarioSaved, { color: Colors.light.super }]}>{fmt(Math.round(gain))}</Text>
+                      <Text style={styles.scenarioYears}>+{fmt(Math.round(monthlyGain))}/mo</Text>
+                    </View>
+                  );
+                })}
+              </View>
+            </View>
+          );
+        })()}
+
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Contributions</Text>
           <View style={styles.card}>
@@ -158,6 +227,23 @@ const styles = StyleSheet.create({
   milestoneBarBg: { height: 10, backgroundColor: Colors.light.gray100, borderRadius: 5, overflow: "hidden" },
   milestoneBarFill: { height: 10, borderRadius: 5, backgroundColor: Colors.light.super },
   milestoneText: { fontFamily: "DMSans_400Regular", fontSize: 13, color: Colors.light.textMuted, marginTop: 8, textAlign: "right" },
+  valueSection: { paddingHorizontal: 20, marginTop: 20 },
+  valueTitleRow: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 12 },
+  valueTitle: { fontFamily: "DMSans_700Bold", fontSize: 16, color: Colors.light.text },
+  valueCard: { backgroundColor: Colors.light.card, borderRadius: 16, padding: 16, gap: 14 },
+  valueCardLabel: { fontFamily: "DMSans_500Medium", fontSize: 13, color: Colors.light.textSecondary },
+  valueBigRow: { flexDirection: "row", alignItems: "center" },
+  valueBigItem: { flex: 1, alignItems: "center" as const },
+  valueBigAmount: { fontFamily: "DMSans_700Bold", fontSize: 22, color: Colors.light.income },
+  valueBigLabel: { fontFamily: "DMSans_400Regular", fontSize: 11, color: Colors.light.textMuted, marginTop: 2 },
+  valueDivider: { width: 1, height: 36, backgroundColor: Colors.light.gray200, marginHorizontal: 8 },
+  valueHighlight: { flexDirection: "row", alignItems: "center", gap: 8, backgroundColor: Colors.light.income + "10", borderRadius: 10, padding: 12 },
+  valueHighlightText: { fontFamily: "DMSans_500Medium", fontSize: 12, color: Colors.light.income, flex: 1 },
+  scenarioGrid: { flexDirection: "row", flexWrap: "wrap" as const, gap: 8, marginTop: 12 },
+  scenarioItem: { flex: 1, minWidth: "22%" as any, backgroundColor: Colors.light.card, borderRadius: 12, padding: 10, alignItems: "center" as const },
+  scenarioExtra: { fontFamily: "DMSans_600SemiBold", fontSize: 11, color: Colors.light.textSecondary },
+  scenarioSaved: { fontFamily: "DMSans_700Bold", fontSize: 13, marginTop: 4 },
+  scenarioYears: { fontFamily: "DMSans_400Regular", fontSize: 10, color: Colors.light.textMuted, marginTop: 2 },
   emptyState: { flex: 1, alignItems: "center", justifyContent: "center", paddingHorizontal: 40, paddingTop: 60 },
   emptyIcon: { width: 100, height: 100, borderRadius: 30, alignItems: "center", justifyContent: "center", marginBottom: 20 },
   emptyText: { fontFamily: "DMSans_700Bold", fontSize: 20, color: Colors.light.text, marginBottom: 8 },
