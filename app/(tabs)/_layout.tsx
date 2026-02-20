@@ -26,6 +26,10 @@ function NativeTabLayout() {
         <Icon sf={{ default: "dollarsign.circle", selected: "dollarsign.circle.fill" }} />
         <Label>Budget</Label>
       </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="banks">
+        <Icon sf={{ default: "building.columns", selected: "building.columns.fill" }} />
+        <Label>Banks</Label>
+      </NativeTabs.Trigger>
     </NativeTabs>
   );
 }
@@ -92,6 +96,15 @@ function ClassicTabLayout() {
           title: "Budget",
           tabBarIcon: ({ color, focused }) => (
             <Ionicons name={focused ? "wallet" : "wallet-outline"} size={22} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="banks"
+        options={{
+          title: "Banks",
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons name={focused ? "business" : "business-outline"} size={22} color={color} />
           ),
         }}
       />

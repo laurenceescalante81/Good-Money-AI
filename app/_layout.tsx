@@ -21,6 +21,8 @@ function RootLayoutNav() {
       <Stack.Screen name="add-insurance" options={{ headerShown: false, presentation: "modal" }} />
       <Stack.Screen name="add-goal" options={{ headerShown: false, presentation: "modal" }} />
       <Stack.Screen name="settings" options={{ headerShown: false, presentation: "modal" }} />
+      <Stack.Screen name="connect-bank" options={{ headerShown: false, presentation: "modal" }} />
+      <Stack.Screen name="bank-transactions" options={{ headerShown: false, presentation: "modal" }} />
     </Stack>
   );
 }

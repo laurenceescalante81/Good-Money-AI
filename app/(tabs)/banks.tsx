@@ -345,7 +345,7 @@ const styles = StyleSheet.create({
   summaryVal: { fontFamily: "DMSans_700Bold", fontSize: 22, marginTop: 4 },
   accountsSection: { paddingHorizontal: 20 },
   accountGroup: { marginBottom: 20 },
-  groupTitle: { fontFamily: "DMSans_700Bold", fontSize: 14, color: Colors.light.textMuted, marginBottom: 8, textTransform: "uppercase", letterSpacing: 0.5, fontSize: 12 },
+  groupTitle: { fontFamily: "DMSans_700Bold", fontSize: 12, color: Colors.light.textMuted, marginBottom: 8, textTransform: "uppercase" as const, letterSpacing: 0.5 },
   accountCard: { backgroundColor: Colors.light.card, borderRadius: 14, padding: 14, marginBottom: 8 },
   accountRow: { flexDirection: "row", alignItems: "center", gap: 12 },
   accountIcon: { width: 40, height: 40, borderRadius: 12, alignItems: "center", justifyContent: "center" },
