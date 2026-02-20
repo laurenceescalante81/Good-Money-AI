@@ -15,6 +15,7 @@ PocketPlan AU is a personal financial planning mobile app built specifically for
 - **Super Tracker**: Balance, fund info, SG contributions, retirement projections (7% growth, 4% drawdown), milestones
 - **Budget & Savings**: Income/expense tracking with Australian categories (groceries, petrol, rent), spending breakdown, savings goals with fund allocation
 - **Insurance Hub**: Track home, car, health, life, income protection, contents, travel policies with renewal dates
+- **Banks** (Basiq Open Banking): Connect Australian bank accounts via Basiq API, view live account balances grouped by type (transaction, savings, credit cards, loans), import transactions into budget tracker
 - **Couple Mode**: Toggle shared finances, track who made each transaction
 - **Settings**: Profile mode, partner name, clear data
 
@@ -34,6 +35,12 @@ app/
   add-insurance.tsx      # Modal: insurance policies
   add-goal.tsx           # Modal: savings goals
   settings.tsx           # Modal: settings
+  connect-bank.tsx       # Modal: institution picker + auth link
+  bank-transactions.tsx  # Modal: view & import bank transactions
+  (tabs)/banks.tsx       # Banks tab: connected accounts + balances
+server/
+  basiq.ts               # Basiq Open Banking API integration
+  routes.ts              # Express API routes (Basiq endpoints)
 contexts/
   FinanceContext.tsx      # Main state + AsyncStorage persistence
 constants/
@@ -48,8 +55,16 @@ constants/
 - Budget categories: Groceries, rent, petrol, utilities, dining out, transport, health, entertainment
 - Mortgage: LVR calculation, P&I vs interest-only, major Australian lenders
 
+## Basiq Open Banking Integration
+- Requires BASIQ_API_KEY secret to be configured
+- Backend endpoints at /api/basiq/* handle token management, user creation, connections, accounts, transactions
+- Auth link flow: User is redirected to Basiq's consent page to securely connect their bank
+- Supported: All major Australian banks (CBA, ANZ, NAB, Westpac, Macquarie, etc.)
+- Transactions can be imported into the budget tracker with category mapping
+
 ## Recent Changes
-- Feb 2026: Complete rebuild focusing on four Australian finance pillars
+- Feb 2026: Added Basiq Open Banking integration with Banks tab, connect-bank flow, transaction import
+- Complete rebuild focusing on four Australian finance pillars
 - Added insurance policy management with renewal tracking
 - Added savings goals with funding capability
 - Professional banking design with teal/navy palette
