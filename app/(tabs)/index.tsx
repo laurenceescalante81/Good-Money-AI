@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { StyleSheet, Text, View, ScrollView, Pressable, Platform } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons, Feather } from "@expo/vector-icons";
@@ -7,6 +7,18 @@ import { LinearGradient } from "expo-linear-gradient";
 import Colors from "@/constants/colors";
 import { useFinance } from "@/contexts/FinanceContext";
 import { useRewards } from "@/contexts/RewardsContext";
+
+const DEFAULT_CTAS: Record<string, string> = {
+  mortgage: "Get a free rate review",
+  super: "Optimise your super today",
+  insurance: "Compare & save on premiums",
+  savings: "Boost your savings plan",
+  banks: "Link your accounts for real-time insights",
+  budget: "Take control of your cash flow",
+  planning: "See your wealth projection to retirement",
+  fact_find: "Complete your profile for tailored advice",
+  rewards: "Earn rewards & redeem for cashback",
+};
 
 function fmt(amount: number): string {
   return "$" + amount.toLocaleString("en-AU", { minimumFractionDigits: 0, maximumFractionDigits: 0 });
@@ -41,6 +53,19 @@ export default function DashboardScreen() {
   } = useFinance();
 
   const { state: rewardsState, missions, badges, xpForLevel, is2xWeekend } = useRewards();
+
+  const [ctaTexts, setCtaTexts] = useState<Record<string, string>>(DEFAULT_CTAS);
+
+  useEffect(() => {
+    const BASE = Platform.OS === "web" ? "" : `http://${process.env.EXPO_PUBLIC_API_HOST || "localhost"}:5000`;
+    fetch(`${BASE}/api/ctas`).then(r => r.json()).then(data => {
+      if (Array.isArray(data)) {
+        const map: Record<string, string> = { ...DEFAULT_CTAS };
+        data.forEach((c: any) => { if (c.tab_key && c.cta_text) map[c.tab_key] = c.cta_text; });
+        setCtaTexts(map);
+      }
+    }).catch(() => {});
+  }, []);
 
   const income = getTotalIncome();
   const expenses = getTotalExpenses();
@@ -262,7 +287,7 @@ export default function DashboardScreen() {
 
               <View style={styles.rewardsCtaRow}>
                 <Ionicons name="gift-outline" size={14} color="#D4AF37" />
-                <Text style={styles.rewardsCtaText}>Earn rewards & redeem for cashback</Text>
+                <Text style={styles.rewardsCtaText}>{ctaTexts.rewards}</Text>
                 <Ionicons name="chevron-forward" size={14} color="rgba(255,255,255,0.4)" />
               </View>
             </LinearGradient>
@@ -277,7 +302,7 @@ export default function DashboardScreen() {
               title="Mortgage"
               value={mortgage ? fmt(mortgageCalc.monthly) + "/mo" : "Not set"}
               subtitle={mortgage ? fmt(mortgage.loanAmount) + " loan" : "Set up your home loan"}
-              cta="Get a free rate review"
+              cta={ctaTexts.mortgage}
               onPress={() => mortgage ? router.push("/(tabs)/mortgage") : router.push("/setup-mortgage")}
             />
             <PillarCard
@@ -287,7 +312,7 @@ export default function DashboardScreen() {
               title="Super"
               value={superDetails ? fmt(superDetails.balance) : "Not set"}
               subtitle={superDetails ? fmt(Math.round(superProj.atRetirement)) + " at 67" : "Track your super"}
-              cta="Optimise your super today"
+              cta={ctaTexts.super}
               onPress={() => superDetails ? router.push("/(tabs)/super") : router.push("/setup-super")}
             />
             <PillarCard
@@ -297,7 +322,7 @@ export default function DashboardScreen() {
               title="Insurance"
               value={insurancePolicies.length > 0 ? fmt(insuranceCost) + "/yr" : "None"}
               subtitle={insurancePolicies.length > 0 ? `${insurancePolicies.length} ${insurancePolicies.length === 1 ? 'policy' : 'policies'}` : "Add your policies"}
-              cta="Compare & save on premiums"
+              cta={ctaTexts.insurance}
               onPress={() => router.push("/add-insurance")}
             />
             <PillarCard
@@ -307,7 +332,7 @@ export default function DashboardScreen() {
               title="Savings"
               value={goals.length > 0 ? fmt(totalGoalSaved) : "No goals"}
               subtitle={goals.length > 0 ? `of ${fmt(totalGoalTarget)} target` : "Set a savings goal"}
-              cta="Boost your savings plan"
+              cta={ctaTexts.savings}
               onPress={() => router.push("/add-goal")}
             />
           </View>
@@ -319,7 +344,7 @@ export default function DashboardScreen() {
               </View>
               <View style={styles.ctaContent}>
                 <Text style={styles.ctaTitle}>Banks</Text>
-                <Text style={styles.ctaMessage}>Link your accounts for real-time insights</Text>
+                <Text style={styles.ctaMessage}>{ctaTexts.banks}</Text>
               </View>
               <Ionicons name="chevron-forward" size={16} color={Colors.light.textMuted} />
             </Pressable>
@@ -330,7 +355,7 @@ export default function DashboardScreen() {
               </View>
               <View style={styles.ctaContent}>
                 <Text style={styles.ctaTitle}>Budget</Text>
-                <Text style={styles.ctaMessage}>Take control of your cash flow</Text>
+                <Text style={styles.ctaMessage}>{ctaTexts.budget}</Text>
               </View>
               <Ionicons name="chevron-forward" size={16} color={Colors.light.textMuted} />
             </Pressable>
@@ -341,7 +366,7 @@ export default function DashboardScreen() {
               </View>
               <View style={styles.ctaContent}>
                 <Text style={styles.ctaTitle}>Planning</Text>
-                <Text style={styles.ctaMessage}>See your wealth projection to retirement</Text>
+                <Text style={styles.ctaMessage}>{ctaTexts.planning}</Text>
               </View>
               <Ionicons name="chevron-forward" size={16} color={Colors.light.textMuted} />
             </Pressable>
@@ -352,7 +377,7 @@ export default function DashboardScreen() {
               </View>
               <View style={styles.ctaContent}>
                 <Text style={styles.ctaTitle}>Fact Find</Text>
-                <Text style={styles.ctaMessage}>Complete your profile for tailored advice</Text>
+                <Text style={styles.ctaMessage}>{ctaTexts.fact_find}</Text>
               </View>
               <Ionicons name="chevron-forward" size={16} color={Colors.light.textMuted} />
             </Pressable>
