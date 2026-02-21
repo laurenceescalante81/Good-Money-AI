@@ -172,6 +172,11 @@ function configureExpoAndLanding(app: express.Application) {
 
   log("Serving static Expo files with dynamic manifest routing");
 
+  const adminPath = path.resolve(process.cwd(), "server", "templates", "admin.html");
+  app.get("/admin", (_req: Request, res: Response) => {
+    res.sendFile(adminPath);
+  });
+
   app.use((req: Request, res: Response, next: NextFunction) => {
     if (req.path.startsWith("/api")) {
       return next();
