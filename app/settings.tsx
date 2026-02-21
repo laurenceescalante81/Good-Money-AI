@@ -97,7 +97,7 @@ export default function SettingsScreen() {
             <Text style={styles.dangerText}>Clear All Data</Text>
           </Pressable>
         </View>
-        <Text style={styles.version}>PocketPlan AU v1.0</Text>
+        <Text style={styles.version}>Good Money v1.0</Text>
       </View>
     </View>
   );

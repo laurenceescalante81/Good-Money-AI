@@ -300,7 +300,7 @@ export default function RewardsScreen() {
         <LinearGradient colors={['#0C1B2A', '#132D46', '#1B3A5C']} style={[s.heroGradient, { paddingTop: topInset + 16 }]}>
           <View style={s.headerRow}>
             <View>
-              <Text style={s.appName}>PocketPlan</Text>
+              <Text style={s.appName}>Good Money</Text>
               <Text style={s.greeting}>REWARDS & MISSIONS</Text>
             </View>
             <View style={s.avatarCircle}>
@@ -385,7 +385,7 @@ export default function RewardsScreen() {
                         <Ionicons name="search" size={14} color="#D4AF37" />
                         <Text style={s.factFindLabel}>FINANCIAL FACT FIND</Text>
                       </View>
-                      <Text style={s.factFindTitle}>Complete your profile & earn coins</Text>
+                      <Text style={s.factFindTitle}>Complete your profile & earn Good Coins</Text>
                       <Text style={s.factFindSub}>Enter your details to unlock comparisons & switch requests</Text>
                     </View>
                     <View style={s.factFindProgress}>
@@ -397,7 +397,7 @@ export default function RewardsScreen() {
                   </View>
                   <View style={s.factFindCoinsRow}>
                     <View style={{ width: 16, height: 16, borderRadius: 8, backgroundColor: '#F59E0B', alignItems: 'center', justifyContent: 'center', borderWidth: 1.5, borderColor: '#D4930D' }}><Text style={{ fontSize: 8, fontWeight: '800', color: '#7C5800' }}>$</Text></View>
-                    <Text style={s.factFindCoinsText}>Earn up to 5,450 coins</Text>
+                    <Text style={s.factFindCoinsText}>Earn up to 5,450 Good Coins</Text>
                     <Ionicons name="chevron-forward" size={16} color="rgba(255,255,255,0.6)" />
                   </View>
                 </LinearGradient>
@@ -457,7 +457,7 @@ export default function RewardsScreen() {
                     </View>
                     <View style={s.walletTokenInfo}>
                       <Text style={s.walletTokenName}>ppAUD</Text>
-                      <Text style={s.walletTokenSub}>PocketPlan AUD Stablecoin</Text>
+                      <Text style={s.walletTokenSub}>Good Money AUD Stablecoin</Text>
                     </View>
                     <View style={s.walletPegBadge}>
                       <Text style={s.walletPegText}>1:1 AUD</Text>

@@ -1,7 +1,7 @@
-# PocketPlan AU - Australian Financial Planning App
+# Good Money - Australian Financial Planning App
 
 ## Overview
-PocketPlan AU is a personal financial planning mobile app built specifically for Australians. It focuses on four key pillars: mortgage tracking, superannuation (retirement savings), insurance management, and savings/budgeting. All currency is in AUD and uses Australian-specific financial terminology.
+Good Money is a personal financial planning mobile app built specifically for Australians. It focuses on four key pillars: mortgage tracking, superannuation (retirement savings), insurance management, and savings/budgeting. All currency is in AUD and uses Australian-specific financial terminology.
 
 ## Architecture
 - **Frontend**: Expo Router (file-based routing) with React Native

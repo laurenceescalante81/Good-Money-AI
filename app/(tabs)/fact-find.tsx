@@ -711,7 +711,7 @@ export default function FactFindTabScreen() {
         {coinToast && (
           <Animated.View style={[styles.coinToast, { opacity: toastAnim, transform: [{ translateY: toastAnim.interpolate({ inputRange: [0, 1], outputRange: [-20, 0] }) }] }]}>
             <View style={styles.goldCoinLg}><Text style={styles.goldCoinLgText}>$</Text></View>
-            <Text style={styles.coinToastText}>+{coinToast.amount} coins - {coinToast.label}</Text>
+            <Text style={styles.coinToastText}>+{coinToast.amount} Good Coins - {coinToast.label}</Text>
           </Animated.View>
         )}
 
@@ -738,7 +738,7 @@ export default function FactFindTabScreen() {
                       <Text style={styles.sectionMetaText}>{fieldsComplete}/{section.fields.length} fields</Text>
                       <View style={styles.sectionCoinBadge}>
                         <View style={styles.goldCoinSm}><Text style={styles.goldCoinSmText}>$</Text></View>
-                        <Text style={styles.sectionCoinText}>{totalCoins} coins</Text>
+                        <Text style={styles.sectionCoinText}>{totalCoins} Good Coins</Text>
                       </View>
                     </View>
                   </View>
@@ -749,7 +749,7 @@ export default function FactFindTabScreen() {
                     {sectionDone && (
                       <View style={styles.sectionCompleteBanner}>
                         <Ionicons name="trophy" size={16} color="#F59E0B" />
-                        <Text style={styles.sectionCompleteText}>Section complete! +{section.bonusCoins} bonus coins earned</Text>
+                        <Text style={styles.sectionCompleteText}>Section complete! +{section.bonusCoins} bonus Good Coins earned</Text>
                       </View>
                     )}
                     {renderSectionContent(section)}
