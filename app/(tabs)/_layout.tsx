@@ -59,12 +59,12 @@ function MoreMenu({
   useEffect(() => {
     if (visible) {
       Animated.parallel([
-        Animated.timing(fadeAnim, { toValue: 1, duration: 200, useNativeDriver: !isWeb }),
-        Animated.spring(slideAnim, { toValue: 0, friction: 8, tension: 65, useNativeDriver: !isWeb }),
+        Animated.timing(fadeAnim, { toValue: 1, duration: 250, useNativeDriver: !isWeb }),
+        Animated.spring(slideAnim, { toValue: 0, friction: 9, tension: 50, useNativeDriver: !isWeb }),
       ]).start();
     } else {
       fadeAnim.setValue(0);
-      slideAnim.setValue(300);
+      slideAnim.setValue(40);
     }
   }, [visible]);
 
@@ -72,23 +72,27 @@ function MoreMenu({
 
   const bottomPad = isWeb ? 34 : Math.max(insets.bottom, 16);
 
+  const topPad = isWeb ? 67 : Math.max(insets.top, 20);
+
   return (
     <Modal transparent visible={visible} animationType="none" onRequestClose={onClose}>
       <Animated.View style={[styles.overlay, { opacity: fadeAnim }]}>
         <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
         <Animated.View
           style={[
-            styles.moreSheet,
-            { paddingBottom: bottomPad + 8, transform: [{ translateY: slideAnim }] },
+            styles.homePage,
+            { paddingTop: topPad + 16, paddingBottom: bottomPad + 16, transform: [{ translateY: slideAnim }] },
           ]}
         >
-          <View style={styles.sheetHandle} />
-          <Text style={styles.sheetTitle}>All Sections</Text>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.iconRow}
-          >
+          <View style={styles.homeHeader}>
+            <Text style={styles.homeTitle}>Good Money</Text>
+            <TouchableOpacity onPress={onClose} style={styles.homeCloseBtn} activeOpacity={0.7}>
+              <View style={styles.homeCloseBg}>
+                <Ionicons name="close" size={18} color="#666" />
+              </View>
+            </TouchableOpacity>
+          </View>
+          <View style={styles.iconGrid}>
             {routes.map((route, index) => {
               const { options } = descriptors[route.key];
               const meta = TAB_META[route.name] || { active: "ellipse", inactive: "ellipse-outline", color: "#999" };
@@ -105,32 +109,29 @@ function MoreMenu({
                   <View
                     style={[
                       styles.gridIconCircle,
-                      {
-                        backgroundColor: isFocused ? meta.color : `${meta.color}15`,
-                        borderWidth: isFocused ? 0 : 1,
-                        borderColor: `${meta.color}30`,
-                      },
+                      { backgroundColor: meta.color },
                     ]}
                   >
                     <Ionicons
-                      name={(isFocused ? meta.active : meta.inactive) as any}
-                      size={24}
-                      color={isFocused ? "#fff" : meta.color}
+                      name={meta.active as any}
+                      size={28}
+                      color="#fff"
                     />
                   </View>
                   <Text
                     style={[
                       styles.gridLabel,
-                      { color: isFocused ? meta.color : "#374151", fontWeight: isFocused ? "700" : "500" },
+                      isFocused && { fontWeight: "700" },
                     ]}
                     numberOfLines={1}
                   >
                     {label}
                   </Text>
+                  {isFocused && <View style={[styles.activeDot, { backgroundColor: meta.color }]} />}
                 </TouchableOpacity>
               );
             })}
-          </ScrollView>
+          </View>
         </Animated.View>
       </Animated.View>
     </Modal>
@@ -384,53 +385,70 @@ const styles = StyleSheet.create({
   },
   overlay: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.4)",
-    justifyContent: "flex-end",
+    backgroundColor: "rgba(0,0,0,0.5)",
   },
-  moreSheet: {
-    backgroundColor: "#fff",
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    paddingTop: 12,
-    paddingHorizontal: 16,
+  homePage: {
+    flex: 1,
+    backgroundColor: "rgba(245, 245, 247, 0.97)",
+    paddingHorizontal: 20,
   },
-  sheetHandle: {
-    width: 40,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: "#D1D5DB",
-    alignSelf: "center",
-    marginBottom: 16,
-  },
-  sheetTitle: {
-    fontFamily: "DMSans_700Bold",
-    fontSize: 18,
-    color: "#111827",
-    textAlign: "center",
-    marginBottom: 20,
-  },
-  iconRow: {
+  homeHeader: {
     flexDirection: "row",
-    alignItems: "flex-start",
-    gap: 12,
-    paddingHorizontal: 16,
-    paddingBottom: 8,
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 32,
+  },
+  homeTitle: {
+    fontFamily: "DMSans_700Bold",
+    fontSize: 28,
+    color: "#111827",
+  },
+  homeCloseBtn: {
+    padding: 4,
+  },
+  homeCloseBg: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: "rgba(0,0,0,0.08)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  iconGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "flex-start",
+    gap: 20,
+    rowGap: 28,
+    paddingHorizontal: 4,
   },
   gridItem: {
     alignItems: "center",
-    width: 80,
+    width: 72,
   },
   gridIconCircle: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+    width: 60,
+    height: 60,
+    borderRadius: 16,
     alignItems: "center",
     justifyContent: "center",
     marginBottom: 6,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+    elevation: 4,
   },
   gridLabel: {
     fontFamily: "DMSans_500Medium",
-    fontSize: 12,
+    fontSize: 11,
+    color: "#374151",
     textAlign: "center",
+  },
+  activeDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    marginTop: 4,
   },
 });
