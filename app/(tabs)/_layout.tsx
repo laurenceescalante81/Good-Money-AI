@@ -389,7 +389,7 @@ const styles = StyleSheet.create({
   },
   homePage: {
     flex: 1,
-    backgroundColor: "rgba(245, 245, 247, 0.95)",
+    backgroundColor: "rgba(245, 245, 247, 0.82)",
     paddingHorizontal: 20,
   },
   homeHeader: {
