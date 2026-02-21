@@ -164,6 +164,9 @@ tr:hover td{background:var(--gray100)}
       <span class="nav-icon">&#128227;</span><span>Sales CTAs</span>
     </div>
     <div class="nav-divider"></div>
+    <div class="nav-item" data-page="segments" onclick="navigate('segments')">
+      <span class="nav-icon">&#128203;</span><span>Segments</span>
+    </div>
     <div class="nav-item" data-page="advisors" onclick="navigate('advisors')">
       <span class="nav-icon">&#128100;</span><span>Advisors</span>
     </div>
@@ -255,7 +258,7 @@ async function showApp() {
 function navigate(page) {
   currentPage = page;
   document.querySelectorAll('.nav-item').forEach(n => n.classList.toggle('active', n.dataset.page === page));
-  const renderers = { dashboard: renderDashboard, quests: renderQuests, badges: renderBadges, rewards: renderRewards, settings: renderSettings, ctas: renderCtas, advisors: renderAdvisors, customers: renderCustomers, analytics: renderAnalytics };
+  const renderers = { dashboard: renderDashboard, quests: renderQuests, badges: renderBadges, rewards: renderRewards, settings: renderSettings, ctas: renderCtas, segments: renderSegments, advisors: renderAdvisors, customers: renderCustomers, analytics: renderAnalytics };
   if (renderers[page]) renderers[page]();
 }
 
@@ -317,18 +320,54 @@ async function renderDashboard() {
   }
 }
 
+async function loadSegments() {
+  if (!cachedData.segments) {
+    try { cachedData.segments = await api('/segments'); } catch { cachedData.segments = []; }
+  }
+  return cachedData.segments;
+}
+
+function segmentOptions(selectedId) {
+  const segs = cachedData.segments || [];
+  let html = `<option value="">All Customers (no segment)</option>`;
+  segs.forEach(s => { html += `<option value="${s.id}" ${s.id == selectedId ? 'selected' : ''}>${s.name}</option>`; });
+  return html;
+}
+
+function segmentFilterBar(current, onChangeFunc) {
+  const segs = cachedData.segments || [];
+  let html = `<div style="display:flex;gap:8px;align-items:center;margin-bottom:16px;flex-wrap:wrap">
+    <span style="font-weight:600;font-size:13px;color:var(--gray600)">Segment:</span>
+    <select onchange="${onChangeFunc}" style="padding:8px 12px;border:1px solid var(--border);border-radius:10px;font-family:inherit;font-size:13px">
+      <option value="all" ${current==='all'?'selected':''}>All Segments</option>
+      <option value="none" ${current==='none'?'selected':''}>No Segment (Default)</option>`;
+  segs.forEach(s => { html += `<option value="${s.id}" ${current==s.id?'selected':''}>${s.name}</option>`; });
+  html += `</select></div>`;
+  return html;
+}
+
+function segmentBadge(name, color) {
+  if (!name) return '<span style="font-size:11px;color:var(--gray400)">All</span>';
+  return `<span class="badge" style="background:${color || '#3B82F6'}22;color:${color || '#3B82F6'}">${name}</span>`;
+}
+
+let questSegFilter = 'all';
+
 async function renderQuests() {
   setMain('<div class="page-header"><h1>Quests & Missions</h1><p>Configure quest challenges and mission objectives</p></div><div id="quest-content"><p>Loading...</p></div>');
   try {
-    const quests = await api('/quests');
+    await loadSegments();
+    const url = questSegFilter === 'all' ? '/quests' : '/quests?segment_id=' + questSegFilter;
+    const quests = await api(url);
     cachedData.quests = quests;
-    let html = `<div class="card"><div class="card-header"><h3>All Quests (${quests.length})</h3><button class="btn btn-primary btn-sm" onclick="showQuestModal()">+ Add Quest</button></div>
-    <table><thead><tr><th>Quest</th><th>Points</th><th>2x Active</th><th>Category</th><th>Status</th><th>Actions</th></tr></thead><tbody>`;
+    let html = segmentFilterBar(questSegFilter, "questSegFilter=this.value;renderQuests()");
+    html += `<div class="card"><div class="card-header"><h3>Quests (${quests.length})</h3><button class="btn btn-primary btn-sm" onclick="showQuestModal()">+ Add Quest</button></div>
+    <table><thead><tr><th>Quest</th><th>Points</th><th>Segment</th><th>Category</th><th>Status</th><th>Actions</th></tr></thead><tbody>`;
     quests.forEach(q => {
       html += `<tr>
         <td><span class="color-dot" style="background:${q.icon_bg}"></span><strong>${q.title}</strong><br><small style="color:var(--gray400)">${q.description || ''}</small></td>
         <td><strong>${q.base_points}</strong></td>
-        <td>${q.is_2x_active ? '<span class="badge badge-active">Yes</span>' : '<span class="badge badge-inactive">No</span>'}</td>
+        <td>${segmentBadge(q.segment_name, cachedData.segments?.find(s=>s.id==q.segment_id)?.color)}</td>
         <td>${q.category || 'mission'}</td>
         <td><span class="badge ${q.is_active ? 'badge-active' : 'badge-inactive'}">${q.is_active ? 'Active' : 'Inactive'}</span></td>
         <td><button class="btn btn-secondary btn-sm" onclick="showQuestModal(${q.id})">Edit</button> <button class="btn btn-danger btn-sm" onclick="deleteQuest(${q.id})">Delete</button></td>
@@ -352,6 +391,7 @@ function showQuestModal(editId) {
     <div class="form-group"><label>Icon Background Color</label><input id="m-quest-bg" type="color" value="${q?.icon_bg || '#3B82F6'}"></div>
     <div class="form-group"><label>Base Points</label><input id="m-quest-pts" type="number" value="${q?.base_points || 100}"></div>
     <div class="form-group"><label>Category</label><select id="m-quest-cat"><option ${q?.category==='mission'?'selected':''}>mission</option><option ${q?.category==='daily'?'selected':''}>daily</option><option ${q?.category==='weekly'?'selected':''}>weekly</option><option ${q?.category==='special'?'selected':''}>special</option></select></div>
+    <div class="form-group"><label>Target Segment</label><select id="m-quest-segment">${segmentOptions(q?.segment_id)}</select></div>
     <div class="form-group"><label><input type="checkbox" id="m-quest-2x" ${q?.is_2x_active?'checked':''}> 2x Active Multiplier</label></div>
     <div class="form-group"><label><input type="checkbox" id="m-quest-active" ${q?.is_active !== false?'checked':''}> Active</label></div>
     <div class="modal-actions">
@@ -362,6 +402,7 @@ function showQuestModal(editId) {
 }
 
 async function saveQuest(editId) {
+  const segVal = document.getElementById('m-quest-segment').value;
   const data = {
     quest_id: document.getElementById('m-quest-id').value,
     title: document.getElementById('m-quest-title').value,
@@ -373,6 +414,7 @@ async function saveQuest(editId) {
     is_2x_active: document.getElementById('m-quest-2x').checked,
     is_active: document.getElementById('m-quest-active').checked,
     sort_order: editId ? cachedData.quests.find(x => x.id === editId)?.sort_order || 0 : 0,
+    segment_id: segVal ? parseInt(segVal) : null,
   };
   try {
     if (editId) await api('/quests/' + editId, { method: 'PUT', body: JSON.stringify(data) });
@@ -543,36 +585,82 @@ async function saveSetting(key) {
   } catch (e) { alert('Save failed'); }
 }
 
+let ctaSegFilter = 'all';
+
 async function renderCtas() {
-  setMain('<div class="page-header"><h1>Sales CTAs</h1><p>Edit the call-to-action messages shown on each tab in the app summary</p></div><div id="cta-content"><p>Loading...</p></div>');
+  setMain('<div class="page-header"><h1>Sales CTAs</h1><p>Edit the call-to-action messages shown on each tab in the app. Assign segments to show different CTAs to different customer groups.</p></div><div id="cta-content"><p>Loading...</p></div>');
   try {
-    const ctas = await api('/ctas');
+    await loadSegments();
+    const url = ctaSegFilter === 'all' ? '/ctas' : '/ctas?segment_id=' + ctaSegFilter;
+    const ctas = await api(url);
     cachedData.ctas = ctas;
-    let html = `<div class="card"><div class="card-header"><h3>Tab CTAs (${ctas.length})</h3></div>
-    <table><thead><tr><th>Tab</th><th>CTA Text</th><th>Icon</th><th>Color</th><th>Status</th><th>Actions</th></tr></thead><tbody>`;
+    let html = segmentFilterBar(ctaSegFilter, "ctaSegFilter=this.value;renderCtas()");
+    html += `<div style="display:flex;justify-content:flex-end;margin-bottom:12px"><button class="btn btn-primary btn-sm" onclick="showAddCtaModal()">+ Add Segment CTA</button></div>`;
+    html += `<div class="card"><div class="card-header"><h3>Tab CTAs (${ctas.length})</h3></div>
+    <table><thead><tr><th>Tab</th><th>CTA Text</th><th>Segment</th><th>Icon</th><th>Color</th><th>Status</th><th>Actions</th></tr></thead><tbody>`;
     ctas.forEach(c => {
+      const seg = cachedData.segments?.find(s => s.id == c.segment_id);
       html += `<tr>
         <td><strong>${c.tab_label}</strong><br><small style="color:var(--gray400)">${c.tab_key}</small></td>
-        <td style="max-width:300px"><input id="cta-text-${c.id}" value="${c.cta_text}" style="width:100%;padding:6px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px"></td>
-        <td><input id="cta-icon-${c.id}" value="${c.icon || ''}" style="width:120px;padding:6px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:12px" placeholder="icon-name"></td>
+        <td style="max-width:260px"><input id="cta-text-${c.id}" value="${c.cta_text}" style="width:100%;padding:6px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px"></td>
+        <td>${segmentBadge(c.segment_name, seg?.color)}</td>
+        <td><input id="cta-icon-${c.id}" value="${c.icon || ''}" style="width:100px;padding:6px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:12px" placeholder="icon-name"></td>
         <td><input id="cta-color-${c.id}" type="color" value="${c.icon_color || '#0d9488'}" style="width:40px;height:32px;border:none;cursor:pointer"></td>
         <td><label style="cursor:pointer"><input type="checkbox" id="cta-active-${c.id}" ${c.is_active ? 'checked' : ''} onchange="saveCta(${c.id})"> Active</label></td>
-        <td><button class="btn btn-primary btn-sm" onclick="saveCta(${c.id})">Save</button></td>
+        <td style="white-space:nowrap"><button class="btn btn-primary btn-sm" onclick="saveCta(${c.id})">Save</button> ${c.segment_id ? `<button class="btn btn-danger btn-sm" onclick="deleteCta(${c.id})">Del</button>` : ''}</td>
       </tr>`;
     });
     html += '</tbody></table></div>';
-    html += `<div class="card" style="background:linear-gradient(135deg,#0d9488 0%,#1a1a2e 100%);color:#fff;border:none"><div class="card-header"><h3 style="color:#fff">&#128161; CTA Tips</h3></div>
+    html += `<div class="card" style="background:linear-gradient(135deg,#0d9488 0%,#1a1a2e 100%);color:#fff;border:none"><div class="card-header"><h3 style="color:#fff">&#128161; Segmentation Tips</h3></div>
       <ul style="font-size:13px;line-height:2;padding-left:18px;color:rgba(255,255,255,0.8)">
-        <li>Keep CTAs short and action-oriented (under 40 characters)</li>
-        <li>Use verbs like "Get", "Compare", "Boost", "Link", "Complete"</li>
-        <li>Highlight the benefit to the customer, not the feature</li>
-        <li>Toggle inactive to hide a CTA without deleting it</li>
-        <li>Icons use Ionicons names (e.g. home-outline, wallet-outline)</li>
+        <li>Default CTAs (no segment) are shown when no segment-specific CTA matches</li>
+        <li>Create segment-specific CTAs using "+ Add Segment CTA" to target customer groups</li>
+        <li>For example: Show "Upgrade your super fund" to New Users and "Review your allocation" to Power Users</li>
+        <li>Segment rules are defined in the Segments page (level, points, streak, advisor, etc.)</li>
+        <li>Only one CTA per tab per segment is shown; segment CTAs override the default</li>
       </ul></div>`;
     document.getElementById('cta-content').innerHTML = html;
   } catch (e) {
     document.getElementById('cta-content').innerHTML = '<p>Failed to load CTAs</p>';
   }
+}
+
+function showAddCtaModal() {
+  const tabs = [{k:'mortgage',l:'Mortgage'},{k:'super',l:'Super'},{k:'insurance',l:'Insurance'},{k:'savings',l:'Savings'},{k:'rewards',l:'Rewards'},{k:'banks',l:'Banks'},{k:'budget',l:'Budget'},{k:'planning',l:'Planning'},{k:'fact_find',l:'Fact Find'}];
+  let tabOpts = tabs.map(t => `<option value="${t.k}" data-label="${t.l}">${t.l}</option>`).join('');
+  showModal(`
+    <h2>Add Segment CTA</h2>
+    <p style="font-size:13px;color:var(--gray600);margin-bottom:16px">Create a CTA variant for a specific customer segment. This will override the default CTA for customers matching the segment.</p>
+    <div class="form-group"><label>Tab</label><select id="m-cta-tab">${tabOpts}</select></div>
+    <div class="form-group"><label>Target Segment</label><select id="m-cta-segment">${segmentOptions('')}</select></div>
+    <div class="form-group"><label>CTA Text</label><input id="m-cta-text" placeholder="e.g. Get a better rate now"></div>
+    <div class="form-group"><label>Icon</label><input id="m-cta-icon" placeholder="e.g. home-outline"></div>
+    <div class="form-group"><label>Icon Color</label><input id="m-cta-color" type="color" value="#0d9488"></div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="hideModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveNewCta()">Add CTA</button>
+    </div>
+  `);
+}
+
+async function saveNewCta() {
+  const tabSel = document.getElementById('m-cta-tab');
+  const tab_key = tabSel.value;
+  const tab_label = tabSel.options[tabSel.selectedIndex].dataset.label;
+  const segment_id = document.getElementById('m-cta-segment').value;
+  const data = {
+    tab_key, tab_label,
+    cta_text: document.getElementById('m-cta-text').value,
+    icon: document.getElementById('m-cta-icon').value,
+    icon_color: document.getElementById('m-cta-color').value,
+    segment_id: segment_id ? parseInt(segment_id) : null,
+  };
+  if (!data.cta_text) { alert('Please enter CTA text'); return; }
+  try {
+    await api('/ctas', { method: 'POST', body: JSON.stringify(data) });
+    hideModal();
+    renderCtas();
+  } catch (e) { alert('Save failed: ' + e.message); }
 }
 
 async function saveCta(id) {
@@ -587,6 +675,149 @@ async function saveCta(id) {
     row.style.background = '#d1fae5';
     setTimeout(() => { row.style.background = ''; }, 800);
   } catch (e) { alert('Save failed: ' + e.message); }
+}
+
+async function deleteCta(id) {
+  if (!confirm('Delete this segment CTA?')) return;
+  try { await api('/ctas/' + id, { method: 'DELETE' }); renderCtas(); } catch (e) { alert('Delete failed'); }
+}
+
+async function renderSegments() {
+  setMain('<div class="page-header"><h1>Customer Segments</h1><p>Define customer groups based on rules to target CTAs and challenges</p></div><div id="seg-content"><p>Loading...</p></div>');
+  try {
+    cachedData.segments = null;
+    const segments = await loadSegments();
+    let html = `<div style="display:flex;justify-content:flex-end;margin-bottom:16px"><button class="btn btn-primary" onclick="showSegmentModal()">+ New Segment</button></div>`;
+    if (segments.length === 0) {
+      html += '<div class="empty-state">No segments defined yet. Create your first segment to start targeting customer groups.</div>';
+    } else {
+      segments.forEach(s => {
+        const rules = s.rules || {};
+        const ruleLabels = [];
+        if (rules.min_level) ruleLabels.push('Level >= ' + rules.min_level);
+        if (rules.max_level) ruleLabels.push('Level <= ' + rules.max_level);
+        if (rules.min_points) ruleLabels.push('Points >= ' + Number(rules.min_points).toLocaleString());
+        if (rules.max_points) ruleLabels.push('Points <= ' + Number(rules.max_points).toLocaleString());
+        if (rules.min_streak) ruleLabels.push('Streak >= ' + rules.min_streak);
+        if (rules.max_streak) ruleLabels.push('Streak <= ' + rules.max_streak);
+        if (rules.has_advisor === true) ruleLabels.push('Has Advisor');
+        if (rules.has_advisor === false) ruleLabels.push('No Advisor');
+        if (rules.inactive_days) ruleLabels.push('Inactive ' + rules.inactive_days + 'd');
+        if (rules.min_fact_find) ruleLabels.push('Fact Find >= ' + rules.min_fact_find + '%');
+        if (rules.max_fact_find) ruleLabels.push('Fact Find <= ' + rules.max_fact_find + '%');
+        if (rules.has_mortgage === true) ruleLabels.push('Has Mortgage');
+        if (rules.has_mortgage === false) ruleLabels.push('No Mortgage');
+        const ruleStr = ruleLabels.length > 0 ? ruleLabels.join(' &bull; ') : '<em style="color:var(--gray400)">No rules (matches all)</em>';
+        html += `<div class="card" style="cursor:pointer;border-left:4px solid ${s.color}" onclick="showSegmentModal(${s.id})">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start">
+            <div>
+              <h3 style="font-size:16px;margin-bottom:4px"><span class="color-dot" style="background:${s.color}"></span>${s.name}
+                <span class="badge ${s.is_active ? 'badge-active' : 'badge-inactive'}" style="margin-left:8px">${s.is_active ? 'Active' : 'Inactive'}</span>
+              </h3>
+              <p style="font-size:13px;color:var(--gray600);margin-bottom:8px">${s.description || ''}</p>
+              <div style="font-size:12px;color:var(--gray400)">${ruleStr}</div>
+            </div>
+            <div style="text-align:right">
+              <div style="font-size:12px;color:var(--gray400)">Used in</div>
+              <div style="font-size:13px"><strong>${s.cta_count}</strong> CTAs &bull; <strong>${s.quest_count}</strong> Quests</div>
+              <button class="btn btn-secondary btn-sm" style="margin-top:8px" onclick="event.stopPropagation();previewSegment(${s.id})">Preview Customers</button>
+            </div>
+          </div>
+        </div>`;
+      });
+    }
+    document.getElementById('seg-content').innerHTML = html;
+  } catch (e) {
+    document.getElementById('seg-content').innerHTML = '<p>Failed to load segments</p>';
+  }
+}
+
+function showSegmentModal(editId) {
+  const s = editId ? (cachedData.segments || []).find(x => x.id === editId) : null;
+  const rules = s?.rules || {};
+  showModal(`
+    <h2>${s ? 'Edit Segment' : 'New Segment'}</h2>
+    <div class="form-group"><label>Name</label><input id="m-seg-name" value="${s?.name || ''}" placeholder="e.g. Power Users"></div>
+    <div class="form-group"><label>Description</label><textarea id="m-seg-desc">${s?.description || ''}</textarea></div>
+    <div class="form-group"><label>Color</label><input id="m-seg-color" type="color" value="${s?.color || '#3B82F6'}"></div>
+    <h3 style="font-size:14px;font-weight:700;margin:16px 0 12px;color:var(--navy)">Segment Rules</h3>
+    <p style="font-size:12px;color:var(--gray400);margin-bottom:12px">Leave fields empty to not filter on that criteria. All filled rules must match (AND logic).</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="form-group"><label>Min Level</label><input id="m-seg-minlvl" type="number" min="1" value="${rules.min_level || ''}" placeholder="e.g. 3"></div>
+      <div class="form-group"><label>Max Level</label><input id="m-seg-maxlvl" type="number" min="1" value="${rules.max_level || ''}" placeholder="e.g. 5"></div>
+      <div class="form-group"><label>Min Points</label><input id="m-seg-minpts" type="number" min="0" value="${rules.min_points || ''}" placeholder="e.g. 1000"></div>
+      <div class="form-group"><label>Max Points</label><input id="m-seg-maxpts" type="number" min="0" value="${rules.max_points || ''}" placeholder="e.g. 5000"></div>
+      <div class="form-group"><label>Min Streak</label><input id="m-seg-minstrk" type="number" min="0" value="${rules.min_streak || ''}" placeholder="e.g. 7"></div>
+      <div class="form-group"><label>Max Streak</label><input id="m-seg-maxstrk" type="number" min="0" value="${rules.max_streak || ''}" placeholder="e.g. 30"></div>
+      <div class="form-group"><label>Min Fact Find %</label><input id="m-seg-minff" type="number" min="0" max="100" value="${rules.min_fact_find || ''}" placeholder="e.g. 50"></div>
+      <div class="form-group"><label>Max Fact Find %</label><input id="m-seg-maxff" type="number" min="0" max="100" value="${rules.max_fact_find || ''}" placeholder="e.g. 100"></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="form-group"><label>Has Advisor</label><select id="m-seg-advisor"><option value="">Any</option><option value="true" ${rules.has_advisor===true?'selected':''}>Yes - assigned</option><option value="false" ${rules.has_advisor===false?'selected':''}>No - unassigned</option></select></div>
+      <div class="form-group"><label>Inactive Days</label><input id="m-seg-inactive" type="number" min="1" value="${rules.inactive_days || ''}" placeholder="e.g. 14"></div>
+    </div>
+    <div class="form-group"><label><input type="checkbox" id="m-seg-active" ${s?.is_active !== false?'checked':''}> Active</label></div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="hideModal()">Cancel</button>
+      ${s ? `<button class="btn btn-danger" onclick="deleteSegment(${editId})">Delete</button>` : ''}
+      <button class="btn btn-primary" onclick="saveSegment(${editId || 'null'})">Save Segment</button>
+    </div>
+  `);
+}
+
+async function saveSegment(editId) {
+  const rules = {};
+  const v = (id) => { const el = document.getElementById(id); return el ? el.value : ''; };
+  if (v('m-seg-minlvl')) rules.min_level = parseInt(v('m-seg-minlvl'));
+  if (v('m-seg-maxlvl')) rules.max_level = parseInt(v('m-seg-maxlvl'));
+  if (v('m-seg-minpts')) rules.min_points = parseInt(v('m-seg-minpts'));
+  if (v('m-seg-maxpts')) rules.max_points = parseInt(v('m-seg-maxpts'));
+  if (v('m-seg-minstrk')) rules.min_streak = parseInt(v('m-seg-minstrk'));
+  if (v('m-seg-maxstrk')) rules.max_streak = parseInt(v('m-seg-maxstrk'));
+  if (v('m-seg-minff')) rules.min_fact_find = parseInt(v('m-seg-minff'));
+  if (v('m-seg-maxff')) rules.max_fact_find = parseInt(v('m-seg-maxff'));
+  if (v('m-seg-advisor') === 'true') rules.has_advisor = true;
+  if (v('m-seg-advisor') === 'false') rules.has_advisor = false;
+  if (v('m-seg-inactive')) rules.inactive_days = parseInt(v('m-seg-inactive'));
+  const data = {
+    name: v('m-seg-name'),
+    description: v('m-seg-desc'),
+    color: v('m-seg-color'),
+    rules,
+    is_active: document.getElementById('m-seg-active').checked,
+  };
+  if (!data.name) { alert('Please enter a segment name'); return; }
+  try {
+    if (editId) await api('/segments/' + editId, { method: 'PUT', body: JSON.stringify(data) });
+    else await api('/segments', { method: 'POST', body: JSON.stringify(data) });
+    cachedData.segments = null;
+    hideModal();
+    renderSegments();
+  } catch (e) { alert('Save failed: ' + e.message); }
+}
+
+async function deleteSegment(id) {
+  if (!confirm('Delete this segment? CTAs and quests assigned to it will be reset to "All Customers".')) return;
+  try { await api('/segments/' + id, { method: 'DELETE' }); cachedData.segments = null; hideModal(); renderSegments(); } catch (e) { alert('Delete failed'); }
+}
+
+async function previewSegment(id) {
+  try {
+    const data = await api('/segments/' + id + '/customers');
+    let html = `<h2>Matching Customers (${data.count})</h2>`;
+    if (data.customers.length === 0) {
+      html += '<p style="color:var(--gray400);text-align:center;padding:20px">No customers match this segment\'s rules.</p>';
+    } else {
+      html += '<table><thead><tr><th>Customer</th><th>Level</th><th>Points</th><th>Streak</th><th>Fact Find</th><th>Last Active</th></tr></thead><tbody>';
+      data.customers.forEach(c => {
+        html += `<tr><td>${c.name || c.device_id || 'Unknown'}</td><td>${c.level}</td><td>${Number(c.total_points_earned).toLocaleString()}</td><td>${c.streak}d</td><td>${c.fact_find_progress}%</td><td>${c.last_active ? new Date(c.last_active).toLocaleDateString() : '-'}</td></tr>`;
+      });
+      html += '</tbody></table>';
+      if (data.count > 100) html += `<p style="font-size:12px;color:var(--gray400);margin-top:8px">Showing first 100 of ${data.count} customers</p>`;
+    }
+    html += '<div class="modal-actions"><button class="btn btn-secondary" onclick="hideModal()">Close</button></div>';
+    showModal(html);
+  } catch (e) { alert('Failed to load preview'); }
 }
 
 async function renderAdvisors() {

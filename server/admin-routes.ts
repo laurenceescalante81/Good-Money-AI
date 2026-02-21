@@ -56,9 +56,21 @@ router.post('/logout', requireAuth, (req: Request, res: Response) => {
   res.json({ ok: true });
 });
 
-router.get('/quests', requireAuth, async (_req: Request, res: Response) => {
+router.get('/quests', requireAuth, async (req: Request, res: Response) => {
   try {
-    const result = await pool.query('SELECT * FROM quest_configs ORDER BY sort_order');
+    const segmentId = req.query.segment_id;
+    let query = `SELECT q.*, s.name as segment_name FROM quest_configs q LEFT JOIN customer_segments s ON q.segment_id = s.id`;
+    const params: any[] = [];
+    if (segmentId && segmentId !== 'all') {
+      if (segmentId === 'none') {
+        query += ` WHERE q.segment_id IS NULL`;
+      } else {
+        query += ` WHERE q.segment_id = $1`;
+        params.push(segmentId);
+      }
+    }
+    query += ` ORDER BY q.sort_order`;
+    const result = await pool.query(query, params);
     res.json(result.rows);
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch quests' });
@@ -67,12 +79,12 @@ router.get('/quests', requireAuth, async (_req: Request, res: Response) => {
 
 router.post('/quests', requireAuth, async (req: Request, res: Response) => {
   try {
-    const { quest_id, title, description, icon, icon_bg, base_points, is_2x_active, category } = req.body;
+    const { quest_id, title, description, icon, icon_bg, base_points, is_2x_active, category, segment_id } = req.body;
     const maxOrder = await pool.query('SELECT COALESCE(MAX(sort_order), 0) + 1 as next FROM quest_configs');
     const result = await pool.query(
-      `INSERT INTO quest_configs (quest_id, title, description, icon, icon_bg, base_points, is_2x_active, category, sort_order)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`,
-      [quest_id, title, description, icon, icon_bg, base_points || 100, is_2x_active || false, category || 'mission', maxOrder.rows[0].next]
+      `INSERT INTO quest_configs (quest_id, title, description, icon, icon_bg, base_points, is_2x_active, category, segment_id, sort_order)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *`,
+      [quest_id, title, description, icon, icon_bg, base_points || 100, is_2x_active || false, category || 'mission', segment_id || null, maxOrder.rows[0].next]
     );
     res.json(result.rows[0]);
   } catch (err) {
@@ -82,11 +94,11 @@ router.post('/quests', requireAuth, async (req: Request, res: Response) => {
 
 router.put('/quests/:id', requireAuth, async (req: Request, res: Response) => {
   try {
-    const { title, description, icon, icon_bg, base_points, is_2x_active, is_active, category, sort_order } = req.body;
+    const { title, description, icon, icon_bg, base_points, is_2x_active, is_active, category, sort_order, segment_id } = req.body;
     const result = await pool.query(
-      `UPDATE quest_configs SET title=$1, description=$2, icon=$3, icon_bg=$4, base_points=$5, is_2x_active=$6, is_active=$7, category=$8, sort_order=$9, updated_at=NOW()
-       WHERE id=$10 RETURNING *`,
-      [title, description, icon, icon_bg, base_points, is_2x_active, is_active, category, sort_order, req.params.id]
+      `UPDATE quest_configs SET title=$1, description=$2, icon=$3, icon_bg=$4, base_points=$5, is_2x_active=$6, is_active=$7, category=$8, sort_order=$9, segment_id=$10, updated_at=NOW()
+       WHERE id=$11 RETURNING *`,
+      [title, description, icon, icon_bg, base_points, is_2x_active, is_active, category, sort_order, segment_id || null, req.params.id]
     );
     res.json(result.rows[0]);
   } catch (err) {
@@ -514,9 +526,21 @@ router.put('/fact-find-configs/:id', requireAuth, async (req: Request, res: Resp
   }
 });
 
-router.get('/ctas', requireAuth, async (_req: Request, res: Response) => {
+router.get('/ctas', requireAuth, async (req: Request, res: Response) => {
   try {
-    const result = await pool.query('SELECT * FROM sales_ctas ORDER BY sort_order');
+    const segmentId = req.query.segment_id;
+    let query = `SELECT c.*, s.name as segment_name FROM sales_ctas c LEFT JOIN customer_segments s ON c.segment_id = s.id`;
+    const params: any[] = [];
+    if (segmentId && segmentId !== 'all') {
+      if (segmentId === 'none') {
+        query += ` WHERE c.segment_id IS NULL`;
+      } else {
+        query += ` WHERE c.segment_id = $1`;
+        params.push(segmentId);
+      }
+    }
+    query += ` ORDER BY c.tab_key, c.sort_order`;
+    const result = await pool.query(query, params);
     res.json(result.rows);
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch CTAs' });
@@ -525,16 +549,117 @@ router.get('/ctas', requireAuth, async (_req: Request, res: Response) => {
 
 router.put('/ctas/:id', requireAuth, async (req: Request, res: Response) => {
   try {
-    const { cta_text, icon, icon_color, is_active } = req.body;
+    const { cta_text, icon, icon_color, is_active, segment_id } = req.body;
     const result = await pool.query(
-      `UPDATE sales_ctas SET cta_text=$1, icon=COALESCE($2, icon), icon_color=COALESCE($3, icon_color), is_active=COALESCE($4, is_active), updated_at=NOW()
-       WHERE id=$5 RETURNING *`,
-      [cta_text, icon, icon_color, is_active, req.params.id]
+      `UPDATE sales_ctas SET cta_text=$1, icon=COALESCE($2, icon), icon_color=COALESCE($3, icon_color), is_active=COALESCE($4, is_active), segment_id=$5, updated_at=NOW()
+       WHERE id=$6 RETURNING *`,
+      [cta_text, icon, icon_color, is_active, segment_id || null, req.params.id]
     );
     if (result.rows.length === 0) return res.status(404).json({ error: 'CTA not found' });
     res.json(result.rows[0]);
   } catch (err) {
     res.status(500).json({ error: 'Failed to update CTA' });
+  }
+});
+
+router.post('/ctas', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const { tab_key, tab_label, cta_text, icon, icon_color, segment_id } = req.body;
+    const maxOrder = await pool.query('SELECT COALESCE(MAX(sort_order), 0) + 1 as next FROM sales_ctas WHERE tab_key = $1', [tab_key]);
+    const result = await pool.query(
+      `INSERT INTO sales_ctas (tab_key, tab_label, cta_text, icon, icon_color, segment_id, sort_order) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
+      [tab_key, tab_label, cta_text, icon, icon_color, segment_id || null, maxOrder.rows[0].next]
+    );
+    res.json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to create CTA' });
+  }
+});
+
+router.delete('/ctas/:id', requireAuth, async (req: Request, res: Response) => {
+  try {
+    await pool.query('DELETE FROM sales_ctas WHERE id = $1', [req.params.id]);
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to delete CTA' });
+  }
+});
+
+router.get('/segments', requireAuth, async (_req: Request, res: Response) => {
+  try {
+    const result = await pool.query(`
+      SELECT s.*, 
+        (SELECT COUNT(*) FROM sales_ctas WHERE segment_id = s.id) as cta_count,
+        (SELECT COUNT(*) FROM quest_configs WHERE segment_id = s.id) as quest_count
+      FROM customer_segments s ORDER BY s.id
+    `);
+    res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch segments' });
+  }
+});
+
+router.post('/segments', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const { name, description, color, rules } = req.body;
+    const result = await pool.query(
+      `INSERT INTO customer_segments (name, description, color, rules) VALUES ($1, $2, $3, $4) RETURNING *`,
+      [name, description, color || '#3B82F6', JSON.stringify(rules || {})]
+    );
+    res.json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to create segment' });
+  }
+});
+
+router.put('/segments/:id', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const { name, description, color, rules, is_active } = req.body;
+    const result = await pool.query(
+      `UPDATE customer_segments SET name=$1, description=$2, color=$3, rules=$4, is_active=$5, updated_at=NOW()
+       WHERE id=$6 RETURNING *`,
+      [name, description, color, JSON.stringify(rules || {}), is_active, req.params.id]
+    );
+    res.json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to update segment' });
+  }
+});
+
+router.delete('/segments/:id', requireAuth, async (req: Request, res: Response) => {
+  try {
+    await pool.query('UPDATE sales_ctas SET segment_id = NULL WHERE segment_id = $1', [req.params.id]);
+    await pool.query('UPDATE quest_configs SET segment_id = NULL WHERE segment_id = $1', [req.params.id]);
+    await pool.query('DELETE FROM customer_segments WHERE id = $1', [req.params.id]);
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to delete segment' });
+  }
+});
+
+router.get('/segments/:id/customers', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const seg = await pool.query('SELECT rules FROM customer_segments WHERE id = $1', [req.params.id]);
+    if (seg.rows.length === 0) return res.status(404).json({ error: 'Segment not found' });
+    const rules = seg.rows[0].rules || {};
+    let conditions = ['1=1'];
+    const params: any[] = [];
+    let paramIdx = 1;
+    if (rules.min_level) { conditions.push(`level >= $${paramIdx++}`); params.push(rules.min_level); }
+    if (rules.max_level) { conditions.push(`level <= $${paramIdx++}`); params.push(rules.max_level); }
+    if (rules.min_points) { conditions.push(`total_points_earned >= $${paramIdx++}`); params.push(rules.min_points); }
+    if (rules.max_points) { conditions.push(`total_points_earned <= $${paramIdx++}`); params.push(rules.max_points); }
+    if (rules.min_streak) { conditions.push(`streak >= $${paramIdx++}`); params.push(rules.min_streak); }
+    if (rules.max_streak) { conditions.push(`streak <= $${paramIdx++}`); params.push(rules.max_streak); }
+    if (rules.has_advisor === true) { conditions.push(`advisor_id IS NOT NULL`); }
+    if (rules.has_advisor === false) { conditions.push(`advisor_id IS NULL`); }
+    if (rules.inactive_days) { conditions.push(`last_active < NOW() - INTERVAL '${parseInt(rules.inactive_days)} days'`); }
+    if (rules.min_fact_find) { conditions.push(`fact_find_progress >= $${paramIdx++}`); params.push(rules.min_fact_find); }
+    if (rules.max_fact_find) { conditions.push(`fact_find_progress <= $${paramIdx++}`); params.push(rules.max_fact_find); }
+    const result = await pool.query(`SELECT id, device_id, name, email, level, total_points_earned, streak, fact_find_progress, advisor_id, last_active FROM customers WHERE ${conditions.join(' AND ')} ORDER BY last_active DESC NULLS LAST LIMIT 100`, params);
+    res.json({ count: result.rowCount, customers: result.rows });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch segment customers' });
   }
 });
 
