@@ -29,6 +29,7 @@ const TAB_META: Record<string, { active: string; inactive: string; color: string
   banks: { active: "business", inactive: "business-outline", color: "#6366F1" },
   rewards: { active: "star", inactive: "star-outline", color: "#F59E0B" },
   insurance: { active: "shield-checkmark", inactive: "shield-checkmark-outline", color: "#EF4444" },
+  investor: { active: "bar-chart", inactive: "bar-chart-outline", color: "#D97706" },
   "fact-find": { active: "document-text", inactive: "document-text-outline", color: "#EC4899" },
   planning: { active: "analytics", inactive: "analytics-outline", color: "#14B8A6" },
 };
@@ -289,6 +290,10 @@ function NativeTabLayout() {
         <Icon sf={{ default: "shield", selected: "shield.fill" }} />
         <Label>Insurance</Label>
       </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="investor">
+        <Icon sf={{ default: "chart.bar", selected: "chart.bar.fill" }} />
+        <Label>Investor</Label>
+      </NativeTabs.Trigger>
       <NativeTabs.Trigger name="fact-find">
         <Icon sf={{ default: "doc.text.magnifyingglass", selected: "doc.text.magnifyingglass" }} />
         <Label>Fact Find</Label>
@@ -314,6 +319,7 @@ function ClassicTabLayout() {
       <Tabs.Screen name="banks" options={{ title: "Banks" }} />
       <Tabs.Screen name="rewards" options={{ title: "Rewards" }} />
       <Tabs.Screen name="insurance" options={{ title: "Insurance" }} />
+      <Tabs.Screen name="investor" options={{ title: "Investor" }} />
       <Tabs.Screen name="fact-find" options={{ title: "Fact Find" }} />
       <Tabs.Screen name="planning" options={{ title: "Planning" }} />
     </Tabs>
