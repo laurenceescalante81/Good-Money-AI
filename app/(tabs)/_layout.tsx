@@ -2,10 +2,141 @@ import { isLiquidGlassAvailable } from "expo-glass-effect";
 import { Tabs } from "expo-router";
 import { NativeTabs, Icon, Label } from "expo-router/unstable-native-tabs";
 import { BlurView } from "expo-blur";
-import { Platform, StyleSheet, useColorScheme, View } from "react-native";
+import {
+  Platform,
+  StyleSheet,
+  useColorScheme,
+  View,
+  ScrollView,
+  TouchableOpacity,
+  Text,
+  Dimensions,
+  useWindowDimensions,
+} from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import React from "react";
+import React, { useRef, useEffect } from "react";
 import Colors from "@/constants/colors";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import type { BottomTabBarProps } from "@react-navigation/bottom-tabs";
+
+const TAB_ICONS: Record<string, { active: string; inactive: string }> = {
+  index: { active: "pie-chart", inactive: "pie-chart-outline" },
+  mortgage: { active: "home", inactive: "home-outline" },
+  super: { active: "trending-up", inactive: "trending-up-outline" },
+  budget: { active: "wallet", inactive: "wallet-outline" },
+  banks: { active: "business", inactive: "business-outline" },
+  rewards: { active: "star", inactive: "star-outline" },
+  insurance: { active: "shield-checkmark", inactive: "shield-checkmark-outline" },
+  "fact-find": { active: "document-text", inactive: "document-text-outline" },
+  planning: { active: "analytics", inactive: "analytics-outline" },
+};
+
+function ScrollableTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === "dark";
+  const isWeb = Platform.OS === "web";
+  const isIOS = Platform.OS === "ios";
+  const insets = useSafeAreaInsets();
+  const scrollRef = useRef<ScrollView>(null);
+  const { width: screenWidth } = useWindowDimensions();
+
+  const tabCount = state.routes.length;
+  const minTabWidth = 72;
+  const maxVisibleTabs = Math.floor(screenWidth / minTabWidth);
+  const tabWidth = tabCount <= maxVisibleTabs ? screenWidth / tabCount : minTabWidth;
+  const bottomPad = isWeb ? 34 : insets.bottom;
+  const barHeight = 52 + bottomPad;
+
+  useEffect(() => {
+    const activeIndex = state.index;
+    const scrollX = Math.max(0, activeIndex * tabWidth - screenWidth / 2 + tabWidth / 2);
+    scrollRef.current?.scrollTo({ x: scrollX, animated: true });
+  }, [state.index]);
+
+  return (
+    <View style={[styles.barContainer, { height: barHeight }]}>
+      {isIOS ? (
+        <BlurView intensity={100} tint={isDark ? "dark" : "light"} style={StyleSheet.absoluteFill} />
+      ) : (
+        <View
+          style={[
+            StyleSheet.absoluteFill,
+            { backgroundColor: isDark ? "#000" : "#fff" },
+          ]}
+        />
+      )}
+      <View style={[styles.topBorder, { borderTopColor: isDark ? "#333" : Colors.light.border }]} />
+      <ScrollView
+        ref={scrollRef}
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={[
+          styles.scrollContent,
+          { paddingBottom: bottomPad },
+        ]}
+        bounces
+        decelerationRate="fast"
+      >
+        {state.routes.map((route, index) => {
+          const { options } = descriptors[route.key];
+          const isFocused = state.index === index;
+          const routeName = route.name;
+          const icons = TAB_ICONS[routeName] || { active: "ellipse", inactive: "ellipse-outline" };
+          const label = options.title || routeName;
+
+          const onPress = () => {
+            const event = navigation.emit({
+              type: "tabPress",
+              target: route.key,
+              canPreventDefault: true,
+            });
+            if (!isFocused && !event.defaultPrevented) {
+              navigation.navigate(route.name, route.params);
+            }
+          };
+
+          const onLongPress = () => {
+            navigation.emit({ type: "tabLongPress", target: route.key });
+          };
+
+          return (
+            <TouchableOpacity
+              key={route.key}
+              accessibilityRole="button"
+              accessibilityState={isFocused ? { selected: true } : {}}
+              accessibilityLabel={options.tabBarAccessibilityLabel}
+              testID={options.tabBarButtonTestID}
+              onPress={onPress}
+              onLongPress={onLongPress}
+              style={[styles.tab, { width: tabWidth }]}
+              activeOpacity={0.7}
+            >
+              <View style={[styles.iconWrap, isFocused && styles.iconWrapActive]}>
+                <Ionicons
+                  name={(isFocused ? icons.active : icons.inactive) as any}
+                  size={20}
+                  color={isFocused ? Colors.light.tint : Colors.light.tabIconDefault}
+                />
+              </View>
+              <Text
+                style={[
+                  styles.label,
+                  {
+                    color: isFocused ? Colors.light.tint : Colors.light.tabIconDefault,
+                    fontWeight: isFocused ? "600" : "500",
+                  },
+                ]}
+                numberOfLines={1}
+              >
+                {label}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+      </ScrollView>
+    </View>
+  );
+}
 
 function NativeTabLayout() {
   return (
@@ -51,115 +182,20 @@ function NativeTabLayout() {
 }
 
 function ClassicTabLayout() {
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === "dark";
-  const isWeb = Platform.OS === "web";
-  const isIOS = Platform.OS === "ios";
-
   return (
     <Tabs
-      screenOptions={{
-        headerShown: false,
-        tabBarActiveTintColor: Colors.light.tint,
-        tabBarInactiveTintColor: Colors.light.tabIconDefault,
-        tabBarStyle: {
-          position: "absolute" as const,
-          backgroundColor: isIOS ? "transparent" : isDark ? "#000" : "#fff",
-          borderTopWidth: isWeb ? 1 : 0,
-          borderTopColor: isDark ? "#333" : Colors.light.border,
-          elevation: 0,
-          ...(isWeb ? { height: 84 } : {}),
-        },
-        tabBarBackground: () =>
-          isIOS ? (
-            <BlurView intensity={100} tint={isDark ? "dark" : "light"} style={StyleSheet.absoluteFill} />
-          ) : isWeb ? (
-            <View style={[StyleSheet.absoluteFill, { backgroundColor: isDark ? "#000" : "#fff" }]} />
-          ) : null,
-        tabBarLabelStyle: { fontFamily: "DMSans_500Medium", fontSize: 10 },
-      }}
+      tabBar={(props) => <ScrollableTabBar {...props} />}
+      screenOptions={{ headerShown: false }}
     >
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: "Overview",
-          tabBarIcon: ({ color, focused }) => (
-            <Ionicons name={focused ? "pie-chart" : "pie-chart-outline"} size={20} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="mortgage"
-        options={{
-          title: "Mortgage",
-          tabBarIcon: ({ color, focused }) => (
-            <Ionicons name={focused ? "home" : "home-outline"} size={20} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="super"
-        options={{
-          title: "Super",
-          tabBarIcon: ({ color, focused }) => (
-            <Ionicons name={focused ? "trending-up" : "trending-up-outline"} size={20} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="budget"
-        options={{
-          title: "Budget",
-          tabBarIcon: ({ color, focused }) => (
-            <Ionicons name={focused ? "wallet" : "wallet-outline"} size={20} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="banks"
-        options={{
-          title: "Banks",
-          tabBarIcon: ({ color, focused }) => (
-            <Ionicons name={focused ? "business" : "business-outline"} size={20} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="rewards"
-        options={{
-          title: "Rewards",
-          tabBarIcon: ({ color, focused }) => (
-            <Ionicons name={focused ? "star" : "star-outline"} size={20} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="insurance"
-        options={{
-          title: "Insurance",
-          tabBarIcon: ({ color, focused }) => (
-            <Ionicons name={focused ? "shield-checkmark" : "shield-checkmark-outline"} size={20} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="fact-find"
-        options={{
-          title: "Fact Find",
-          tabBarIcon: ({ color, focused }) => (
-            <Ionicons name={focused ? "document-text" : "document-text-outline"} size={20} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="planning"
-        options={{
-          title: "Planning",
-          tabBarIcon: ({ color, focused }) => (
-            <Ionicons name={focused ? "analytics" : "analytics-outline"} size={20} color={color} />
-          ),
-        }}
-      />
+      <Tabs.Screen name="index" options={{ title: "Overview" }} />
+      <Tabs.Screen name="mortgage" options={{ title: "Mortgage" }} />
+      <Tabs.Screen name="super" options={{ title: "Super" }} />
+      <Tabs.Screen name="budget" options={{ title: "Budget" }} />
+      <Tabs.Screen name="banks" options={{ title: "Banks" }} />
+      <Tabs.Screen name="rewards" options={{ title: "Rewards" }} />
+      <Tabs.Screen name="insurance" options={{ title: "Insurance" }} />
+      <Tabs.Screen name="fact-find" options={{ title: "Fact Find" }} />
+      <Tabs.Screen name="planning" options={{ title: "Planning" }} />
     </Tabs>
   );
 }
@@ -168,3 +204,46 @@ export default function TabLayout() {
   if (isLiquidGlassAvailable()) return <NativeTabLayout />;
   return <ClassicTabLayout />;
 }
+
+const styles = StyleSheet.create({
+  barContainer: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    overflow: "hidden",
+  },
+  topBorder: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 1,
+    borderTopWidth: StyleSheet.hairlineWidth,
+  },
+  scrollContent: {
+    alignItems: "flex-start",
+    paddingTop: 6,
+  },
+  tab: {
+    alignItems: "center",
+    justifyContent: "center",
+    paddingTop: 2,
+  },
+  iconWrap: {
+    width: 36,
+    height: 28,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 14,
+    marginBottom: 2,
+  },
+  iconWrapActive: {
+    backgroundColor: "rgba(13, 148, 136, 0.1)",
+  },
+  label: {
+    fontFamily: "DMSans_500Medium",
+    fontSize: 10,
+    textAlign: "center",
+  },
+});
