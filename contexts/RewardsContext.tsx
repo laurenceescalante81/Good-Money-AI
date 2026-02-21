@@ -1,5 +1,6 @@
-import React, { createContext, useContext, useState, useEffect, useMemo, useCallback, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useMemo, useCallback, useRef, ReactNode } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Platform } from 'react-native';
 
 export interface Mission {
   id: string;
@@ -469,13 +470,66 @@ export function RewardsProvider({ children }: { children: ReactNode }) {
     try { await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(next)); } catch (e) { console.error(e); }
   }, []);
 
+  const deviceIdRef = useRef<string>('');
+  const syncTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    (async () => {
+      const stored = await AsyncStorage.getItem('@good_money_device_id');
+      if (stored) {
+        deviceIdRef.current = stored;
+      } else {
+        const newId = Date.now().toString(36) + Math.random().toString(36).substr(2, 12);
+        await AsyncStorage.setItem('@good_money_device_id', newId);
+        deviceIdRef.current = newId;
+      }
+    })();
+  }, []);
+
+  const syncToServer = useCallback(async (s: RewardsState) => {
+    if (!deviceIdRef.current) return;
+    try {
+      const baseUrl = Platform.OS === 'web'
+        ? (process.env.EXPO_PUBLIC_DOMAIN ? `https://${process.env.EXPO_PUBLIC_DOMAIN}` : 'http://localhost:5000')
+        : (process.env.EXPO_PUBLIC_DOMAIN ? `https://${process.env.EXPO_PUBLIC_DOMAIN}` : 'http://localhost:5000');
+      const progress = ALL_FACT_FIND_FIELDS.length > 0
+        ? Math.round((ALL_FACT_FIND_FIELDS.filter(f => s.completedFactFindIds.includes(f.id)).length / ALL_FACT_FIND_FIELDS.length) * 100)
+        : 0;
+      await fetch(`${baseUrl}/api/admin/sync`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          device_id: deviceIdRef.current,
+          rewards_state: {
+            points: s.points,
+            totalPointsEarned: s.totalPointsEarned,
+            level: s.level,
+            xp: s.xp,
+            streak: s.streak,
+            tokenBalance: s.tokenBalance,
+            totalTokensEarned: s.totalTokensEarned,
+            factFindProgress: progress,
+            completedMissionIds: s.completedMissionIds,
+            unlockedBadgeIds: s.unlockedBadgeIds,
+            redeemedRewardIds: s.redeemedRewardIds,
+            completedFactFindIds: s.completedFactFindIds,
+          },
+        }),
+      });
+    } catch (e) {
+      // silent fail - sync is best-effort
+    }
+  }, []);
+
   const updateState = useCallback((updater: (prev: RewardsState) => RewardsState) => {
     setState(prev => {
       const next = updater(prev);
       persist(next);
+      if (syncTimerRef.current) clearTimeout(syncTimerRef.current);
+      syncTimerRef.current = setTimeout(() => syncToServer(next), 5000);
       return next;
     });
-  }, [persist]);
+  }, [persist, syncToServer]);
 
   const today = getToday();
   const dayOfWeek = getDayOfWeek();
