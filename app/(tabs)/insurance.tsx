@@ -178,10 +178,6 @@ export default function InsuranceScreen() {
                 <Ionicons name="star" size={14} color="#D4AF37" />
                 <Text style={styles.missionPtsNum}>{rewardsState.points.toLocaleString()}</Text>
               </View>
-              <View style={styles.missionStreakBadge}>
-                <Ionicons name="flame" size={12} color="#F59E0B" />
-                <Text style={styles.missionStreakNum}>{rewardsState.streak}</Text>
-              </View>
             </View>
             {insuranceMission && (
               <Pressable onPress={() => completeMission('review_insurance')} style={({ pressed }) => [styles.missionPrompt, pressed && { opacity: 0.85 }]}>

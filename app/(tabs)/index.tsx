@@ -218,12 +218,6 @@ export default function DashboardScreen() {
 
               <View style={styles.rewardsStatsRow}>
                 <View style={styles.rewardsStatItem}>
-                  <Ionicons name="flame" size={14} color="#F59E0B" />
-                  <Text style={styles.rewardsStatValue}>{rewardsState.streak}</Text>
-                  <Text style={styles.rewardsStatLabel}>streak</Text>
-                </View>
-                <View style={styles.rewardsStatDivider} />
-                <View style={styles.rewardsStatItem}>
                   <Ionicons name="checkmark-circle" size={14} color="#4ade80" />
                   <Text style={styles.rewardsStatValue}>{completedMissionCount}/{missions.length}</Text>
                   <Text style={styles.rewardsStatLabel}>missions</Text>

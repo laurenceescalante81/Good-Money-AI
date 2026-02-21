@@ -353,14 +353,6 @@ export default function RewardsScreen() {
                 </View>
                 <View style={s.statDivider} />
                 <View style={s.statItem}>
-                  <Text style={s.statLabel}>STREAK</Text>
-                  <View style={s.statStreakRow}>
-                    <Text style={s.statValue}>{state.streak}</Text>
-                    <Ionicons name="flame" size={14} color="#F59E0B" />
-                  </View>
-                </View>
-                <View style={s.statDivider} />
-                <View style={s.statItem}>
                   <Text style={s.statLabel}>BADGES</Text>
                   <Text style={s.statValue}>{unlockedBadges}/{badges.length}</Text>
                 </View>
@@ -384,57 +376,6 @@ export default function RewardsScreen() {
         <View style={s.body}>
           {activeTab === 'hub' && (
             <>
-              <View style={s.streakSection}>
-                <View style={s.streakHeaderRow}>
-                  <View style={s.streakTitleRow}>
-                    <Ionicons name="flame" size={16} color="#F59E0B" />
-                    <Text style={s.streakLabel}>DAILY STREAK</Text>
-                  </View>
-                  <View style={s.streakPtsBadge}>
-                    <Text style={s.streakPtsText}>+50</Text>
-                    <Text style={s.streakPtsSub}>pts/day</Text>
-                  </View>
-                </View>
-                <Text style={s.streakBig}>{state.streak} {state.streak === 1 ? 'day' : 'days'} in a row</Text>
-                <Text style={s.streakSub}>Check in tomorrow to keep it going</Text>
-
-                <View style={s.weekRow}>
-                  {DAYS.map((day, i) => {
-                    const isToday = i === (new Date().getDay() === 0 ? 6 : new Date().getDay() - 1);
-                    const checked = state.weeklyCheckins[i];
-                    return (
-                      <View key={i} style={s.dayCol}>
-                        <View style={[s.dayCircle, checked && s.dayCircleChecked, isToday && s.dayCircleToday]}>
-                          {checked ? (
-                            <Ionicons name="flame" size={16} color="#F59E0B" />
-                          ) : isToday ? (
-                            <Ionicons name="gift" size={14} color="#8B5CF6" />
-                          ) : (
-                            <View style={s.dayEmpty} />
-                          )}
-                        </View>
-                        <Text style={[s.dayLabel, isToday && s.dayLabelToday]}>{day}</Text>
-                      </View>
-                    );
-                  })}
-                </View>
-
-                {state.streak < 14 && (
-                  <View style={s.milestoneBanner}>
-                    <Ionicons name="trophy-outline" size={14} color="#D4AF37" />
-                    <Text style={s.milestoneText}>14-day milestone — 500 bonus pts</Text>
-                    <Text style={s.milestoneDays}>{Math.max(0, 14 - state.streak)} days to go</Text>
-                  </View>
-                )}
-                {state.streak >= 14 && state.streak < 30 && (
-                  <View style={s.milestoneBanner}>
-                    <Ionicons name="trophy" size={14} color="#D4AF37" />
-                    <Text style={s.milestoneText}>30-day milestone — 1,000 bonus pts</Text>
-                    <Text style={s.milestoneDays}>{Math.max(0, 30 - state.streak)} days to go</Text>
-                  </View>
-                )}
-              </View>
-
               {is2xWeekend && (
                 <View style={s.promoCard}>
                   <Ionicons name="flash" size={18} color="#D4AF37" />
