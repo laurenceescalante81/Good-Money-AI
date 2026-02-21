@@ -30,6 +30,7 @@ app/
     mortgage.tsx         # Mortgage tracker
     super.tsx            # Superannuation tracker
     budget.tsx           # Budget & savings
+    fact-find.tsx        # Fact Find tab: comprehensive Australian financial fact find (18 sections)
   add-transaction.tsx    # Modal: new transaction
   setup-mortgage.tsx     # Modal: mortgage setup/edit
   setup-super.tsx        # Modal: super setup/edit
