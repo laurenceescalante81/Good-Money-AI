@@ -130,6 +130,18 @@ export async function initDatabase() {
         points_earned INTEGER DEFAULT 0,
         created_at TIMESTAMP DEFAULT NOW()
       );
+
+      CREATE TABLE IF NOT EXISTS sales_ctas (
+        id SERIAL PRIMARY KEY,
+        tab_key VARCHAR(50) UNIQUE NOT NULL,
+        tab_label VARCHAR(100) NOT NULL,
+        cta_text VARCHAR(255) NOT NULL,
+        icon VARCHAR(100),
+        icon_color VARCHAR(20),
+        is_active BOOLEAN DEFAULT true,
+        sort_order INTEGER DEFAULT 0,
+        updated_at TIMESTAMP DEFAULT NOW()
+      );
     `);
 
     const adminCount = await client.query('SELECT COUNT(*) FROM admin_users');
@@ -200,6 +212,22 @@ export async function initDatabase() {
         ('double_points', 'Double Points - 7 Days', 'Earn 2x on all missions', 'flash-outline', 800, 3),
         ('cashback_25', '$25 Woolworths', 'Woolworths gift card', 'cart-outline', 2500, 4),
         ('cashback_50', '$50 Coles', 'Coles gift card', 'basket-outline', 5000, 5)
+      `);
+    }
+
+    const ctaCount = await client.query('SELECT COUNT(*) FROM sales_ctas');
+    if (parseInt(ctaCount.rows[0].count) === 0) {
+      await client.query(`
+        INSERT INTO sales_ctas (tab_key, tab_label, cta_text, icon, icon_color, sort_order) VALUES
+        ('mortgage', 'Mortgage', 'Get a free rate review', 'home-outline', '#F97316', 1),
+        ('super', 'Super', 'Optimise your super today', 'trending-up-outline', '#8B5CF6', 2),
+        ('insurance', 'Insurance', 'Compare & save on premiums', 'shield-checkmark-outline', '#3B82F6', 3),
+        ('savings', 'Savings', 'Boost your savings plan', 'flag-outline', '#10B981', 4),
+        ('rewards', 'Rewards', 'Earn rewards & redeem for cashback', 'gift-outline', '#D4AF37', 5),
+        ('banks', 'Banks', 'Link your accounts for real-time insights', 'business-outline', '#0D9488', 6),
+        ('budget', 'Budget', 'Take control of your cash flow', 'wallet-outline', '#10B981', 7),
+        ('planning', 'Planning', 'See your wealth projection to retirement', 'analytics-outline', '#6366F1', 8),
+        ('fact_find', 'Fact Find', 'Complete your profile for tailored advice', 'document-text-outline', '#F59E0B', 9)
       `);
     }
 

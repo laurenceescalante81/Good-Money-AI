@@ -160,6 +160,9 @@ tr:hover td{background:var(--gray100)}
     <div class="nav-item" data-page="settings" onclick="navigate('settings')">
       <span class="nav-icon">&#9881;</span><span>Game Settings</span>
     </div>
+    <div class="nav-item" data-page="ctas" onclick="navigate('ctas')">
+      <span class="nav-icon">&#128227;</span><span>Sales CTAs</span>
+    </div>
     <div class="nav-divider"></div>
     <div class="nav-item" data-page="advisors" onclick="navigate('advisors')">
       <span class="nav-icon">&#128100;</span><span>Advisors</span>
@@ -252,7 +255,7 @@ async function showApp() {
 function navigate(page) {
   currentPage = page;
   document.querySelectorAll('.nav-item').forEach(n => n.classList.toggle('active', n.dataset.page === page));
-  const renderers = { dashboard: renderDashboard, quests: renderQuests, badges: renderBadges, rewards: renderRewards, settings: renderSettings, advisors: renderAdvisors, customers: renderCustomers, analytics: renderAnalytics };
+  const renderers = { dashboard: renderDashboard, quests: renderQuests, badges: renderBadges, rewards: renderRewards, settings: renderSettings, ctas: renderCtas, advisors: renderAdvisors, customers: renderCustomers, analytics: renderAnalytics };
   if (renderers[page]) renderers[page]();
 }
 
@@ -538,6 +541,52 @@ async function saveSetting(key) {
     await api('/settings/' + key, { method: 'PUT', body: JSON.stringify({ value }) });
     alert('Setting saved');
   } catch (e) { alert('Save failed'); }
+}
+
+async function renderCtas() {
+  setMain('<div class="page-header"><h1>Sales CTAs</h1><p>Edit the call-to-action messages shown on each tab in the app summary</p></div><div id="cta-content"><p>Loading...</p></div>');
+  try {
+    const ctas = await api('/ctas');
+    cachedData.ctas = ctas;
+    let html = `<div class="card"><div class="card-header"><h3>Tab CTAs (${ctas.length})</h3></div>
+    <table><thead><tr><th>Tab</th><th>CTA Text</th><th>Icon</th><th>Color</th><th>Status</th><th>Actions</th></tr></thead><tbody>`;
+    ctas.forEach(c => {
+      html += `<tr>
+        <td><strong>${c.tab_label}</strong><br><small style="color:var(--gray400)">${c.tab_key}</small></td>
+        <td style="max-width:300px"><input id="cta-text-${c.id}" value="${c.cta_text}" style="width:100%;padding:6px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px"></td>
+        <td><input id="cta-icon-${c.id}" value="${c.icon || ''}" style="width:120px;padding:6px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:12px" placeholder="icon-name"></td>
+        <td><input id="cta-color-${c.id}" type="color" value="${c.icon_color || '#0d9488'}" style="width:40px;height:32px;border:none;cursor:pointer"></td>
+        <td><label style="cursor:pointer"><input type="checkbox" id="cta-active-${c.id}" ${c.is_active ? 'checked' : ''} onchange="saveCta(${c.id})"> Active</label></td>
+        <td><button class="btn btn-primary btn-sm" onclick="saveCta(${c.id})">Save</button></td>
+      </tr>`;
+    });
+    html += '</tbody></table></div>';
+    html += `<div class="card" style="background:linear-gradient(135deg,#0d9488 0%,#1a1a2e 100%);color:#fff;border:none"><div class="card-header"><h3 style="color:#fff">&#128161; CTA Tips</h3></div>
+      <ul style="font-size:13px;line-height:2;padding-left:18px;color:rgba(255,255,255,0.8)">
+        <li>Keep CTAs short and action-oriented (under 40 characters)</li>
+        <li>Use verbs like "Get", "Compare", "Boost", "Link", "Complete"</li>
+        <li>Highlight the benefit to the customer, not the feature</li>
+        <li>Toggle inactive to hide a CTA without deleting it</li>
+        <li>Icons use Ionicons names (e.g. home-outline, wallet-outline)</li>
+      </ul></div>`;
+    document.getElementById('cta-content').innerHTML = html;
+  } catch (e) {
+    document.getElementById('cta-content').innerHTML = '<p>Failed to load CTAs</p>';
+  }
+}
+
+async function saveCta(id) {
+  const cta_text = document.getElementById('cta-text-' + id).value;
+  const icon = document.getElementById('cta-icon-' + id).value;
+  const icon_color = document.getElementById('cta-color-' + id).value;
+  const is_active = document.getElementById('cta-active-' + id).checked;
+  try {
+    await api('/ctas/' + id, { method: 'PUT', body: JSON.stringify({ cta_text, icon, icon_color, is_active }) });
+    const row = document.getElementById('cta-text-' + id).closest('tr');
+    row.style.transition = 'background .3s';
+    row.style.background = '#d1fae5';
+    setTimeout(() => { row.style.background = ''; }, 800);
+  } catch (e) { alert('Save failed: ' + e.message); }
 }
 
 async function renderAdvisors() {

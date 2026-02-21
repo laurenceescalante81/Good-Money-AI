@@ -514,4 +514,28 @@ router.put('/fact-find-configs/:id', requireAuth, async (req: Request, res: Resp
   }
 });
 
+router.get('/ctas', requireAuth, async (_req: Request, res: Response) => {
+  try {
+    const result = await pool.query('SELECT * FROM sales_ctas ORDER BY sort_order');
+    res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch CTAs' });
+  }
+});
+
+router.put('/ctas/:id', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const { cta_text, icon, icon_color, is_active } = req.body;
+    const result = await pool.query(
+      `UPDATE sales_ctas SET cta_text=$1, icon=COALESCE($2, icon), icon_color=COALESCE($3, icon_color), is_active=COALESCE($4, is_active), updated_at=NOW()
+       WHERE id=$5 RETURNING *`,
+      [cta_text, icon, icon_color, is_active, req.params.id]
+    );
+    if (result.rows.length === 0) return res.status(404).json({ error: 'CTA not found' });
+    res.json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to update CTA' });
+  }
+});
+
 export default router;
