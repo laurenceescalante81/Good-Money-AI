@@ -1,10 +1,13 @@
 import React, { useMemo, useState } from "react";
-import { StyleSheet, Text, View, ScrollView, Platform, Pressable, Dimensions } from "react-native";
+import { StyleSheet, Text, View, ScrollView, Platform, Pressable, Dimensions, Image } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import Svg, { Path, Line, Text as SvgText, Circle, Rect, Defs, LinearGradient as SvgLinearGradient, Stop } from "react-native-svg";
+import { router } from "expo-router";
 import Colors from "@/constants/colors";
 import { useFinance } from "@/contexts/FinanceContext";
+import { useRewards } from "@/contexts/RewardsContext";
 
 function fmt(n: number): string { return "$" + Math.abs(n).toLocaleString("en-AU", { minimumFractionDigits: 0, maximumFractionDigits: 0 }); }
 function fmtK(n: number): string {
@@ -26,6 +29,9 @@ export default function PlanningScreen() {
   const topInset = Platform.OS === "web" ? 67 : insets.top;
   const [selectedHorizon, setSelectedHorizon] = useState<TimeHorizon>("10yr");
   const { mortgage, superDetails, transactions, goals, insurancePolicies, getTotalIncome, getTotalExpenses, getTotalInsuranceCost, calculateMortgageRepayment, calculateSuperProjection } = useFinance();
+  const { getFactFindProgress } = useRewards();
+  const factFindProgress = getFactFindProgress();
+  const isFactFindComplete = factFindProgress.percentage >= 100;
 
   const screenW = Math.min(Dimensions.get("window").width - 40, 500);
 
@@ -116,42 +122,70 @@ export default function PlanningScreen() {
           </View>
         </View>
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Net Wealth Projection</Text>
-          <View style={styles.horizonRow}>
-            {HORIZONS.map(h => (
-              <Pressable
-                key={h.key}
-                onPress={() => setSelectedHorizon(h.key)}
-                style={[styles.horizonBtn, selectedHorizon === h.key && styles.horizonBtnActive]}
-              >
-                <Text style={[styles.horizonBtnText, selectedHorizon === h.key && styles.horizonBtnTextActive]}>
-                  {h.label}
-                </Text>
-              </Pressable>
-            ))}
-          </View>
-          <NetWealthChart data={wealthProjection} width={screenW} />
-          <View style={styles.legendRow}>
-            <LegendDot color={Colors.light.tint} label="Net Wealth" />
-            <LegendDot color={Colors.light.mortgage} label="Property" />
-            <LegendDot color={Colors.light.super} label="Super" />
-            <LegendDot color={Colors.light.income} label="Savings" />
-          </View>
-          <View style={styles.projectedCard}>
-            <Text style={styles.projectedLabel}>Projected in {horizonYears} years</Text>
-            <Text style={styles.projectedVal}>{fmt(wealthProjection[wealthProjection.length - 1]?.wealth || 0)}</Text>
-          </View>
-        </View>
+        <View style={{ position: 'relative' }}>
+          <View style={!isFactFindComplete ? { opacity: 0.25 } : undefined} pointerEvents={isFactFindComplete ? 'auto' : 'none'}>
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Net Wealth Projection</Text>
+              <View style={styles.horizonRow}>
+                {HORIZONS.map(h => (
+                  <Pressable
+                    key={h.key}
+                    onPress={() => setSelectedHorizon(h.key)}
+                    style={[styles.horizonBtn, selectedHorizon === h.key && styles.horizonBtnActive]}
+                  >
+                    <Text style={[styles.horizonBtnText, selectedHorizon === h.key && styles.horizonBtnTextActive]}>
+                      {h.label}
+                    </Text>
+                  </Pressable>
+                ))}
+              </View>
+              <NetWealthChart data={wealthProjection} width={screenW} />
+              <View style={styles.legendRow}>
+                <LegendDot color={Colors.light.tint} label="Net Wealth" />
+                <LegendDot color={Colors.light.mortgage} label="Property" />
+                <LegendDot color={Colors.light.super} label="Super" />
+                <LegendDot color={Colors.light.income} label="Savings" />
+              </View>
+              <View style={styles.projectedCard}>
+                <Text style={styles.projectedLabel}>Projected in {horizonYears} years</Text>
+                <Text style={styles.projectedVal}>{fmt(wealthProjection[wealthProjection.length - 1]?.wealth || 0)}</Text>
+              </View>
+            </View>
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Income vs Expenses</Text>
-          <Text style={styles.sectionSubtitle}>Last 6 months</Text>
-          <IncomeExpenseChart data={incomeExpenseData} width={screenW} />
-          <View style={styles.legendRow}>
-            <LegendDot color={Colors.light.income} label="Income" />
-            <LegendDot color={Colors.light.expense} label="Expenses" />
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Income vs Expenses</Text>
+              <Text style={styles.sectionSubtitle}>Last 6 months</Text>
+              <IncomeExpenseChart data={incomeExpenseData} width={screenW} />
+              <View style={styles.legendRow}>
+                <LegendDot color={Colors.light.income} label="Income" />
+                <LegendDot color={Colors.light.expense} label="Expenses" />
+              </View>
+            </View>
           </View>
+
+          {!isFactFindComplete && (
+            <View style={styles.ctaOverlay}>
+              <View style={styles.ctaCard}>
+                <Image source={require('@/assets/images/logo.jpeg')} style={styles.ctaLogo} />
+                <Text style={styles.ctaTitle}>Complete the Fact Find</Text>
+                <Text style={styles.ctaSub}>Finish your financial profile to unlock personalised wealth projections and planning insights</Text>
+                <View style={styles.ctaProgressRow}>
+                  <View style={styles.ctaProgressBg}>
+                    <View style={[styles.ctaProgressFill, { width: `${factFindProgress.percentage}%` }]} />
+                  </View>
+                  <Text style={styles.ctaProgressText}>{factFindProgress.percentage}%</Text>
+                </View>
+                <View style={styles.ctaRewardRow}>
+                  <View style={styles.ctaCoinIcon}><Text style={styles.ctaCoinText}>$</Text></View>
+                  <Text style={styles.ctaRewardText}>Earn 5,450 Good Coins (worth $54.50 AUD)</Text>
+                </View>
+                <Pressable style={styles.ctaBtn} onPress={() => router.push('/(tabs)/fact-find' as any)}>
+                  <Ionicons name="document-text" size={18} color="#fff" />
+                  <Text style={styles.ctaBtnText}>Start Fact Find Challenge</Text>
+                </Pressable>
+              </View>
+            </View>
+          )}
         </View>
 
         <View style={styles.section}>
@@ -349,4 +383,19 @@ const styles = StyleSheet.create({
   breakdownIcon: { width: 38, height: 38, borderRadius: 12, alignItems: "center", justifyContent: "center" },
   breakdownLabel: { flex: 1, fontFamily: "DMSans_500Medium", fontSize: 14, color: Colors.light.text },
   breakdownVal: { fontFamily: "DMSans_700Bold", fontSize: 15 },
+  ctaOverlay: { position: "absolute" as const, top: 40, left: 0, right: 0, zIndex: 10, alignItems: "center" as const, paddingHorizontal: 20 },
+  ctaCard: { backgroundColor: "#fff", borderRadius: 20, padding: 28, alignItems: "center" as const, width: "100%" as const, shadowColor: "#000", shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.15, shadowRadius: 24, elevation: 12, borderWidth: 1, borderColor: Colors.light.border },
+  ctaLogo: { width: 56, height: 56, borderRadius: 28, marginBottom: 16 },
+  ctaTitle: { fontFamily: "DMSans_700Bold", fontSize: 20, color: Colors.light.text, marginBottom: 8, textAlign: "center" as const },
+  ctaSub: { fontFamily: "DMSans_400Regular", fontSize: 13, color: Colors.light.textMuted, textAlign: "center" as const, lineHeight: 19, marginBottom: 20, paddingHorizontal: 8 },
+  ctaProgressRow: { flexDirection: "row" as const, alignItems: "center" as const, gap: 10, width: "100%" as const, marginBottom: 16 },
+  ctaProgressBg: { flex: 1, height: 8, backgroundColor: Colors.light.gray100, borderRadius: 4, overflow: "hidden" as const },
+  ctaProgressFill: { height: 8, backgroundColor: Colors.light.tint, borderRadius: 4 },
+  ctaProgressText: { fontFamily: "DMSans_600SemiBold", fontSize: 13, color: Colors.light.tint, width: 36, textAlign: "right" as const },
+  ctaRewardRow: { flexDirection: "row" as const, alignItems: "center" as const, gap: 8, backgroundColor: "#FEF3C7", paddingHorizontal: 14, paddingVertical: 10, borderRadius: 12, marginBottom: 20, width: "100%" as const },
+  ctaCoinIcon: { width: 22, height: 22, borderRadius: 11, backgroundColor: "#F59E0B", alignItems: "center" as const, justifyContent: "center" as const, borderWidth: 1.5, borderColor: "#D4930D" },
+  ctaCoinText: { fontSize: 10, fontWeight: "800" as const, color: "#7C5800" },
+  ctaRewardText: { fontFamily: "DMSans_600SemiBold", fontSize: 13, color: "#92400E", flex: 1 },
+  ctaBtn: { flexDirection: "row" as const, alignItems: "center" as const, gap: 8, backgroundColor: Colors.light.tint, paddingHorizontal: 24, paddingVertical: 14, borderRadius: 14, width: "100%" as const, justifyContent: "center" as const },
+  ctaBtnText: { fontFamily: "DMSans_700Bold", fontSize: 15, color: "#fff" },
 });
