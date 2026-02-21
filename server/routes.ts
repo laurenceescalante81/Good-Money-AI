@@ -30,7 +30,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/ctas", async (_req, res) => {
     try {
-      const result = await pool.query('SELECT tab_key, cta_text, icon, icon_color, is_active FROM sales_ctas WHERE is_active = true ORDER BY sort_order');
+      const result = await pool.query(`
+        SELECT c.tab_key, c.cta_text, c.icon, c.icon_color, c.is_active, c.segment_id,
+               s.name as segment_name, s.rules as segment_rules
+        FROM sales_ctas c
+        LEFT JOIN customer_segments s ON c.segment_id = s.id
+        WHERE c.is_active = true
+        ORDER BY c.segment_id NULLS LAST, c.sort_order
+      `);
       res.json(result.rows);
     } catch (err) {
       res.json([]);
