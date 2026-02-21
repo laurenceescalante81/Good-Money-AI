@@ -385,11 +385,11 @@ const styles = StyleSheet.create({
   },
   overlay: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.5)",
+    backgroundColor: "rgba(0,0,0,0.2)",
   },
   homePage: {
     flex: 1,
-    backgroundColor: "rgba(245, 245, 247, 0.97)",
+    backgroundColor: "rgba(245, 245, 247, 0.88)",
     paddingHorizontal: 20,
   },
   homeHeader: {
