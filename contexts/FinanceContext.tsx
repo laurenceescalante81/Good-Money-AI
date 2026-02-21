@@ -85,6 +85,17 @@ export interface RiskProfileDetails {
   incomeVsGrowth: 'income' | 'balanced' | 'growth' | '';
 }
 
+export interface InvestorProfileAnswers {
+  [questionId: string]: string;
+}
+
+export interface InvestorProfile {
+  answers: InvestorProfileAnswers;
+  completedAt: string;
+  score: number;
+  profile: 'defensive' | 'conservative' | 'moderate' | 'balanced' | 'growth' | 'high_growth' | '';
+}
+
 export interface RetirementDetails {
   desiredRetirementAge: string;
   desiredRetirementIncome: string;
@@ -247,6 +258,8 @@ interface FinanceContextValue {
   deleteGoal: (id: string) => void;
   setProfileMode: (mode: ProfileMode) => void;
   setPartnerName: (name: string) => void;
+  investorProfile: InvestorProfile;
+  updateInvestorProfile: (profile: InvestorProfile) => void;
   updatePersonalDetails: (details: Partial<PersonalDetails>) => void;
   isLoading: boolean;
   getTotalIncome: (month?: string) => number;
@@ -269,6 +282,7 @@ const KEYS = {
   profileMode: '@ozfin_profileMode',
   partnerName: '@ozfin_partnerName',
   personalDetails: '@ozfin_personalDetails',
+  investorProfile: '@ozfin_investorProfile',
 };
 
 function genId(): string {
@@ -289,6 +303,7 @@ export function FinanceProvider({ children }: { children: ReactNode }) {
   const [profileMode, setProfileModeState] = useState<ProfileMode>('individual');
   const [partnerName, setPartnerNameState] = useState('Partner');
   const [personalDetails, setPersonalDetailsState] = useState<PersonalDetails>(DEFAULT_PERSONAL);
+  const [investorProfile, setInvestorProfileState] = useState<InvestorProfile>({ answers: {}, completedAt: '', score: 0, profile: '' });
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => { loadData(); }, []);
@@ -311,6 +326,8 @@ export function FinanceProvider({ children }: { children: ReactNode }) {
       if (gData) setGoals(JSON.parse(gData));
       if (pmData) setProfileModeState(pmData as ProfileMode);
       if (pnData) setPartnerNameState(pnData);
+      const ipData = await AsyncStorage.getItem(KEYS.investorProfile);
+      if (ipData) setInvestorProfileState(JSON.parse(ipData));
       const pdData = await AsyncStorage.getItem(KEYS.personalDetails);
       if (pdData) {
         const parsed = JSON.parse(pdData);
@@ -402,6 +419,11 @@ export function FinanceProvider({ children }: { children: ReactNode }) {
     });
   }, [persist]);
 
+  const updateInvestorProfile = useCallback((profile: InvestorProfile) => {
+    setInvestorProfileState(profile);
+    persist(KEYS.investorProfile, profile);
+  }, [persist]);
+
   const getMonthlyTransactions = useCallback((month?: string) => {
     const target = month || getCurrentMonth();
     return transactions.filter(t => t.date.startsWith(target));
@@ -468,12 +490,14 @@ export function FinanceProvider({ children }: { children: ReactNode }) {
 
   const value = useMemo(() => ({
     transactions, mortgage, superDetails, insurancePolicies, goals, profileMode, partnerName, personalDetails,
+    investorProfile, updateInvestorProfile,
     addTransaction, deleteTransaction, setMortgage, clearMortgage, setSuperDetails, clearSuper,
     addInsurance, deleteInsurance, addGoal, updateGoalAmount, deleteGoal,
     setProfileMode, setPartnerName, updatePersonalDetails, isLoading,
     getTotalIncome, getTotalExpenses, getMonthlyTransactions, getSpentByCategory,
     calculateMortgageRepayment, calculateSuperProjection, getTotalInsuranceCost,
-  }), [transactions, mortgage, superDetails, insurancePolicies, goals, profileMode, partnerName, personalDetails, isLoading,
+  }), [transactions, mortgage, superDetails, insurancePolicies, goals, profileMode, partnerName, personalDetails,
+    investorProfile, updateInvestorProfile, isLoading,
     addTransaction, deleteTransaction, setMortgage, clearMortgage, setSuperDetails, clearSuper,
     addInsurance, deleteInsurance, addGoal, updateGoalAmount, deleteGoal,
     setProfileMode, setPartnerName, updatePersonalDetails,
