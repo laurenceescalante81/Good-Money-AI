@@ -84,7 +84,11 @@ function MoreMenu({
         >
           <View style={styles.sheetHandle} />
           <Text style={styles.sheetTitle}>All Sections</Text>
-          <View style={styles.iconGrid}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.iconRow}
+          >
             {routes.map((route, index) => {
               const { options } = descriptors[route.key];
               const meta = TAB_META[route.name] || { active: "ellipse", inactive: "ellipse-outline", color: "#999" };
@@ -126,7 +130,7 @@ function MoreMenu({
                 </TouchableOpacity>
               );
             })}
-          </View>
+          </ScrollView>
         </Animated.View>
       </Animated.View>
     </Modal>
@@ -405,11 +409,11 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginBottom: 20,
   },
-  iconGrid: {
+  iconRow: {
     flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "center",
-    gap: 16,
+    alignItems: "flex-start",
+    gap: 12,
+    paddingHorizontal: 16,
     paddingBottom: 8,
   },
   gridItem: {
