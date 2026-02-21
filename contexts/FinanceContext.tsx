@@ -4,13 +4,130 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 export type TransactionType = 'income' | 'expense';
 export type ProfileMode = 'individual' | 'couple';
 
+export interface Dependent {
+  name: string;
+  dob: string;
+  relationship: 'child' | 'stepchild' | 'parent' | 'other';
+  financiallyDependent: boolean;
+}
+
+export interface EmploymentDetails {
+  status: 'full_time' | 'part_time' | 'casual' | 'self_employed' | 'contractor' | 'not_employed' | 'retired' | '';
+  employer: string;
+  occupation: string;
+  industry: string;
+  yearsInRole: string;
+  baseSalary: string;
+  bonus: string;
+  overtime: string;
+  otherEmploymentIncome: string;
+}
+
+export interface IncomeDetails {
+  rentalIncome: string;
+  investmentIncome: string;
+  dividendIncome: string;
+  governmentBenefits: string;
+  childSupport: string;
+  otherIncome: string;
+}
+
+export interface AssetDetails {
+  homeValue: string;
+  investmentPropertyValue: string;
+  investmentPropertyAddress: string;
+  sharePortfolioValue: string;
+  managedFundsValue: string;
+  termDepositsValue: string;
+  cryptoValue: string;
+  vehicleValue: string;
+  contentsValue: string;
+  collectiblesValue: string;
+  otherAssetsValue: string;
+  otherAssetsDescription: string;
+}
+
+export interface LiabilityDetails {
+  personalLoanBalance: string;
+  personalLoanRepayment: string;
+  personalLoanLender: string;
+  creditCardBalance: string;
+  creditCardLimit: string;
+  creditCardProvider: string;
+  carLoanBalance: string;
+  carLoanRepayment: string;
+  hecsDebt: string;
+  afterpayBalance: string;
+  otherDebtBalance: string;
+  otherDebtDescription: string;
+}
+
+export interface EstatePlanningDetails {
+  hasWill: 'yes' | 'no' | '';
+  willDate: string;
+  willLocation: string;
+  hasPowerOfAttorney: 'yes' | 'no' | '';
+  poaType: 'general' | 'enduring' | 'medical' | '';
+  poaAppointed: string;
+  hasEnduringGuardian: 'yes' | 'no' | '';
+  guardianAppointed: string;
+  hasBDBN: 'yes' | 'no' | '';
+  bdbnType: 'binding' | 'non_binding' | 'lapsing' | '';
+  bdbnBeneficiaries: string;
+  hasTestamentaryTrust: 'yes' | 'no' | '';
+}
+
+export interface RiskProfileDetails {
+  investmentTimeframe: 'short' | 'medium' | 'long' | '';
+  riskTolerance: 'conservative' | 'moderate' | 'balanced' | 'growth' | 'high_growth' | '';
+  investmentExperience: 'none' | 'limited' | 'moderate' | 'extensive' | '';
+  reactionToLoss: 'sell_immediately' | 'wait_and_see' | 'buy_more' | '';
+  incomeVsGrowth: 'income' | 'balanced' | 'growth' | '';
+}
+
+export interface RetirementDetails {
+  desiredRetirementAge: string;
+  desiredRetirementIncome: string;
+  agedPensionEligible: 'yes' | 'no' | 'unsure' | '';
+  downsizeIntention: 'yes' | 'no' | 'unsure' | '';
+  superPensionPhase: 'yes' | 'no' | '';
+}
+
+export interface HealthDetails {
+  smoker: 'yes' | 'no' | '';
+  preExistingConditions: string;
+  privateHealthInsurance: 'yes' | 'no' | '';
+  healthFund: string;
+  healthCoverType: 'hospital' | 'extras' | 'combined' | '';
+  healthExcess: string;
+  medicareLevySurcharge: 'yes' | 'no' | 'unsure' | '';
+}
+
+export interface CentrelinkDetails {
+  receivingBenefits: 'yes' | 'no' | '';
+  benefitType: string;
+  healthCareCard: 'yes' | 'no' | '';
+  dvaBenefits: 'yes' | 'no' | '';
+}
+
 export interface PersonalDetails {
   firstName: string;
   lastName: string;
   dob: string;
+  gender: 'male' | 'female' | 'other' | 'prefer_not' | '';
+  maritalStatus: 'single' | 'married' | 'de_facto' | 'divorced' | 'separated' | 'widowed' | '';
+  residencyStatus: 'citizen' | 'permanent_resident' | 'temporary_visa' | 'nz_citizen' | '';
   email: string;
   phone: string;
+  preferredContact: 'email' | 'phone' | 'sms' | '';
   address: {
+    street: string;
+    suburb: string;
+    state: string;
+    postcode: string;
+  };
+  postalSameAsResidential: boolean;
+  postalAddress: {
     street: string;
     suburb: string;
     state: string;
@@ -20,6 +137,17 @@ export interface PersonalDetails {
   bsb: string;
   accountNumber: string;
   bankName: string;
+  dependents: Dependent[];
+  employment: EmploymentDetails;
+  partnerEmployment: EmploymentDetails;
+  income: IncomeDetails;
+  assets: AssetDetails;
+  liabilities: LiabilityDetails;
+  estatePlanning: EstatePlanningDetails;
+  riskProfile: RiskProfileDetails;
+  retirement: RetirementDetails;
+  health: HealthDetails;
+  centrelink: CentrelinkDetails;
 }
 
 export interface Transaction {
@@ -72,10 +200,29 @@ export interface SavingsGoal {
   icon: string;
 }
 
+const DEFAULT_EMPLOYMENT: EmploymentDetails = {
+  status: '', employer: '', occupation: '', industry: '', yearsInRole: '',
+  baseSalary: '', bonus: '', overtime: '', otherEmploymentIncome: '',
+};
+
 const DEFAULT_PERSONAL: PersonalDetails = {
-  firstName: '', lastName: '', dob: '', email: '', phone: '',
+  firstName: '', lastName: '', dob: '', gender: '', maritalStatus: '', residencyStatus: '',
+  email: '', phone: '', preferredContact: '',
   address: { street: '', suburb: '', state: '', postcode: '' },
+  postalSameAsResidential: true,
+  postalAddress: { street: '', suburb: '', state: '', postcode: '' },
   tfn: '', bsb: '', accountNumber: '', bankName: '',
+  dependents: [],
+  employment: { ...DEFAULT_EMPLOYMENT },
+  partnerEmployment: { ...DEFAULT_EMPLOYMENT },
+  income: { rentalIncome: '', investmentIncome: '', dividendIncome: '', governmentBenefits: '', childSupport: '', otherIncome: '' },
+  assets: { homeValue: '', investmentPropertyValue: '', investmentPropertyAddress: '', sharePortfolioValue: '', managedFundsValue: '', termDepositsValue: '', cryptoValue: '', vehicleValue: '', contentsValue: '', collectiblesValue: '', otherAssetsValue: '', otherAssetsDescription: '' },
+  liabilities: { personalLoanBalance: '', personalLoanRepayment: '', personalLoanLender: '', creditCardBalance: '', creditCardLimit: '', creditCardProvider: '', carLoanBalance: '', carLoanRepayment: '', hecsDebt: '', afterpayBalance: '', otherDebtBalance: '', otherDebtDescription: '' },
+  estatePlanning: { hasWill: '', willDate: '', willLocation: '', hasPowerOfAttorney: '', poaType: '', poaAppointed: '', hasEnduringGuardian: '', guardianAppointed: '', hasBDBN: '', bdbnType: '', bdbnBeneficiaries: '', hasTestamentaryTrust: '' },
+  riskProfile: { investmentTimeframe: '', riskTolerance: '', investmentExperience: '', reactionToLoss: '', incomeVsGrowth: '' },
+  retirement: { desiredRetirementAge: '', desiredRetirementIncome: '', agedPensionEligible: '', downsizeIntention: '', superPensionPhase: '' },
+  health: { smoker: '', preExistingConditions: '', privateHealthInsurance: '', healthFund: '', healthCoverType: '', healthExcess: '', medicareLevySurcharge: '' },
+  centrelink: { receivingBenefits: '', benefitType: '', healthCareCard: '', dvaBenefits: '' },
 };
 
 interface FinanceContextValue {
@@ -165,7 +312,10 @@ export function FinanceProvider({ children }: { children: ReactNode }) {
       if (pmData) setProfileModeState(pmData as ProfileMode);
       if (pnData) setPartnerNameState(pnData);
       const pdData = await AsyncStorage.getItem(KEYS.personalDetails);
-      if (pdData) setPersonalDetailsState(JSON.parse(pdData));
+      if (pdData) {
+        const parsed = JSON.parse(pdData);
+        setPersonalDetailsState({ ...DEFAULT_PERSONAL, ...parsed, address: { ...DEFAULT_PERSONAL.address, ...(parsed.address || {}) }, postalAddress: { ...DEFAULT_PERSONAL.postalAddress, ...(parsed.postalAddress || {}) }, employment: { ...DEFAULT_EMPLOYMENT, ...(parsed.employment || {}) }, partnerEmployment: { ...DEFAULT_EMPLOYMENT, ...(parsed.partnerEmployment || {}) }, income: { ...DEFAULT_PERSONAL.income, ...(parsed.income || {}) }, assets: { ...DEFAULT_PERSONAL.assets, ...(parsed.assets || {}) }, liabilities: { ...DEFAULT_PERSONAL.liabilities, ...(parsed.liabilities || {}) }, estatePlanning: { ...DEFAULT_PERSONAL.estatePlanning, ...(parsed.estatePlanning || {}) }, riskProfile: { ...DEFAULT_PERSONAL.riskProfile, ...(parsed.riskProfile || {}) }, retirement: { ...DEFAULT_PERSONAL.retirement, ...(parsed.retirement || {}) }, health: { ...DEFAULT_PERSONAL.health, ...(parsed.health || {}) }, centrelink: { ...DEFAULT_PERSONAL.centrelink, ...(parsed.centrelink || {}) } });
+      }
     } catch (e) {
       console.error('Load error', e);
     } finally {
@@ -235,6 +385,17 @@ export function FinanceProvider({ children }: { children: ReactNode }) {
         ...prev,
         ...details,
         address: { ...prev.address, ...(details.address || {}) },
+        postalAddress: { ...prev.postalAddress, ...(details.postalAddress || {}) },
+        employment: { ...prev.employment, ...(details.employment || {}) },
+        partnerEmployment: { ...prev.partnerEmployment, ...(details.partnerEmployment || {}) },
+        income: { ...prev.income, ...(details.income || {}) },
+        assets: { ...prev.assets, ...(details.assets || {}) },
+        liabilities: { ...prev.liabilities, ...(details.liabilities || {}) },
+        estatePlanning: { ...prev.estatePlanning, ...(details.estatePlanning || {}) },
+        riskProfile: { ...prev.riskProfile, ...(details.riskProfile || {}) },
+        retirement: { ...prev.retirement, ...(details.retirement || {}) },
+        health: { ...prev.health, ...(details.health || {}) },
+        centrelink: { ...prev.centrelink, ...(details.centrelink || {}) },
       };
       persist(KEYS.personalDetails, next);
       return next;
