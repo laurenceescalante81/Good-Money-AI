@@ -15,6 +15,7 @@ Good Money is a personal financial planning mobile app built specifically for Au
 - **Super Tracker**: Balance, fund info, SG contributions, retirement projections (7% growth, 4% drawdown), milestones
 - **Budget & Savings**: Income/expense tracking with Australian categories (groceries, petrol, rent), spending breakdown, savings goals with fund allocation
 - **Insurance Tab**: Dedicated tab with annual/monthly cost summary, upcoming renewals banner (90-day window), detailed policy cards with cover amounts, premium tracking, and mission integration
+- **Investor Tab**: Comprehensive 20-question risk profile questionnaire based on 10+ real Australian fact find questionnaires. 5 categories (Goals & Timeframe, Knowledge & Experience, Risk Tolerance, Financial Situation, Investment Behaviour). Scores to 6 profiles: Defensive, Conservative, Moderate, Balanced, Growth, High Growth. Results show suggested asset allocation, all profiles comparison, and full answer review.
 - **Planning Tab**: Net wealth projection line chart (5/10/20/30yr horizons) with property equity, super, and savings breakdown lines; income vs expenses bar chart (6-month history); wealth breakdown summary
 - **Banks** (Basiq Open Banking): Connect Australian bank accounts via Basiq API, view live account balances grouped by type (transaction, savings, credit cards, loans), import transactions into budget tracker
 - **Couple Mode**: Toggle shared finances, track who made each transaction
@@ -30,6 +31,7 @@ app/
     mortgage.tsx         # Mortgage tracker
     super.tsx            # Superannuation tracker
     budget.tsx           # Budget & savings
+    investor.tsx         # Investor tab: 20-question scored risk profile questionnaire
     fact-find.tsx        # Fact Find tab: comprehensive Australian financial fact find (18 sections)
   add-transaction.tsx    # Modal: new transaction
   setup-mortgage.tsx     # Modal: mortgage setup/edit
