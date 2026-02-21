@@ -12,8 +12,8 @@ function fmt(amount: number): string {
   return "$" + amount.toLocaleString("en-AU", { minimumFractionDigits: 0, maximumFractionDigits: 0 });
 }
 
-function PillarCard({ icon, iconColor, bgColor, title, value, subtitle, onPress }: {
-  icon: string; iconColor: string; bgColor: string; title: string; value: string; subtitle: string; onPress: () => void;
+function PillarCard({ icon, iconColor, bgColor, title, value, subtitle, cta, onPress }: {
+  icon: string; iconColor: string; bgColor: string; title: string; value: string; subtitle: string; cta: string; onPress: () => void;
 }) {
   return (
     <Pressable onPress={onPress} style={({ pressed }) => [styles.pillarCard, pressed && { opacity: 0.95, transform: [{ scale: 0.98 }] }]}>
@@ -23,6 +23,10 @@ function PillarCard({ icon, iconColor, bgColor, title, value, subtitle, onPress 
       <Text style={styles.pillarTitle}>{title}</Text>
       <Text style={[styles.pillarValue, { color: iconColor }]}>{value}</Text>
       <Text style={styles.pillarSubtitle}>{subtitle}</Text>
+      <View style={[styles.pillarCta, { backgroundColor: iconColor + '12' }]}>
+        <Text style={[styles.pillarCtaText, { color: iconColor }]}>{cta}</Text>
+        <Ionicons name="chevron-forward" size={12} color={iconColor} />
+      </View>
     </Pressable>
   );
 }
@@ -255,6 +259,12 @@ export default function DashboardScreen() {
                   })}
                 </View>
               )}
+
+              <View style={styles.rewardsCtaRow}>
+                <Ionicons name="gift-outline" size={14} color="#D4AF37" />
+                <Text style={styles.rewardsCtaText}>Earn rewards & redeem for cashback</Text>
+                <Ionicons name="chevron-forward" size={14} color="rgba(255,255,255,0.4)" />
+              </View>
             </LinearGradient>
           </Pressable>
 
@@ -267,6 +277,7 @@ export default function DashboardScreen() {
               title="Mortgage"
               value={mortgage ? fmt(mortgageCalc.monthly) + "/mo" : "Not set"}
               subtitle={mortgage ? fmt(mortgage.loanAmount) + " loan" : "Set up your home loan"}
+              cta="Get a free rate review"
               onPress={() => mortgage ? router.push("/(tabs)/mortgage") : router.push("/setup-mortgage")}
             />
             <PillarCard
@@ -276,6 +287,7 @@ export default function DashboardScreen() {
               title="Super"
               value={superDetails ? fmt(superDetails.balance) : "Not set"}
               subtitle={superDetails ? fmt(Math.round(superProj.atRetirement)) + " at 67" : "Track your super"}
+              cta="Optimise your super today"
               onPress={() => superDetails ? router.push("/(tabs)/super") : router.push("/setup-super")}
             />
             <PillarCard
@@ -285,6 +297,7 @@ export default function DashboardScreen() {
               title="Insurance"
               value={insurancePolicies.length > 0 ? fmt(insuranceCost) + "/yr" : "None"}
               subtitle={insurancePolicies.length > 0 ? `${insurancePolicies.length} ${insurancePolicies.length === 1 ? 'policy' : 'policies'}` : "Add your policies"}
+              cta="Compare & save on premiums"
               onPress={() => router.push("/add-insurance")}
             />
             <PillarCard
@@ -294,8 +307,55 @@ export default function DashboardScreen() {
               title="Savings"
               value={goals.length > 0 ? fmt(totalGoalSaved) : "No goals"}
               subtitle={goals.length > 0 ? `of ${fmt(totalGoalTarget)} target` : "Set a savings goal"}
+              cta="Boost your savings plan"
               onPress={() => router.push("/add-goal")}
             />
+          </View>
+
+          <View style={styles.ctaStrip}>
+            <Pressable onPress={() => router.push("/(tabs)/banks")} style={({ pressed }) => [styles.ctaCard, pressed && { opacity: 0.9 }]}>
+              <View style={[styles.ctaIconWrap, { backgroundColor: '#0D948815' }]}>
+                <Ionicons name="business-outline" size={20} color="#0D9488" />
+              </View>
+              <View style={styles.ctaContent}>
+                <Text style={styles.ctaTitle}>Banks</Text>
+                <Text style={styles.ctaMessage}>Link your accounts for real-time insights</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={16} color={Colors.light.textMuted} />
+            </Pressable>
+
+            <Pressable onPress={() => router.push("/(tabs)/budget")} style={({ pressed }) => [styles.ctaCard, pressed && { opacity: 0.9 }]}>
+              <View style={[styles.ctaIconWrap, { backgroundColor: Colors.light.budget + '15' }]}>
+                <Ionicons name="wallet-outline" size={20} color={Colors.light.budget} />
+              </View>
+              <View style={styles.ctaContent}>
+                <Text style={styles.ctaTitle}>Budget</Text>
+                <Text style={styles.ctaMessage}>Take control of your cash flow</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={16} color={Colors.light.textMuted} />
+            </Pressable>
+
+            <Pressable onPress={() => router.push("/(tabs)/planning")} style={({ pressed }) => [styles.ctaCard, pressed && { opacity: 0.9 }]}>
+              <View style={[styles.ctaIconWrap, { backgroundColor: '#6366F115' }]}>
+                <Ionicons name="analytics-outline" size={20} color="#6366F1" />
+              </View>
+              <View style={styles.ctaContent}>
+                <Text style={styles.ctaTitle}>Planning</Text>
+                <Text style={styles.ctaMessage}>See your wealth projection to retirement</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={16} color={Colors.light.textMuted} />
+            </Pressable>
+
+            <Pressable onPress={() => router.push("/(tabs)/fact-find")} style={({ pressed }) => [styles.ctaCard, pressed && { opacity: 0.9 }]}>
+              <View style={[styles.ctaIconWrap, { backgroundColor: '#F59E0B15' }]}>
+                <Ionicons name="document-text-outline" size={20} color="#F59E0B" />
+              </View>
+              <View style={styles.ctaContent}>
+                <Text style={styles.ctaTitle}>Fact Find</Text>
+                <Text style={styles.ctaMessage}>Complete your profile for tailored advice</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={16} color={Colors.light.textMuted} />
+            </Pressable>
           </View>
 
           {insurancePolicies.length > 0 && (
@@ -393,6 +453,8 @@ const styles = StyleSheet.create({
   pillarTitle: { fontFamily: "DMSans_500Medium", fontSize: 13, color: Colors.light.textMuted, marginBottom: 4 },
   pillarValue: { fontFamily: "DMSans_700Bold", fontSize: 18, marginBottom: 2 },
   pillarSubtitle: { fontFamily: "DMSans_400Regular", fontSize: 11, color: Colors.light.textMuted },
+  pillarCta: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 4, marginTop: 10, borderRadius: 8, paddingVertical: 6, paddingHorizontal: 8 },
+  pillarCtaText: { fontFamily: "DMSans_600SemiBold", fontSize: 10 },
   insuranceItem: { flexDirection: "row", alignItems: "center", gap: 12, backgroundColor: Colors.light.card, borderRadius: 14, padding: 14, marginBottom: 8 },
   insuranceIcon: { width: 40, height: 40, borderRadius: 12, alignItems: "center", justifyContent: "center" },
   insuranceInfo: { flex: 1 },
@@ -436,4 +498,12 @@ const styles = StyleSheet.create({
   rewardsMissionIcon: { width: 28, height: 28, borderRadius: 8, alignItems: "center", justifyContent: "center" },
   rewardsMissionName: { flex: 1, fontFamily: "DMSans_500Medium", fontSize: 12, color: "rgba(255,255,255,0.7)" },
   rewardsMissionPts: { fontFamily: "DMSans_700Bold", fontSize: 12, color: "#4ade80" },
+  rewardsCtaRow: { flexDirection: "row", alignItems: "center", gap: 8, marginTop: 14, backgroundColor: "rgba(212,175,55,0.1)", borderRadius: 10, paddingVertical: 10, paddingHorizontal: 12 },
+  rewardsCtaText: { flex: 1, fontFamily: "DMSans_600SemiBold", fontSize: 12, color: "#D4AF37" },
+  ctaStrip: { marginTop: 24, gap: 8 },
+  ctaCard: { flexDirection: "row", alignItems: "center", gap: 12, backgroundColor: Colors.light.card, borderRadius: 14, padding: 14 },
+  ctaIconWrap: { width: 40, height: 40, borderRadius: 12, alignItems: "center", justifyContent: "center" },
+  ctaContent: { flex: 1 },
+  ctaTitle: { fontFamily: "DMSans_600SemiBold", fontSize: 14, color: Colors.light.text },
+  ctaMessage: { fontFamily: "DMSans_400Regular", fontSize: 12, color: Colors.light.textMuted, marginTop: 2 },
 });
