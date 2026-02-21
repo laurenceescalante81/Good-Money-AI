@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, Pressable, Alert, Platform, Dimensions, TextInput } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Pressable, Alert, Platform, Dimensions, TextInput, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -303,9 +303,7 @@ export default function RewardsScreen() {
               <Text style={s.appName}>Good Money</Text>
               <Text style={s.greeting}>REWARDS & MISSIONS</Text>
             </View>
-            <View style={s.avatarCircle}>
-              <Ionicons name="person" size={20} color="#fff" />
-            </View>
+            <Image source={require('@/assets/images/logo.jpeg')} style={s.headerLogo} />
           </View>
 
           <View style={s.pointsCard}>
@@ -451,9 +449,7 @@ export default function RewardsScreen() {
                 <LinearGradient colors={['#1a2942', '#0f1c30']} style={s.walletCardInner}>
                   <View style={s.walletHeaderRow}>
                     <View style={s.walletLogoWrap}>
-                      <LinearGradient colors={['#D4AF37', '#F5D060']} style={s.walletLogo}>
-                        <Text style={s.walletLogoText}>pp</Text>
-                      </LinearGradient>
+                      <Image source={require('@/assets/images/logo.jpeg')} style={s.walletLogo} />
                     </View>
                     <View style={s.walletTokenInfo}>
                       <Text style={s.walletTokenName}>ppAUD</Text>
@@ -637,7 +633,7 @@ const s = StyleSheet.create({
   headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
   appName: { fontSize: 22, fontFamily: 'DMSans_700Bold', color: '#fff' },
   greeting: { fontSize: 12, fontFamily: 'DMSans_500Medium', color: '#D4AF37', letterSpacing: 1, marginTop: 2 },
-  avatarCircle: { width: 36, height: 36, borderRadius: 18, backgroundColor: Colors.light.tint, alignItems: 'center', justifyContent: 'center' },
+  headerLogo: { width: 40, height: 40, borderRadius: 20 },
   pointsCard: { marginBottom: 20 },
   pointsCardInner: { borderRadius: 16, padding: 20, borderWidth: 1, borderColor: 'rgba(99,102,241,0.2)' },
   pointsTopRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 },
@@ -796,8 +792,7 @@ const s = StyleSheet.create({
   walletCardInner: { borderRadius: 16, padding: 20, borderWidth: 1, borderColor: '#D4AF3730' },
   walletHeaderRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 20 },
   walletLogoWrap: { marginRight: 12 },
-  walletLogo: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
-  walletLogoText: { fontSize: 16, fontFamily: 'DMSans_700Bold', color: '#0C1B2A' },
+  walletLogo: { width: 40, height: 40, borderRadius: 20 },
   walletTokenInfo: { flex: 1 },
   walletTokenName: { fontSize: 18, fontFamily: 'DMSans_700Bold', color: '#D4AF37' },
   walletTokenSub: { fontSize: 11, fontFamily: 'DMSans_400Regular', color: Colors.light.gray400 },

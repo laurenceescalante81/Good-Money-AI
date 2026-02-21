@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, Pressable, TextInput, Platform, Animated, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Pressable, TextInput, Platform, Animated, Dimensions, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -668,9 +668,7 @@ export default function FactFindTabScreen() {
               <Text style={styles.appName}>Fact Find</Text>
               <Text style={styles.subtitle}>FINANCIAL FACT FIND</Text>
             </View>
-            <View style={styles.avatarCircle}>
-              <Ionicons name="document-text" size={20} color="#fff" />
-            </View>
+            <Image source={require('@/assets/images/logo.jpeg')} style={styles.headerLogo} />
           </View>
 
           <View style={styles.progressCard}>
@@ -794,7 +792,7 @@ const styles = StyleSheet.create({
   headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, marginBottom: 16 },
   appName: { fontFamily: 'DMSans_700Bold', fontSize: 28, color: '#FFF', letterSpacing: -0.5 },
   subtitle: { fontFamily: 'DMSans_600SemiBold', fontSize: 11, color: 'rgba(255,255,255,0.5)', letterSpacing: 1.5, marginTop: 2 },
-  avatarCircle: { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.15)', alignItems: 'center', justifyContent: 'center' },
+  headerLogo: { width: 40, height: 40, borderRadius: 20 },
   progressCard: { marginHorizontal: 20, marginBottom: 16, borderRadius: 16, overflow: 'hidden' },
   progressCardInner: { padding: 20, borderRadius: 16, borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)' },
   progressTopRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
