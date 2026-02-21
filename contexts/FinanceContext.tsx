@@ -4,6 +4,24 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 export type TransactionType = 'income' | 'expense';
 export type ProfileMode = 'individual' | 'couple';
 
+export interface PersonalDetails {
+  firstName: string;
+  lastName: string;
+  dob: string;
+  email: string;
+  phone: string;
+  address: {
+    street: string;
+    suburb: string;
+    state: string;
+    postcode: string;
+  };
+  tfn: string;
+  bsb: string;
+  accountNumber: string;
+  bankName: string;
+}
+
 export interface Transaction {
   id: string;
   type: TransactionType;
@@ -54,6 +72,12 @@ export interface SavingsGoal {
   icon: string;
 }
 
+const DEFAULT_PERSONAL: PersonalDetails = {
+  firstName: '', lastName: '', dob: '', email: '', phone: '',
+  address: { street: '', suburb: '', state: '', postcode: '' },
+  tfn: '', bsb: '', accountNumber: '', bankName: '',
+};
+
 interface FinanceContextValue {
   transactions: Transaction[];
   mortgage: MortgageDetails | null;
@@ -62,6 +86,7 @@ interface FinanceContextValue {
   goals: SavingsGoal[];
   profileMode: ProfileMode;
   partnerName: string;
+  personalDetails: PersonalDetails;
   addTransaction: (t: Omit<Transaction, 'id'>) => void;
   deleteTransaction: (id: string) => void;
   setMortgage: (m: MortgageDetails) => void;
@@ -75,6 +100,7 @@ interface FinanceContextValue {
   deleteGoal: (id: string) => void;
   setProfileMode: (mode: ProfileMode) => void;
   setPartnerName: (name: string) => void;
+  updatePersonalDetails: (details: Partial<PersonalDetails>) => void;
   isLoading: boolean;
   getTotalIncome: (month?: string) => number;
   getTotalExpenses: (month?: string) => number;
@@ -95,6 +121,7 @@ const KEYS = {
   goals: '@ozfin_goals',
   profileMode: '@ozfin_profileMode',
   partnerName: '@ozfin_partnerName',
+  personalDetails: '@ozfin_personalDetails',
 };
 
 function genId(): string {
@@ -114,6 +141,7 @@ export function FinanceProvider({ children }: { children: ReactNode }) {
   const [goals, setGoals] = useState<SavingsGoal[]>([]);
   const [profileMode, setProfileModeState] = useState<ProfileMode>('individual');
   const [partnerName, setPartnerNameState] = useState('Partner');
+  const [personalDetails, setPersonalDetailsState] = useState<PersonalDetails>(DEFAULT_PERSONAL);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => { loadData(); }, []);
@@ -136,6 +164,8 @@ export function FinanceProvider({ children }: { children: ReactNode }) {
       if (gData) setGoals(JSON.parse(gData));
       if (pmData) setProfileModeState(pmData as ProfileMode);
       if (pnData) setPartnerNameState(pnData);
+      const pdData = await AsyncStorage.getItem(KEYS.personalDetails);
+      if (pdData) setPersonalDetailsState(JSON.parse(pdData));
     } catch (e) {
       console.error('Load error', e);
     } finally {
@@ -198,6 +228,18 @@ export function FinanceProvider({ children }: { children: ReactNode }) {
   const setPartnerName = useCallback((name: string) => {
     setPartnerNameState(name); AsyncStorage.setItem(KEYS.partnerName, name);
   }, []);
+
+  const updatePersonalDetails = useCallback((details: Partial<PersonalDetails>) => {
+    setPersonalDetailsState(prev => {
+      const next = {
+        ...prev,
+        ...details,
+        address: { ...prev.address, ...(details.address || {}) },
+      };
+      persist(KEYS.personalDetails, next);
+      return next;
+    });
+  }, [persist]);
 
   const getMonthlyTransactions = useCallback((month?: string) => {
     const target = month || getCurrentMonth();
@@ -264,16 +306,16 @@ export function FinanceProvider({ children }: { children: ReactNode }) {
   }, [insurancePolicies]);
 
   const value = useMemo(() => ({
-    transactions, mortgage, superDetails, insurancePolicies, goals, profileMode, partnerName,
+    transactions, mortgage, superDetails, insurancePolicies, goals, profileMode, partnerName, personalDetails,
     addTransaction, deleteTransaction, setMortgage, clearMortgage, setSuperDetails, clearSuper,
     addInsurance, deleteInsurance, addGoal, updateGoalAmount, deleteGoal,
-    setProfileMode, setPartnerName, isLoading,
+    setProfileMode, setPartnerName, updatePersonalDetails, isLoading,
     getTotalIncome, getTotalExpenses, getMonthlyTransactions, getSpentByCategory,
     calculateMortgageRepayment, calculateSuperProjection, getTotalInsuranceCost,
-  }), [transactions, mortgage, superDetails, insurancePolicies, goals, profileMode, partnerName, isLoading,
+  }), [transactions, mortgage, superDetails, insurancePolicies, goals, profileMode, partnerName, personalDetails, isLoading,
     addTransaction, deleteTransaction, setMortgage, clearMortgage, setSuperDetails, clearSuper,
     addInsurance, deleteInsurance, addGoal, updateGoalAmount, deleteGoal,
-    setProfileMode, setPartnerName,
+    setProfileMode, setPartnerName, updatePersonalDetails,
     getTotalIncome, getTotalExpenses, getMonthlyTransactions, getSpentByCategory,
     calculateMortgageRepayment, calculateSuperProjection, getTotalInsuranceCost]);
 
