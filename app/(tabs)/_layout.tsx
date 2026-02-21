@@ -10,26 +10,127 @@ import {
   ScrollView,
   TouchableOpacity,
   Text,
-  Dimensions,
   useWindowDimensions,
+  Modal,
+  Pressable,
+  Animated,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useEffect, useState, useCallback } from "react";
 import Colors from "@/constants/colors";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import type { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 
-const TAB_ICONS: Record<string, { active: string; inactive: string }> = {
-  index: { active: "pie-chart", inactive: "pie-chart-outline" },
-  mortgage: { active: "home", inactive: "home-outline" },
-  super: { active: "trending-up", inactive: "trending-up-outline" },
-  budget: { active: "wallet", inactive: "wallet-outline" },
-  banks: { active: "business", inactive: "business-outline" },
-  rewards: { active: "star", inactive: "star-outline" },
-  insurance: { active: "shield-checkmark", inactive: "shield-checkmark-outline" },
-  "fact-find": { active: "document-text", inactive: "document-text-outline" },
-  planning: { active: "analytics", inactive: "analytics-outline" },
+const TAB_META: Record<string, { active: string; inactive: string; color: string }> = {
+  index: { active: "pie-chart", inactive: "pie-chart-outline", color: "#0D9488" },
+  mortgage: { active: "home", inactive: "home-outline", color: "#3B82F6" },
+  super: { active: "trending-up", inactive: "trending-up-outline", color: "#8B5CF6" },
+  budget: { active: "wallet", inactive: "wallet-outline", color: "#10B981" },
+  banks: { active: "business", inactive: "business-outline", color: "#6366F1" },
+  rewards: { active: "star", inactive: "star-outline", color: "#F59E0B" },
+  insurance: { active: "shield-checkmark", inactive: "shield-checkmark-outline", color: "#EF4444" },
+  "fact-find": { active: "document-text", inactive: "document-text-outline", color: "#EC4899" },
+  planning: { active: "analytics", inactive: "analytics-outline", color: "#14B8A6" },
 };
+
+const VISIBLE_COUNT = 4;
+
+function MoreMenu({
+  visible,
+  onClose,
+  routes,
+  descriptors,
+  activeIndex,
+  onSelect,
+}: {
+  visible: boolean;
+  onClose: () => void;
+  routes: any[];
+  descriptors: any;
+  activeIndex: number;
+  onSelect: (index: number) => void;
+}) {
+  const insets = useSafeAreaInsets();
+  const isWeb = Platform.OS === "web";
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(300)).current;
+
+  useEffect(() => {
+    if (visible) {
+      Animated.parallel([
+        Animated.timing(fadeAnim, { toValue: 1, duration: 200, useNativeDriver: !isWeb }),
+        Animated.spring(slideAnim, { toValue: 0, friction: 8, tension: 65, useNativeDriver: !isWeb }),
+      ]).start();
+    } else {
+      fadeAnim.setValue(0);
+      slideAnim.setValue(300);
+    }
+  }, [visible]);
+
+  if (!visible) return null;
+
+  const bottomPad = isWeb ? 34 : Math.max(insets.bottom, 16);
+
+  return (
+    <Modal transparent visible={visible} animationType="none" onRequestClose={onClose}>
+      <Animated.View style={[styles.overlay, { opacity: fadeAnim }]}>
+        <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
+        <Animated.View
+          style={[
+            styles.moreSheet,
+            { paddingBottom: bottomPad + 8, transform: [{ translateY: slideAnim }] },
+          ]}
+        >
+          <View style={styles.sheetHandle} />
+          <Text style={styles.sheetTitle}>All Sections</Text>
+          <View style={styles.iconGrid}>
+            {routes.map((route, index) => {
+              const { options } = descriptors[route.key];
+              const meta = TAB_META[route.name] || { active: "ellipse", inactive: "ellipse-outline", color: "#999" };
+              const isFocused = activeIndex === index;
+              const label = options.title || route.name;
+
+              return (
+                <TouchableOpacity
+                  key={route.key}
+                  style={styles.gridItem}
+                  activeOpacity={0.7}
+                  onPress={() => onSelect(index)}
+                >
+                  <View
+                    style={[
+                      styles.gridIconCircle,
+                      {
+                        backgroundColor: isFocused ? meta.color : `${meta.color}15`,
+                        borderWidth: isFocused ? 0 : 1,
+                        borderColor: `${meta.color}30`,
+                      },
+                    ]}
+                  >
+                    <Ionicons
+                      name={(isFocused ? meta.active : meta.inactive) as any}
+                      size={24}
+                      color={isFocused ? "#fff" : meta.color}
+                    />
+                  </View>
+                  <Text
+                    style={[
+                      styles.gridLabel,
+                      { color: isFocused ? meta.color : "#374151", fontWeight: isFocused ? "700" : "500" },
+                    ]}
+                    numberOfLines={1}
+                  >
+                    {label}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </Animated.View>
+      </Animated.View>
+    </Modal>
+  );
+}
 
 function ScrollableTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   const colorScheme = useColorScheme();
@@ -39,102 +140,121 @@ function ScrollableTabBar({ state, descriptors, navigation }: BottomTabBarProps)
   const insets = useSafeAreaInsets();
   const scrollRef = useRef<ScrollView>(null);
   const { width: screenWidth } = useWindowDimensions();
+  const [moreOpen, setMoreOpen] = useState(false);
 
-  const tabCount = state.routes.length;
-  const minTabWidth = 72;
-  const maxVisibleTabs = Math.floor(screenWidth / minTabWidth);
-  const tabWidth = tabCount <= maxVisibleTabs ? screenWidth / tabCount : minTabWidth;
   const bottomPad = isWeb ? 34 : insets.bottom;
   const barHeight = 52 + bottomPad;
 
-  useEffect(() => {
-    const activeIndex = state.index;
-    const scrollX = Math.max(0, activeIndex * tabWidth - screenWidth / 2 + tabWidth / 2);
-    scrollRef.current?.scrollTo({ x: scrollX, animated: true });
-  }, [state.index]);
+  const totalSlots = VISIBLE_COUNT + 1;
+  const tabWidth = screenWidth / totalSlots;
+
+  const visibleRoutes = state.routes.slice(0, VISIBLE_COUNT);
+  const overflowRoutes = state.routes.slice(VISIBLE_COUNT);
+  const activeInOverflow = state.index >= VISIBLE_COUNT;
+
+  const handleSelect = useCallback(
+    (index: number) => {
+      setMoreOpen(false);
+      const route = state.routes[index];
+      if (state.index !== index) {
+        navigation.navigate(route.name, route.params);
+      }
+    },
+    [state, navigation],
+  );
 
   return (
-    <View style={[styles.barContainer, { height: barHeight }]}>
-      {isIOS ? (
-        <BlurView intensity={100} tint={isDark ? "dark" : "light"} style={StyleSheet.absoluteFill} />
-      ) : (
-        <View
-          style={[
-            StyleSheet.absoluteFill,
-            { backgroundColor: isDark ? "#000" : "#fff" },
-          ]}
-        />
-      )}
-      <View style={[styles.topBorder, { borderTopColor: isDark ? "#333" : Colors.light.border }]} />
-      <ScrollView
-        ref={scrollRef}
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={[
-          styles.scrollContent,
-          { paddingBottom: bottomPad },
-        ]}
-        bounces
-        decelerationRate="fast"
-      >
-        {state.routes.map((route, index) => {
-          const { options } = descriptors[route.key];
-          const isFocused = state.index === index;
-          const routeName = route.name;
-          const icons = TAB_ICONS[routeName] || { active: "ellipse", inactive: "ellipse-outline" };
-          const label = options.title || routeName;
+    <>
+      <View style={[styles.barContainer, { height: barHeight }]}>
+        {isIOS ? (
+          <BlurView intensity={100} tint={isDark ? "dark" : "light"} style={StyleSheet.absoluteFill} />
+        ) : (
+          <View style={[StyleSheet.absoluteFill, { backgroundColor: isDark ? "#000" : "#fff" }]} />
+        )}
+        <View style={[styles.topBorder, { borderTopColor: isDark ? "#333" : Colors.light.border }]} />
 
-          const onPress = () => {
-            const event = navigation.emit({
-              type: "tabPress",
-              target: route.key,
-              canPreventDefault: true,
-            });
-            if (!isFocused && !event.defaultPrevented) {
-              navigation.navigate(route.name, route.params);
-            }
-          };
+        <ScrollView
+          ref={scrollRef}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          scrollEnabled={false}
+          contentContainerStyle={[styles.scrollContent, { paddingBottom: bottomPad }]}
+        >
+          {visibleRoutes.map((route, index) => {
+            const { options } = descriptors[route.key];
+            const isFocused = state.index === index;
+            const meta = TAB_META[route.name] || { active: "ellipse", inactive: "ellipse-outline", color: "#999" };
+            const label = options.title || route.name;
 
-          const onLongPress = () => {
-            navigation.emit({ type: "tabLongPress", target: route.key });
-          };
-
-          return (
-            <TouchableOpacity
-              key={route.key}
-              accessibilityRole="button"
-              accessibilityState={isFocused ? { selected: true } : {}}
-              accessibilityLabel={options.tabBarAccessibilityLabel}
-              testID={options.tabBarButtonTestID}
-              onPress={onPress}
-              onLongPress={onLongPress}
-              style={[styles.tab, { width: tabWidth }]}
-              activeOpacity={0.7}
-            >
-              <View style={[styles.iconWrap, isFocused && styles.iconWrapActive]}>
-                <Ionicons
-                  name={(isFocused ? icons.active : icons.inactive) as any}
-                  size={20}
-                  color={isFocused ? Colors.light.tint : Colors.light.tabIconDefault}
-                />
-              </View>
-              <Text
-                style={[
-                  styles.label,
-                  {
-                    color: isFocused ? Colors.light.tint : Colors.light.tabIconDefault,
-                    fontWeight: isFocused ? "600" : "500",
-                  },
-                ]}
-                numberOfLines={1}
+            return (
+              <TouchableOpacity
+                key={route.key}
+                accessibilityRole="button"
+                accessibilityState={isFocused ? { selected: true } : {}}
+                onPress={() => {
+                  const event = navigation.emit({ type: "tabPress", target: route.key, canPreventDefault: true });
+                  if (!isFocused && !event.defaultPrevented) navigation.navigate(route.name, route.params);
+                }}
+                style={[styles.tab, { width: tabWidth }]}
+                activeOpacity={0.7}
               >
-                {label}
-              </Text>
-            </TouchableOpacity>
-          );
-        })}
-      </ScrollView>
-    </View>
+                <View style={[styles.iconWrap, isFocused && { backgroundColor: `${meta.color}18` }]}>
+                  <Ionicons
+                    name={(isFocused ? meta.active : meta.inactive) as any}
+                    size={20}
+                    color={isFocused ? meta.color : Colors.light.tabIconDefault}
+                  />
+                </View>
+                <Text
+                  style={[
+                    styles.label,
+                    { color: isFocused ? meta.color : Colors.light.tabIconDefault, fontWeight: isFocused ? "600" : "500" },
+                  ]}
+                  numberOfLines={1}
+                >
+                  {label}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+
+          <TouchableOpacity
+            accessibilityRole="button"
+            accessibilityLabel="More tabs"
+            onPress={() => setMoreOpen(true)}
+            style={[styles.tab, { width: tabWidth }]}
+            activeOpacity={0.7}
+          >
+            <View style={[styles.iconWrap, activeInOverflow && { backgroundColor: "rgba(13, 148, 136, 0.12)" }]}>
+              <Ionicons
+                name={activeInOverflow ? "grid" : "grid-outline"}
+                size={20}
+                color={activeInOverflow ? Colors.light.tint : Colors.light.tabIconDefault}
+              />
+              {activeInOverflow && <View style={styles.moreDot} />}
+            </View>
+            <Text
+              style={[
+                styles.label,
+                { color: activeInOverflow ? Colors.light.tint : Colors.light.tabIconDefault, fontWeight: activeInOverflow ? "600" : "500" },
+              ]}
+              numberOfLines={1}
+            >
+              More
+            </Text>
+          </TouchableOpacity>
+        </ScrollView>
+      </View>
+
+      <MoreMenu
+        visible={moreOpen}
+        onClose={() => setMoreOpen(false)}
+        routes={state.routes}
+        descriptors={descriptors}
+        activeIndex={state.index}
+        onSelect={handleSelect}
+      />
+    </>
   );
 }
 
@@ -238,12 +358,69 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     marginBottom: 2,
   },
-  iconWrapActive: {
-    backgroundColor: "rgba(13, 148, 136, 0.1)",
-  },
   label: {
     fontFamily: "DMSans_500Medium",
     fontSize: 10,
+    textAlign: "center",
+  },
+  moreDot: {
+    position: "absolute",
+    top: 2,
+    right: 4,
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: Colors.light.tint,
+  },
+  overlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.4)",
+    justifyContent: "flex-end",
+  },
+  moreSheet: {
+    backgroundColor: "#fff",
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingTop: 12,
+    paddingHorizontal: 16,
+  },
+  sheetHandle: {
+    width: 40,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: "#D1D5DB",
+    alignSelf: "center",
+    marginBottom: 16,
+  },
+  sheetTitle: {
+    fontFamily: "DMSans_700Bold",
+    fontSize: 18,
+    color: "#111827",
+    textAlign: "center",
+    marginBottom: 20,
+  },
+  iconGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "center",
+    gap: 16,
+    paddingBottom: 8,
+  },
+  gridItem: {
+    alignItems: "center",
+    width: 80,
+  },
+  gridIconCircle: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 6,
+  },
+  gridLabel: {
+    fontFamily: "DMSans_500Medium",
+    fontSize: 12,
     textAlign: "center",
   },
 });
