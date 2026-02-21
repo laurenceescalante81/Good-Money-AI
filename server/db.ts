@@ -133,13 +133,25 @@ export async function initDatabase() {
 
       CREATE TABLE IF NOT EXISTS sales_ctas (
         id SERIAL PRIMARY KEY,
-        tab_key VARCHAR(50) UNIQUE NOT NULL,
+        tab_key VARCHAR(50) NOT NULL,
         tab_label VARCHAR(100) NOT NULL,
         cta_text VARCHAR(255) NOT NULL,
         icon VARCHAR(100),
         icon_color VARCHAR(20),
         is_active BOOLEAN DEFAULT true,
+        segment_id INTEGER,
         sort_order INTEGER DEFAULT 0,
+        updated_at TIMESTAMP DEFAULT NOW()
+      );
+
+      CREATE TABLE IF NOT EXISTS customer_segments (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        description TEXT,
+        color VARCHAR(20) DEFAULT '#3B82F6',
+        rules JSONB NOT NULL DEFAULT '{}',
+        is_active BOOLEAN DEFAULT true,
+        created_at TIMESTAMP DEFAULT NOW(),
         updated_at TIMESTAMP DEFAULT NOW()
       );
     `);
