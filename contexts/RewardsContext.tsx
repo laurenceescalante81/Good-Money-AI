@@ -41,6 +41,23 @@ export interface TokenTransaction {
   description: string;
 }
 
+export interface FactFindField {
+  id: string;
+  label: string;
+  section: string;
+  coins: number;
+}
+
+export interface FactFindSection {
+  id: string;
+  title: string;
+  description: string;
+  icon: string;
+  iconBg: string;
+  bonusCoins: number;
+  fields: FactFindField[];
+}
+
 export interface RewardsState {
   points: number;
   totalPointsEarned: number;
@@ -58,6 +75,7 @@ export interface RewardsState {
   tokenBalance: number;
   totalTokensEarned: number;
   tokenTransactions: TokenTransaction[];
+  completedFactFindIds: string[];
 }
 
 interface RewardsContextValue {
@@ -65,6 +83,7 @@ interface RewardsContextValue {
   missions: Mission[];
   badges: Badge[];
   rewards: Reward[];
+  factFindSections: FactFindSection[];
   checkIn: () => number;
   spinWheel: () => number;
   scratchCard: () => number;
@@ -72,6 +91,9 @@ interface RewardsContextValue {
   redeemReward: (id: string) => boolean;
   addPoints: (amount: number) => void;
   convertPointsToTokens: (points: number) => boolean;
+  completeFactFind: (fieldId: string) => number;
+  completeFactFindSection: (sectionId: string) => number;
+  getFactFindProgress: () => { completed: number; total: number; percentage: number };
   canSpin: boolean;
   canScratch: boolean;
   spinResetTime: string;
@@ -127,6 +149,7 @@ const DEFAULT_STATE: RewardsState = {
   tokenBalance: 0,
   totalTokensEarned: 0,
   tokenTransactions: [],
+  completedFactFindIds: [],
 };
 
 const MISSION_TEMPLATES: Omit<Mission, 'completed' | 'expiresAt'>[] = [
@@ -160,6 +183,116 @@ const REWARD_TEMPLATES: Omit<Reward, 'redeemed'>[] = [
   { id: 'cashback_25', title: '$25 Woolworths', description: 'Woolworths gift card', icon: 'cart-outline', pointsCost: 2500 },
   { id: 'cashback_50', title: '$50 Coles', description: 'Coles gift card', icon: 'basket-outline', pointsCost: 5000 },
 ];
+
+const FACT_FIND_SECTIONS: FactFindSection[] = [
+  {
+    id: 'personal_basics',
+    title: 'Personal Details',
+    description: 'Your name and date of birth',
+    icon: 'person-outline',
+    iconBg: '#3B82F6',
+    bonusCoins: 100,
+    fields: [
+      { id: 'ff_firstName', label: 'First Name', section: 'personal_basics', coins: 25 },
+      { id: 'ff_lastName', label: 'Last Name', section: 'personal_basics', coins: 25 },
+      { id: 'ff_dob', label: 'Date of Birth', section: 'personal_basics', coins: 50 },
+    ],
+  },
+  {
+    id: 'contact_details',
+    title: 'Contact Details',
+    description: 'Email and phone number',
+    icon: 'call-outline',
+    iconBg: '#10B981',
+    bonusCoins: 75,
+    fields: [
+      { id: 'ff_email', label: 'Email Address', section: 'contact_details', coins: 30 },
+      { id: 'ff_phone', label: 'Phone Number', section: 'contact_details', coins: 30 },
+    ],
+  },
+  {
+    id: 'address',
+    title: 'Home Address',
+    description: 'Your residential address',
+    icon: 'location-outline',
+    iconBg: '#F59E0B',
+    bonusCoins: 150,
+    fields: [
+      { id: 'ff_street', label: 'Street Address', section: 'address', coins: 30 },
+      { id: 'ff_suburb', label: 'Suburb', section: 'address', coins: 20 },
+      { id: 'ff_state', label: 'State', section: 'address', coins: 20 },
+      { id: 'ff_postcode', label: 'Postcode', section: 'address', coins: 30 },
+    ],
+  },
+  {
+    id: 'bank_account',
+    title: 'Bank Account',
+    description: 'BSB and account number for switch requests',
+    icon: 'card-outline',
+    iconBg: '#8B5CF6',
+    bonusCoins: 200,
+    fields: [
+      { id: 'ff_bankName', label: 'Bank Name', section: 'bank_account', coins: 30 },
+      { id: 'ff_bsb', label: 'BSB Number', section: 'bank_account', coins: 75 },
+      { id: 'ff_accountNumber', label: 'Account Number', section: 'bank_account', coins: 75 },
+    ],
+  },
+  {
+    id: 'tax_details',
+    title: 'Tax File Number',
+    description: 'Required for super comparison & switches',
+    icon: 'document-text-outline',
+    iconBg: '#EF4444',
+    bonusCoins: 150,
+    fields: [
+      { id: 'ff_tfn', label: 'Tax File Number', section: 'tax_details', coins: 100 },
+    ],
+  },
+  {
+    id: 'mortgage_details',
+    title: 'Mortgage Details',
+    description: 'Full mortgage info for rate comparison',
+    icon: 'home-outline',
+    iconBg: '#0D9488',
+    bonusCoins: 300,
+    fields: [
+      { id: 'ff_mortgage_lender', label: 'Lender', section: 'mortgage_details', coins: 30 },
+      { id: 'ff_mortgage_amount', label: 'Loan Amount', section: 'mortgage_details', coins: 50 },
+      { id: 'ff_mortgage_rate', label: 'Interest Rate', section: 'mortgage_details', coins: 50 },
+      { id: 'ff_mortgage_term', label: 'Loan Term', section: 'mortgage_details', coins: 30 },
+      { id: 'ff_mortgage_property', label: 'Property Value', section: 'mortgage_details', coins: 40 },
+    ],
+  },
+  {
+    id: 'super_details',
+    title: 'Super Details',
+    description: 'Full superannuation info for fund comparison',
+    icon: 'trending-up-outline',
+    iconBg: '#6366F1',
+    bonusCoins: 250,
+    fields: [
+      { id: 'ff_super_fund', label: 'Super Fund', section: 'super_details', coins: 40 },
+      { id: 'ff_super_balance', label: 'Balance', section: 'super_details', coins: 50 },
+      { id: 'ff_super_salary', label: 'Salary', section: 'super_details', coins: 40 },
+      { id: 'ff_super_employer_rate', label: 'Employer Contribution Rate', section: 'super_details', coins: 30 },
+    ],
+  },
+  {
+    id: 'insurance_details',
+    title: 'Insurance Policies',
+    description: 'Policy details for premium comparison',
+    icon: 'shield-outline',
+    iconBg: '#EC4899',
+    bonusCoins: 250,
+    fields: [
+      { id: 'ff_insurance_policy1', label: 'First Insurance Policy', section: 'insurance_details', coins: 75 },
+      { id: 'ff_insurance_policy2', label: 'Second Insurance Policy', section: 'insurance_details', coins: 75 },
+      { id: 'ff_insurance_policy3', label: 'Third Insurance Policy', section: 'insurance_details', coins: 75 },
+    ],
+  },
+];
+
+const ALL_FACT_FIND_FIELDS = FACT_FIND_SECTIONS.flatMap(s => s.fields);
 
 export function RewardsProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<RewardsState>(DEFAULT_STATE);
@@ -352,6 +485,57 @@ export function RewardsProvider({ children }: { children: ReactNode }) {
     return success;
   }, [updateState]);
 
+  const completeFactFind = useCallback((fieldId: string): number => {
+    const field = ALL_FACT_FIND_FIELDS.find(f => f.id === fieldId);
+    if (!field) return 0;
+    let earned = 0;
+    updateState(prev => {
+      if (prev.completedFactFindIds.includes(fieldId)) return prev;
+      earned = field.coins;
+      const newPoints = prev.points + earned;
+      const newTotal = prev.totalPointsEarned + earned;
+      let newXp = prev.xp + earned;
+      let newLevel = prev.level;
+      while (newXp >= xpForLevel(newLevel)) { newXp -= xpForLevel(newLevel); newLevel++; }
+      let newBadges = [...prev.unlockedBadgeIds];
+      if (newTotal >= 1000 && !newBadges.includes('points_1000')) newBadges.push('points_1000');
+      if (newTotal >= 5000 && !newBadges.includes('points_5000')) newBadges.push('points_5000');
+      if (newLevel >= 3 && !newBadges.includes('level_3')) newBadges.push('level_3');
+      return { ...prev, completedFactFindIds: [...prev.completedFactFindIds, fieldId], points: newPoints, totalPointsEarned: newTotal, xp: newXp, level: newLevel, unlockedBadgeIds: newBadges };
+    });
+    return earned;
+  }, [updateState]);
+
+  const completeFactFindSection = useCallback((sectionId: string): number => {
+    const section = FACT_FIND_SECTIONS.find(s => s.id === sectionId);
+    if (!section) return 0;
+    const bonusId = `ff_section_${sectionId}`;
+    let earned = 0;
+    updateState(prev => {
+      if (prev.completedFactFindIds.includes(bonusId)) return prev;
+      const allFieldsDone = section.fields.every(f => prev.completedFactFindIds.includes(f.id));
+      if (!allFieldsDone) return prev;
+      earned = section.bonusCoins;
+      const newPoints = prev.points + earned;
+      const newTotal = prev.totalPointsEarned + earned;
+      let newXp = prev.xp + earned;
+      let newLevel = prev.level;
+      while (newXp >= xpForLevel(newLevel)) { newXp -= xpForLevel(newLevel); newLevel++; }
+      let newBadges = [...prev.unlockedBadgeIds];
+      if (newTotal >= 1000 && !newBadges.includes('points_1000')) newBadges.push('points_1000');
+      if (newTotal >= 5000 && !newBadges.includes('points_5000')) newBadges.push('points_5000');
+      if (newLevel >= 3 && !newBadges.includes('level_3')) newBadges.push('level_3');
+      return { ...prev, completedFactFindIds: [...prev.completedFactFindIds, bonusId], points: newPoints, totalPointsEarned: newTotal, xp: newXp, level: newLevel, unlockedBadgeIds: newBadges };
+    });
+    return earned;
+  }, [updateState]);
+
+  const getFactFindProgress = useCallback(() => {
+    const total = ALL_FACT_FIND_FIELDS.length;
+    const completed = ALL_FACT_FIND_FIELDS.filter(f => state.completedFactFindIds.includes(f.id)).length;
+    return { completed, total, percentage: total > 0 ? Math.round((completed / total) * 100) : 0 };
+  }, [state.completedFactFindIds]);
+
   const missions: Mission[] = useMemo(() => {
     const now = Date.now();
     return MISSION_TEMPLATES.map(m => ({
@@ -375,9 +559,11 @@ export function RewardsProvider({ children }: { children: ReactNode }) {
     }));
   }, [state.redeemedRewardIds]);
 
+  const factFindSections = FACT_FIND_SECTIONS;
+
   const value = useMemo(() => ({
-    state, missions, badges, rewards, checkIn, spinWheel, scratchCard, completeMission, redeemReward, addPoints, convertPointsToTokens, canSpin, canScratch, spinResetTime, xpForLevel, is2xWeekend, TOKEN_RATE,
-  }), [state, missions, badges, rewards, checkIn, spinWheel, scratchCard, completeMission, redeemReward, addPoints, convertPointsToTokens, canSpin, canScratch, spinResetTime, is2xWeekend]);
+    state, missions, badges, rewards, factFindSections, checkIn, spinWheel, scratchCard, completeMission, redeemReward, addPoints, convertPointsToTokens, completeFactFind, completeFactFindSection, getFactFindProgress, canSpin, canScratch, spinResetTime, xpForLevel, is2xWeekend, TOKEN_RATE,
+  }), [state, missions, badges, rewards, checkIn, spinWheel, scratchCard, completeMission, redeemReward, addPoints, convertPointsToTokens, completeFactFind, completeFactFindSection, getFactFindProgress, canSpin, canScratch, spinResetTime, is2xWeekend]);
 
   return <RewardsContext.Provider value={value}>{children}</RewardsContext.Provider>;
 }
