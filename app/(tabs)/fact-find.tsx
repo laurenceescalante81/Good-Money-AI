@@ -301,7 +301,7 @@ export default function FactFindTabScreen() {
             <Text style={[styles.fieldLabel, done && { color: Colors.light.gray400 }]}>{label}</Text>
           </View>
           <View style={[styles.coinBadge, done && { backgroundColor: '#E5E7EB' }]}>
-            <Ionicons name="diamond" size={12} color={done ? Colors.light.gray400 : '#F59E0B'} />
+            <View style={[styles.goldCoin, done && styles.goldCoinDone]}><Text style={[styles.goldCoinText, done && styles.goldCoinTextDone]}>$</Text></View>
             <Text style={[styles.coinBadgeText, done && { color: Colors.light.gray400 }]}>{field?.coins || 0}</Text>
           </View>
         </View>
@@ -334,7 +334,7 @@ export default function FactFindTabScreen() {
             <Text style={[styles.fieldLabel, done && { color: Colors.light.gray400 }]}>{label}</Text>
           </View>
           <View style={[styles.coinBadge, done && { backgroundColor: '#E5E7EB' }]}>
-            <Ionicons name="diamond" size={12} color={done ? Colors.light.gray400 : '#F59E0B'} />
+            <View style={[styles.goldCoin, done && styles.goldCoinDone]}><Text style={[styles.goldCoinText, done && styles.goldCoinTextDone]}>$</Text></View>
             <Text style={[styles.coinBadgeText, done && { color: Colors.light.gray400 }]}>{field?.coins || 0}</Text>
           </View>
         </View>
@@ -399,7 +399,7 @@ export default function FactFindTabScreen() {
                   <Text style={[styles.fieldLabel, isFieldComplete('ff_dependent1') && { color: Colors.light.gray400 }]}>First Dependent</Text>
                 </View>
                 <View style={[styles.coinBadge, isFieldComplete('ff_dependent1') && { backgroundColor: '#E5E7EB' }]}>
-                  <Ionicons name="diamond" size={12} color={isFieldComplete('ff_dependent1') ? Colors.light.gray400 : '#F59E0B'} />
+                  <View style={[styles.goldCoin, isFieldComplete('ff_dependent1') && styles.goldCoinDone]}><Text style={[styles.goldCoinText, isFieldComplete('ff_dependent1') && styles.goldCoinTextDone]}>$</Text></View>
                   <Text style={[styles.coinBadgeText, isFieldComplete('ff_dependent1') && { color: Colors.light.gray400 }]}>40</Text>
                 </View>
               </View>
@@ -431,7 +431,7 @@ export default function FactFindTabScreen() {
                   <Text style={[styles.fieldLabel, isFieldComplete('ff_dependent2') && { color: Colors.light.gray400 }]}>Second Dependent</Text>
                 </View>
                 <View style={[styles.coinBadge, isFieldComplete('ff_dependent2') && { backgroundColor: '#E5E7EB' }]}>
-                  <Ionicons name="diamond" size={12} color={isFieldComplete('ff_dependent2') ? Colors.light.gray400 : '#F59E0B'} />
+                  <View style={[styles.goldCoin, isFieldComplete('ff_dependent2') && styles.goldCoinDone]}><Text style={[styles.goldCoinText, isFieldComplete('ff_dependent2') && styles.goldCoinTextDone]}>$</Text></View>
                   <Text style={[styles.coinBadgeText, isFieldComplete('ff_dependent2') && { color: Colors.light.gray400 }]}>40</Text>
                 </View>
               </View>
@@ -456,7 +456,7 @@ export default function FactFindTabScreen() {
                   <Text style={[styles.fieldLabel, isFieldComplete('ff_dependent3') && { color: Colors.light.gray400 }]}>Third Dependent</Text>
                 </View>
                 <View style={[styles.coinBadge, isFieldComplete('ff_dependent3') && { backgroundColor: '#E5E7EB' }]}>
-                  <Ionicons name="diamond" size={12} color={isFieldComplete('ff_dependent3') ? Colors.light.gray400 : '#F59E0B'} />
+                  <View style={[styles.goldCoin, isFieldComplete('ff_dependent3') && styles.goldCoinDone]}><Text style={[styles.goldCoinText, isFieldComplete('ff_dependent3') && styles.goldCoinTextDone]}>$</Text></View>
                   <Text style={[styles.coinBadgeText, isFieldComplete('ff_dependent3') && { color: Colors.light.gray400 }]}>40</Text>
                 </View>
               </View>
@@ -681,7 +681,7 @@ export default function FactFindTabScreen() {
                   <Text style={styles.progressBig}>{progress.percentage}%</Text>
                 </View>
                 <View style={styles.progressCoinsWrap}>
-                  <Ionicons name="diamond" size={16} color="#F59E0B" />
+                  <View style={styles.goldCoinLg}><Text style={styles.goldCoinLgText}>$</Text></View>
                   <Text style={styles.progressCoinsText}>{progress.completed}/{progress.total} fields</Text>
                 </View>
               </View>
@@ -710,7 +710,7 @@ export default function FactFindTabScreen() {
 
         {coinToast && (
           <Animated.View style={[styles.coinToast, { opacity: toastAnim, transform: [{ translateY: toastAnim.interpolate({ inputRange: [0, 1], outputRange: [-20, 0] }) }] }]}>
-            <Ionicons name="diamond" size={18} color="#F59E0B" />
+            <View style={styles.goldCoinLg}><Text style={styles.goldCoinLgText}>$</Text></View>
             <Text style={styles.coinToastText}>+{coinToast.amount} coins - {coinToast.label}</Text>
           </Animated.View>
         )}
@@ -737,7 +737,7 @@ export default function FactFindTabScreen() {
                     <View style={styles.sectionMeta}>
                       <Text style={styles.sectionMetaText}>{fieldsComplete}/{section.fields.length} fields</Text>
                       <View style={styles.sectionCoinBadge}>
-                        <Ionicons name="diamond" size={11} color="#F59E0B" />
+                        <View style={styles.goldCoinSm}><Text style={styles.goldCoinSmText}>$</Text></View>
                         <Text style={styles.sectionCoinText}>{totalCoins} coins</Text>
                       </View>
                     </View>
@@ -850,4 +850,12 @@ const styles = StyleSheet.create({
   allCompleteSubtext: { fontFamily: 'DMSans_400Regular', fontSize: 13, color: Colors.light.gray500, textAlign: 'center', marginTop: 6 },
   switchBtn: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: Colors.light.tint, paddingHorizontal: 24, paddingVertical: 14, borderRadius: 14, marginTop: 16 },
   switchBtnText: { fontFamily: 'DMSans_700Bold', fontSize: 15, color: '#FFF' },
+  goldCoin: { width: 14, height: 14, borderRadius: 7, backgroundColor: '#F59E0B', alignItems: 'center' as const, justifyContent: 'center' as const, borderWidth: 1.5, borderColor: '#D4930D' },
+  goldCoinDone: { backgroundColor: '#D1D5DB', borderColor: '#B0B5BD' },
+  goldCoinText: { fontSize: 7, fontWeight: '800' as const, color: '#7C5800' },
+  goldCoinTextDone: { color: '#9CA3AF' },
+  goldCoinLg: { width: 18, height: 18, borderRadius: 9, backgroundColor: '#F59E0B', alignItems: 'center' as const, justifyContent: 'center' as const, borderWidth: 1.5, borderColor: '#D4930D' },
+  goldCoinLgText: { fontSize: 9, fontWeight: '800' as const, color: '#7C5800' },
+  goldCoinSm: { width: 12, height: 12, borderRadius: 6, backgroundColor: '#F59E0B', alignItems: 'center' as const, justifyContent: 'center' as const, borderWidth: 1, borderColor: '#D4930D' },
+  goldCoinSmText: { fontSize: 6, fontWeight: '800' as const, color: '#7C5800' },
 });

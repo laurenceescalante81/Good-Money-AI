@@ -396,7 +396,7 @@ export default function RewardsScreen() {
                     </View>
                   </View>
                   <View style={s.factFindCoinsRow}>
-                    <Ionicons name="diamond" size={14} color="#F59E0B" />
+                    <View style={{ width: 16, height: 16, borderRadius: 8, backgroundColor: '#F59E0B', alignItems: 'center', justifyContent: 'center', borderWidth: 1.5, borderColor: '#D4930D' }}><Text style={{ fontSize: 8, fontWeight: '800', color: '#7C5800' }}>$</Text></View>
                     <Text style={s.factFindCoinsText}>Earn up to 5,450 coins</Text>
                     <Ionicons name="chevron-forward" size={16} color="rgba(255,255,255,0.6)" />
                   </View>
