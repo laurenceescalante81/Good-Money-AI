@@ -34,6 +34,14 @@ function NativeTabLayout() {
         <Icon sf={{ default: "star", selected: "star.fill" }} />
         <Label>Rewards</Label>
       </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="insurance">
+        <Icon sf={{ default: "shield", selected: "shield.fill" }} />
+        <Label>Insurance</Label>
+      </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="planning">
+        <Icon sf={{ default: "chart.bar.xaxis", selected: "chart.bar.xaxis" }} />
+        <Label>Planning</Label>
+      </NativeTabs.Trigger>
     </NativeTabs>
   );
 }
@@ -64,7 +72,7 @@ function ClassicTabLayout() {
           ) : isWeb ? (
             <View style={[StyleSheet.absoluteFill, { backgroundColor: isDark ? "#000" : "#fff" }]} />
           ) : null,
-        tabBarLabelStyle: { fontFamily: "DMSans_500Medium", fontSize: 11 },
+        tabBarLabelStyle: { fontFamily: "DMSans_500Medium", fontSize: 10 },
       }}
     >
       <Tabs.Screen
@@ -72,7 +80,7 @@ function ClassicTabLayout() {
         options={{
           title: "Overview",
           tabBarIcon: ({ color, focused }) => (
-            <Ionicons name={focused ? "pie-chart" : "pie-chart-outline"} size={22} color={color} />
+            <Ionicons name={focused ? "pie-chart" : "pie-chart-outline"} size={20} color={color} />
           ),
         }}
       />
@@ -81,7 +89,7 @@ function ClassicTabLayout() {
         options={{
           title: "Mortgage",
           tabBarIcon: ({ color, focused }) => (
-            <Ionicons name={focused ? "home" : "home-outline"} size={22} color={color} />
+            <Ionicons name={focused ? "home" : "home-outline"} size={20} color={color} />
           ),
         }}
       />
@@ -90,7 +98,7 @@ function ClassicTabLayout() {
         options={{
           title: "Super",
           tabBarIcon: ({ color, focused }) => (
-            <Ionicons name={focused ? "trending-up" : "trending-up-outline"} size={22} color={color} />
+            <Ionicons name={focused ? "trending-up" : "trending-up-outline"} size={20} color={color} />
           ),
         }}
       />
@@ -99,7 +107,7 @@ function ClassicTabLayout() {
         options={{
           title: "Budget",
           tabBarIcon: ({ color, focused }) => (
-            <Ionicons name={focused ? "wallet" : "wallet-outline"} size={22} color={color} />
+            <Ionicons name={focused ? "wallet" : "wallet-outline"} size={20} color={color} />
           ),
         }}
       />
@@ -108,7 +116,7 @@ function ClassicTabLayout() {
         options={{
           title: "Banks",
           tabBarIcon: ({ color, focused }) => (
-            <Ionicons name={focused ? "business" : "business-outline"} size={22} color={color} />
+            <Ionicons name={focused ? "business" : "business-outline"} size={20} color={color} />
           ),
         }}
       />
@@ -117,7 +125,25 @@ function ClassicTabLayout() {
         options={{
           title: "Rewards",
           tabBarIcon: ({ color, focused }) => (
-            <Ionicons name={focused ? "star" : "star-outline"} size={22} color={color} />
+            <Ionicons name={focused ? "star" : "star-outline"} size={20} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="insurance"
+        options={{
+          title: "Insurance",
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons name={focused ? "shield-checkmark" : "shield-checkmark-outline"} size={20} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="planning"
+        options={{
+          title: "Planning",
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons name={focused ? "analytics" : "analytics-outline"} size={20} color={color} />
           ),
         }}
       />
