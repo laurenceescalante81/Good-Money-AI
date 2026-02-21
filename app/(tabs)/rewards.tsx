@@ -377,7 +377,7 @@ export default function RewardsScreen() {
         <View style={s.body}>
           {activeTab === 'hub' && (
             <>
-              <Pressable style={s.factFindCard} onPress={() => router.push('/fact-find' as any)}>
+              <Pressable style={s.factFindCard} onPress={() => router.push('/(tabs)/fact-find' as any)}>
                 <LinearGradient colors={['#0D9488', '#0F766E']} style={s.factFindGradient}>
                   <View style={s.factFindRow}>
                     <View style={{ flex: 1 }}>
@@ -397,7 +397,7 @@ export default function RewardsScreen() {
                   </View>
                   <View style={s.factFindCoinsRow}>
                     <Ionicons name="diamond" size={14} color="#F59E0B" />
-                    <Text style={s.factFindCoinsText}>Earn up to 2,475 coins</Text>
+                    <Text style={s.factFindCoinsText}>Earn up to 5,450 coins</Text>
                     <Ionicons name="chevron-forward" size={16} color="rgba(255,255,255,0.6)" />
                   </View>
                 </LinearGradient>

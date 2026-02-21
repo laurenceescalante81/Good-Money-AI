@@ -38,6 +38,10 @@ function NativeTabLayout() {
         <Icon sf={{ default: "shield", selected: "shield.fill" }} />
         <Label>Insurance</Label>
       </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="fact-find">
+        <Icon sf={{ default: "doc.text.magnifyingglass", selected: "doc.text.magnifyingglass" }} />
+        <Label>Fact Find</Label>
+      </NativeTabs.Trigger>
       <NativeTabs.Trigger name="planning">
         <Icon sf={{ default: "chart.bar.xaxis", selected: "chart.bar.xaxis" }} />
         <Label>Planning</Label>
@@ -135,6 +139,15 @@ function ClassicTabLayout() {
           title: "Insurance",
           tabBarIcon: ({ color, focused }) => (
             <Ionicons name={focused ? "shield-checkmark" : "shield-checkmark-outline"} size={20} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="fact-find"
+        options={{
+          title: "Fact Find",
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons name={focused ? "document-text" : "document-text-outline"} size={20} color={color} />
           ),
         }}
       />
