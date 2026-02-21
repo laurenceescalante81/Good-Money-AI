@@ -5,6 +5,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import Animated, { useSharedValue, useAnimatedStyle, withTiming, withSpring, withSequence, Easing, runOnJS } from 'react-native-reanimated';
+import { router } from 'expo-router';
 import { useRewards, Mission, TokenTransaction } from '@/contexts/RewardsContext';
 import Colors from '@/constants/colors';
 
@@ -224,7 +225,7 @@ function BadgeItem({ badge }: { badge: { id: string; title: string; description:
 export default function RewardsScreen() {
   const insets = useSafeAreaInsets();
   const topInset = Platform.OS === 'web' ? 67 : insets.top;
-  const { state, missions, badges, rewards, checkIn, redeemReward, convertPointsToTokens, canSpin, canScratch, is2xWeekend, xpForLevel, TOKEN_RATE } = useRewards();
+  const { state, missions, badges, rewards, checkIn, redeemReward, convertPointsToTokens, getFactFindProgress, canSpin, canScratch, is2xWeekend, xpForLevel, TOKEN_RATE } = useRewards();
   const [activeTab, setActiveTab] = useState<TabKey>('hub');
   const [checkedIn, setCheckedIn] = useState(false);
   const [convertAmount, setConvertAmount] = useState('');
@@ -376,6 +377,32 @@ export default function RewardsScreen() {
         <View style={s.body}>
           {activeTab === 'hub' && (
             <>
+              <Pressable style={s.factFindCard} onPress={() => router.push('/fact-find' as any)}>
+                <LinearGradient colors={['#0D9488', '#0F766E']} style={s.factFindGradient}>
+                  <View style={s.factFindRow}>
+                    <View style={{ flex: 1 }}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+                        <Ionicons name="search" size={14} color="#D4AF37" />
+                        <Text style={s.factFindLabel}>FINANCIAL FACT FIND</Text>
+                      </View>
+                      <Text style={s.factFindTitle}>Complete your profile & earn coins</Text>
+                      <Text style={s.factFindSub}>Enter your details to unlock comparisons & switch requests</Text>
+                    </View>
+                    <View style={s.factFindProgress}>
+                      <Text style={s.factFindPct}>{getFactFindProgress().percentage}%</Text>
+                      <View style={s.factFindBarBg}>
+                        <View style={[s.factFindBarFill, { width: `${getFactFindProgress().percentage}%` }]} />
+                      </View>
+                    </View>
+                  </View>
+                  <View style={s.factFindCoinsRow}>
+                    <Ionicons name="diamond" size={14} color="#F59E0B" />
+                    <Text style={s.factFindCoinsText}>Earn up to 2,475 coins</Text>
+                    <Ionicons name="chevron-forward" size={16} color="rgba(255,255,255,0.6)" />
+                  </View>
+                </LinearGradient>
+              </Pressable>
+
               {is2xWeekend && (
                 <View style={s.promoCard}>
                   <Ionicons name="flash" size={18} color="#D4AF37" />
@@ -642,6 +669,19 @@ const s = StyleSheet.create({
   tabText: { fontSize: 14, fontFamily: 'DMSans_500Medium', color: Colors.light.gray400 },
   tabTextActive: { color: '#fff' },
   body: { paddingHorizontal: 20, paddingTop: 20 },
+
+  factFindCard: { marginBottom: 16, borderRadius: 16, overflow: 'hidden' },
+  factFindGradient: { padding: 18, borderRadius: 16 },
+  factFindRow: { flexDirection: 'row', alignItems: 'center', gap: 16 },
+  factFindLabel: { fontSize: 10, fontFamily: 'DMSans_700Bold', color: '#D4AF37', letterSpacing: 1 },
+  factFindTitle: { fontSize: 16, fontFamily: 'DMSans_700Bold', color: '#fff', marginBottom: 2 },
+  factFindSub: { fontSize: 12, fontFamily: 'DMSans_400Regular', color: 'rgba(255,255,255,0.7)' },
+  factFindProgress: { alignItems: 'center', width: 54 },
+  factFindPct: { fontSize: 18, fontFamily: 'DMSans_700Bold', color: '#fff' },
+  factFindBarBg: { width: 54, height: 4, backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: 2, marginTop: 4 },
+  factFindBarFill: { height: 4, backgroundColor: '#D4AF37', borderRadius: 2 },
+  factFindCoinsRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 12, paddingTop: 12, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.1)' },
+  factFindCoinsText: { fontSize: 12, fontFamily: 'DMSans_600SemiBold', color: 'rgba(255,255,255,0.8)', flex: 1 },
 
   streakSection: { backgroundColor: '#132D46', borderRadius: 16, padding: 20, marginBottom: 16 },
   streakHeaderRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
