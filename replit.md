@@ -14,7 +14,8 @@ PocketPlan AU is a personal financial planning mobile app built specifically for
 - **Mortgage Tracker**: Loan details, P&I or interest-only calculations, LVR, equity, extra repayment impact
 - **Super Tracker**: Balance, fund info, SG contributions, retirement projections (7% growth, 4% drawdown), milestones
 - **Budget & Savings**: Income/expense tracking with Australian categories (groceries, petrol, rent), spending breakdown, savings goals with fund allocation
-- **Insurance Hub**: Track home, car, health, life, income protection, contents, travel policies with renewal dates
+- **Insurance Tab**: Dedicated tab with annual/monthly cost summary, upcoming renewals banner (90-day window), detailed policy cards with cover amounts, premium tracking, and mission integration
+- **Planning Tab**: Net wealth projection line chart (5/10/20/30yr horizons) with property equity, super, and savings breakdown lines; income vs expenses bar chart (6-month history); wealth breakdown summary
 - **Banks** (Basiq Open Banking): Connect Australian bank accounts via Basiq API, view live account balances grouped by type (transaction, savings, credit cards, loans), import transactions into budget tracker
 - **Couple Mode**: Toggle shared finances, track who made each transaction
 - **Settings**: Profile mode, partner name, clear data
