@@ -24,6 +24,8 @@ function RootLayoutNav() {
       <Stack.Screen name="settings" options={{ headerShown: false, presentation: "modal" }} />
       <Stack.Screen name="connect-bank" options={{ headerShown: false, presentation: "modal" }} />
       <Stack.Screen name="bank-transactions" options={{ headerShown: false, presentation: "modal" }} />
+      <Stack.Screen name="fact-find" options={{ headerShown: false, presentation: "modal" }} />
+      <Stack.Screen name="switch-request" options={{ headerShown: false, presentation: "modal" }} />
     </Stack>
   );
 }
