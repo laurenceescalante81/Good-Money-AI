@@ -670,7 +670,7 @@ export function RewardsProvider({ children }: { children: ReactNode }) {
         amount: tokens,
         pointsSpent: actualPointsSpent,
         date: new Date().toISOString(),
-        description: `Converted ${actualPointsSpent} coins to ${tokens} ppAUD`,
+        description: `Converted ${actualPointsSpent} coins to ${tokens} Good Coins`,
       };
       return {
         ...prev,

@@ -257,7 +257,7 @@ export default function DashboardScreen() {
                   {(rewardsState.tokenBalance ?? 0) > 0 && (
                     <View style={styles.rewardsTokenRow}>
                       <View style={styles.rewardsTokenDot} />
-                      <Text style={styles.rewardsTokenText}>{(rewardsState.tokenBalance ?? 0).toFixed(2)} ppAUD</Text> 
+                      <Text style={styles.rewardsTokenText}>{(rewardsState.tokenBalance ?? 0).toFixed(2)} Good Coins</Text> 
                     </View>
                   )}
                 </View>

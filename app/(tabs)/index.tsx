@@ -266,7 +266,7 @@ export default function RewardsScreen() {
   const handleConvert = () => {
     const pts = parseInt(convertAmount);
     if (isNaN(pts) || pts < TOKEN_RATE) {
-      Alert.alert('Minimum Conversion', `You need at least ${TOKEN_RATE} Good Coins to convert to 1 ppAUD token.`);
+      Alert.alert('Minimum Conversion', `You need at least ${TOKEN_RATE} Good Coins to convert to 1 Good Coin token.`);
       return;
     }
     if (pts > state.points) {
@@ -274,7 +274,7 @@ export default function RewardsScreen() {
       return;
     }
     const tokens = Math.floor(pts / TOKEN_RATE);
-    Alert.alert('Convert to ppAUD', `Convert ${tokens * TOKEN_RATE} Good Coins into ${tokens} ppAUD tokens?`, [
+    Alert.alert('Convert to Good Coins', `Convert ${tokens * TOKEN_RATE} Good Coins into ${tokens} Good Coin tokens?`, [
       { text: 'Cancel', style: 'cancel' },
       { text: 'Convert', onPress: () => {
         const ok = convertPointsToTokens(pts); 
@@ -311,7 +311,7 @@ export default function RewardsScreen() {
                     <View style={{ width: 14, height: 14, borderRadius: 7, backgroundColor: '#D4AF37', alignItems: 'center', justifyContent: 'center' }}>
                       <Text style={{ fontSize: 7, fontFamily: 'DMSans_700Bold' as const, color: '#0C1B2A' }}>pp</Text>
                     </View>
-                    <Text style={{ fontSize: 12, fontFamily: 'DMSans_600SemiBold' as const, color: '#D4AF37' }}>{(state.tokenBalance ?? 0).toFixed(2)} ppAUD</Text>
+                    <Text style={{ fontSize: 12, fontFamily: 'DMSans_600SemiBold' as const, color: '#D4AF37' }}>{(state.tokenBalance ?? 0).toFixed(2)} Good Coins</Text>
                   </View>
                 )}
               </View>
@@ -445,7 +445,7 @@ export default function RewardsScreen() {
                       <Image source={require('@/assets/images/logo.jpeg')} style={s.walletLogo} />
                     </View>
                     <View style={s.walletTokenInfo}>
-                      <Text style={s.walletTokenName}>ppAUD</Text>
+                      <Text style={s.walletTokenName}>Good Coins</Text>
                       <Text style={s.walletTokenSub}>Good Money AUD Stablecoin</Text>
                     </View>
                     <View style={s.walletPegBadge}>
@@ -454,7 +454,7 @@ export default function RewardsScreen() {
                   </View>
 
                   <Text style={s.walletBalanceLabel}>Token Balance</Text>
-                  <Text style={s.walletBalanceBig}>{(state.tokenBalance ?? 0).toLocaleString('en-AU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}<Text style={s.walletBalanceCurrency}> ppAUD</Text></Text>
+                  <Text style={s.walletBalanceBig}>{(state.tokenBalance ?? 0).toLocaleString('en-AU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}<Text style={s.walletBalanceCurrency}> Good Coins</Text></Text>
                   <Text style={s.walletBalanceAud}>{'\u2248'} ${(state.tokenBalance ?? 0).toLocaleString('en-AU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} AUD</Text>
 
                   <View style={s.walletStatsRow}>
@@ -477,8 +477,8 @@ export default function RewardsScreen() {
               </View>
 
               <View style={s.convertSection}>
-                <Text style={s.convertTitle}>Convert Good Coins to ppAUD</Text>
-                <Text style={s.convertDesc}>{TOKEN_RATE} coins = 1.00 ppAUD (pegged 1:1 to AUD)</Text>
+                <Text style={s.convertTitle}>Convert to Good Coins</Text>
+                <Text style={s.convertDesc}>{TOKEN_RATE} coins = 1.00 Good Coin (pegged 1:1 to AUD)</Text>
 
                 <View style={s.convertInputRow}>
                   <View style={s.convertInputWrap}>
@@ -497,7 +497,7 @@ export default function RewardsScreen() {
                     <Text style={s.convertOutputValue}>
                       {convertAmount && !isNaN(parseInt(convertAmount)) ? (Math.floor(parseInt(convertAmount) / TOKEN_RATE)).toFixed(2) : '0.00'}
                     </Text>
-                    <Text style={s.convertOutputSuffix}>ppAUD</Text>
+                    <Text style={s.convertOutputSuffix}>Good Coins</Text>
                   </View>
                 </View>
 
@@ -518,12 +518,12 @@ export default function RewardsScreen() {
                   style={({ pressed }) => [s.convertBtn, pressed && { opacity: 0.85 }]}
                 >
                   <Ionicons name="swap-horizontal" size={18} color="#fff" />
-                  <Text style={s.convertBtnText}>Convert to ppAUD</Text>
+                  <Text style={s.convertBtnText}>Convert to Good Coins</Text>
                 </Pressable>
               </View>
 
               <View style={s.tokenInfoSection}>
-                <Text style={s.tokenInfoTitle}>About ppAUD</Text>
+                <Text style={s.tokenInfoTitle}>About Good Coins</Text>
                 <View style={s.tokenInfoRow}>
                   <View style={[s.tokenInfoIcon, { backgroundColor: '#D4AF3715' }]}>
                     <Ionicons name="shield-checkmark-outline" size={18} color="#D4AF37" />
@@ -539,7 +539,7 @@ export default function RewardsScreen() {
                   </View>
                   <View style={s.tokenInfoContent}>
                     <Text style={s.tokenInfoLabel}>Instant Conversion</Text>
-                    <Text style={s.tokenInfoDesc}>Convert your earned Good Coins to ppAUD tokens instantly at {TOKEN_RATE} coins per token.</Text>
+                    <Text style={s.tokenInfoDesc}>Convert your earned points to Good Coins instantly at {TOKEN_RATE} points per coin.</Text>
                   </View>
                 </View>
                 <View style={s.tokenInfoRow}>
@@ -548,7 +548,7 @@ export default function RewardsScreen() {
                   </View>
                   <View style={s.tokenInfoContent}>
                     <Text style={s.tokenInfoLabel}>Redeem for Rewards</Text>
-                    <Text style={s.tokenInfoDesc}>Use ppAUD tokens towards cashback, gift cards, and premium benefits.</Text>
+                    <Text style={s.tokenInfoDesc}>Use Good Coins towards cashback, gift cards, and premium benefits.</Text>
                   </View>
                 </View>
               </View>
