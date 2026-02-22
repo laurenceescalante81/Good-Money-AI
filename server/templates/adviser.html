@@ -408,9 +408,9 @@ async function renderDashboard() {
         </div>
         <div class="stat-card">
           <div class="stat-icon" style="background:rgba(245,158,11,0.15);color:var(--gold)"><ion-icon name="star"></ion-icon></div>
-          <div class="stat-label">Total Points</div>
+          <div class="stat-label">Total Good Coins</div>
           <div class="stat-val">${fmt(stats.total_points_issued || stats.total_points || 0)}</div>
-          <div class="stat-sub">Points issued</div>
+          <div class="stat-sub">Coins issued</div>
         </div>
       </div>`;
 
@@ -423,7 +423,7 @@ async function renderDashboard() {
             <div class="activity-text"><strong>${esc(a.customer_name || 'Unknown')}</strong> — ${esc(a.action)}</div>
             <div class="activity-time">${timeAgo(a.created_at)}</div>
           </div>
-          ${a.points_earned > 0 ? `<div class="activity-pts">+${a.points_earned} pts</div>` : ''}
+          ${a.points_earned > 0 ? `<div class="activity-pts">+${a.points_earned} coins</div>` : ''}
         </div>`;
       });
       html += '</div>';
@@ -436,7 +436,7 @@ async function renderDashboard() {
           const recent = customers.filter(c => c.last_active).sort((a, b) => new Date(b.last_active) - new Date(a.last_active)).slice(0, 5);
           if (recent.length) {
             html += `<div class="card"><div class="card-header"><h3>Recently Active Clients</h3></div>
-            <table><thead><tr><th>Client</th><th>Level</th><th>Points</th><th>Fact Find</th><th>Last Active</th></tr></thead><tbody>`;
+            <table><thead><tr><th>Client</th><th>Level</th><th>Good Coins</th><th>Fact Find</th><th>Last Active</th></tr></thead><tbody>`;
             recent.forEach(c => {
               html += `<tr class="clickable" onclick="viewClient(${c.id})">
                 <td><strong>${esc(c.name || 'Unnamed')}</strong></td>
@@ -508,7 +508,7 @@ async function renderClients() {
       { key: 'name', label: 'Name' },
       { key: 'email', label: 'Email' },
       { key: 'level', label: 'Level' },
-      { key: 'total_points_earned', label: 'Points' },
+      { key: 'total_points_earned', label: 'Good Coins' },
       { key: 'streak', label: 'Streak' },
       { key: 'fact_find_progress', label: 'Fact Find %' },
       { key: 'last_active', label: 'Last Active' },
@@ -585,7 +585,7 @@ async function viewClient(id) {
 
     html += `<div class="stat-grid">
       <div class="stat-card"><div class="stat-label">Level / XP</div><div class="stat-val">${c.level}</div><div class="stat-sub">${fmt(c.xp)} XP</div></div>
-      <div class="stat-card"><div class="stat-label">Points</div><div class="stat-val">${fmt(c.points)}</div><div class="stat-sub">${fmt(c.total_points_earned)} total earned</div></div>
+      <div class="stat-card"><div class="stat-label">Good Coins</div><div class="stat-val">${fmt(c.points)}</div><div class="stat-sub">${fmt(c.total_points_earned)} total earned</div></div>
       <div class="stat-card"><div class="stat-label">Streak</div><div class="stat-val">${c.streak}d</div><div class="stat-sub">Daily check-in streak</div></div>
       <div class="stat-card"><div class="stat-label">Token Balance</div><div class="stat-val">$${Number(c.token_balance || 0).toFixed(2)}</div><div class="stat-sub">$${Number(c.total_tokens_earned || 0).toFixed(2)} total</div></div>
       <div class="stat-card"><div class="stat-label">Fact Find</div><div class="stat-val">${pct(c.fact_find_progress)}%</div><div class="progress-bar" style="margin-top:8px"><div class="fill" style="width:${pct(c.fact_find_progress)}%"></div></div></div>
@@ -634,7 +634,7 @@ async function viewClient(id) {
             <div class="activity-text">${esc(a.action)}</div>
             <div class="activity-time">${fmtDateTime(a.created_at)}</div>
           </div>
-          ${a.points_earned > 0 ? `<div class="activity-pts">+${a.points_earned} pts</div>` : ''}
+          ${a.points_earned > 0 ? `<div class="activity-pts">+${a.points_earned} coins</div>` : ''}
         </div>`;
       });
       html += '</div>';
@@ -716,7 +716,7 @@ async function renderReports() {
 
       if (data.by_advisor.length > 0) {
         html += `<div class="card"><div class="card-header"><h3>Adviser Performance Comparison</h3></div>
-          <div style="overflow-x:auto"><table><thead><tr><th>Adviser</th><th>Clients</th><th>Active (7d)</th><th>Avg Fact Find</th><th>Total Points</th><th>Avg Level</th><th>Avg Streak</th><th>Tokens</th><th>Status</th></tr></thead><tbody>`;
+          <div style="overflow-x:auto"><table><thead><tr><th>Adviser</th><th>Clients</th><th>Active (7d)</th><th>Avg Fact Find</th><th>Total Coins</th><th>Avg Level</th><th>Avg Streak</th><th>Tokens</th><th>Status</th></tr></thead><tbody>`;
         data.by_advisor.forEach(a => {
           html += `<tr>
             <td><strong>${esc(a.name)}</strong><br><small style="color:var(--text-muted)">${esc(a.email)}</small></td>
@@ -739,7 +739,7 @@ async function renderReports() {
         <div class="stat-card"><div class="stat-label">Total Clients</div><div class="stat-val">${fmt(s.total_customers)}</div></div>
         <div class="stat-card"><div class="stat-label">Active (7d)</div><div class="stat-val">${fmt(s.active_7d)}</div></div>
         <div class="stat-card"><div class="stat-label">Avg Fact Find</div><div class="stat-val">${pct(s.avg_fact_find)}%</div></div>
-        <div class="stat-card"><div class="stat-label">Total Points</div><div class="stat-val">${fmt(s.total_points)}</div></div>
+        <div class="stat-card"><div class="stat-label">Total Good Coins</div><div class="stat-val">${fmt(s.total_points)}</div></div>
       </div>`;
 
       const active7d = Number(s.active_7d);
@@ -759,13 +759,13 @@ async function renderReports() {
       if (customers.length > 0) {
         const pointsData = customers.filter(c => c.total_points_earned > 0).sort((a, b) => b.total_points_earned - a.total_points_earned).slice(0, 10);
         if (pointsData.length) {
-          html += `<div class="card"><div class="card-header"><h3>Points Distribution — Top Clients</h3></div>
+          html += `<div class="card"><div class="card-header"><h3>Good Coins Distribution — Top Clients</h3></div>
             <div class="chart-container">${renderBarChart(pointsData.map(c => ({label: (c.name||'?').split(' ')[0], value: Number(c.total_points_earned)})), '#F59E0B')}</div></div>`;
         }
 
         const topClients = [...customers].sort((a, b) => (b.level * 1000 + b.streak * 10 + b.total_points_earned) - (a.level * 1000 + a.streak * 10 + a.total_points_earned)).slice(0, 5);
         html += `<div class="card"><div class="card-header"><h3>Top Performing Clients</h3></div>
-          <table><thead><tr><th>Client</th><th>Level</th><th>Streak</th><th>Points</th><th>Fact Find</th></tr></thead><tbody>`;
+          <table><thead><tr><th>Client</th><th>Level</th><th>Streak</th><th>Good Coins</th><th>Fact Find</th></tr></thead><tbody>`;
         topClients.forEach(c => {
           html += `<tr class="clickable" onclick="viewClient(${c.id})"><td><strong>${esc(c.name || 'Unnamed')}</strong></td><td>${c.level}</td><td>${c.streak}d</td><td>${fmt(c.total_points_earned)}</td><td>${pct(c.fact_find_progress)}%</td></tr>`;
         });
@@ -858,7 +858,7 @@ async function renderAdvisers() {
         </div>
         <div class="advisor-stats">
           <div class="advisor-stat"><strong>${a.customer_count}</strong>Clients</div>
-          <div class="advisor-stat"><strong>${fmt(a.total_customer_points)}</strong>Total Points</div>
+          <div class="advisor-stat"><strong>${fmt(a.total_customer_points)}</strong>Total Coins</div>
           <div class="advisor-stat"><strong>${pct(a.avg_fact_find_progress)}%</strong>Avg Fact Find</div>
           ${a.license_number ? `<div class="advisor-stat"><strong>${esc(a.license_number)}</strong>License</div>` : ''}
         </div>

@@ -253,11 +253,11 @@ export default function DashboardScreen() {
 
               <View style={styles.rewardsTopRow}>
                 <View style={{ flex: 1 }}>
-                  <Text style={styles.rewardsPointsBig}>{rewardsState.points.toLocaleString()}<Text style={styles.rewardsPointsSuffix}> pts</Text></Text>
+                  <Text style={styles.rewardsPointsBig}>{rewardsState.points.toLocaleString()}<Text style={styles.rewardsPointsSuffix}> coins</Text></Text>
                   {(rewardsState.tokenBalance ?? 0) > 0 && (
                     <View style={styles.rewardsTokenRow}>
                       <View style={styles.rewardsTokenDot} />
-                      <Text style={styles.rewardsTokenText}>{(rewardsState.tokenBalance ?? 0).toFixed(2)} ppAUD</Text>
+                      <Text style={styles.rewardsTokenText}>{(rewardsState.tokenBalance ?? 0).toFixed(2)} ppAUD</Text> 
                     </View>
                   )}
                 </View>

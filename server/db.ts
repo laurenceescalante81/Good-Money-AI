@@ -222,7 +222,7 @@ export async function initDatabase() {
         INSERT INTO reward_configs (reward_id, title, description, icon, points_cost, sort_order) VALUES
         ('cashback_10', '$10 Cashback', 'Redeem for $10 AUD cashback', 'cash-outline', 1000, 1),
         ('webjet_20', '$20 Webjet Credit', 'Travel credit for flights', 'airplane-outline', 2000, 2),
-        ('double_points', 'Double Points - 7 Days', 'Earn 2x on all missions', 'flash-outline', 800, 3),
+        ('double_points', 'Double Coins - 7 Days', 'Earn 2x on all missions', 'flash-outline', 800, 3),
         ('cashback_25', '$25 Woolworths', 'Woolworths gift card', 'cart-outline', 2500, 4),
         ('cashback_50', '$50 Coles', 'Coles gift card', 'basket-outline', 5000, 5)
       `);
@@ -236,7 +236,7 @@ export async function initDatabase() {
         ('super', 'Super', 'Optimise your super today', 'trending-up-outline', '#8B5CF6', 2),
         ('insurance', 'Insurance', 'Compare & save on premiums', 'shield-checkmark-outline', '#3B82F6', 3),
         ('savings', 'Savings', 'Boost your savings plan', 'flag-outline', '#10B981', 4),
-        ('rewards', 'Rewards', 'Earn rewards & redeem for cashback', 'gift-outline', '#D4AF37', 5),
+        ('rewards', 'Rewards', 'Earn Good Coins & redeem for cashback', 'gift-outline', '#D4AF37', 5),
         ('banks', 'Banks', 'Link your accounts for real-time insights', 'business-outline', '#0D9488', 6),
         ('budget', 'Budget', 'Take control of your cash flow', 'wallet-outline', '#10B981', 7),
         ('planning', 'Planning', 'See your wealth projection to retirement', 'analytics-outline', '#6366F1', 8),

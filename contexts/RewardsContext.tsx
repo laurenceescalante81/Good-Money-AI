@@ -172,15 +172,15 @@ const BADGE_TEMPLATES: Omit<Badge, 'unlocked' | 'unlockedAt'>[] = [
   { id: 'budget_pro', title: 'Budget Pro', description: 'Log 10 transactions', icon: 'wallet', color: '#10B981' },
   { id: 'insured', title: 'Fully Covered', description: 'Add 3 insurance policies', icon: 'shield-checkmark', color: '#F59E0B' },
   { id: 'spinner', title: 'Lucky Spinner', description: 'Spin the wheel 5 times', icon: 'sync-outline', color: '#EC4899' },
-  { id: 'points_1000', title: 'Points Collector', description: 'Earn 1,000 total points', icon: 'star', color: '#D97706' },
-  { id: 'points_5000', title: 'Points Master', description: 'Earn 5,000 total points', icon: 'star', color: '#7C3AED' },
+  { id: 'points_1000', title: 'Coin Collector', description: 'Earn 1,000 total Good Coins', icon: 'star', color: '#D97706' },
+  { id: 'points_5000', title: 'Coin Master', description: 'Earn 5,000 total Good Coins', icon: 'star', color: '#7C3AED' },
   { id: 'level_3', title: 'Platinum Status', description: 'Reach Level 3', icon: 'diamond-outline', color: '#6366F1' },
 ];
 
 const REWARD_TEMPLATES: Omit<Reward, 'redeemed'>[] = [
   { id: 'cashback_10', title: '$10 Cashback', description: 'Redeem for $10 AUD cashback', icon: 'cash-outline', pointsCost: 1000 },
   { id: 'webjet_20', title: '$20 Webjet Credit', description: 'Travel credit for flights', icon: 'airplane-outline', pointsCost: 2000 },
-  { id: 'double_points', title: 'Double Points - 7 Days', description: 'Earn 2x on all missions', icon: 'flash-outline', pointsCost: 800 },
+  { id: 'double_points', title: 'Double Coins - 7 Days', description: 'Earn 2x on all missions', icon: 'flash-outline', pointsCost: 800 },
   { id: 'cashback_25', title: '$25 Woolworths', description: 'Woolworths gift card', icon: 'cart-outline', pointsCost: 2500 },
   { id: 'cashback_50', title: '$50 Coles', description: 'Coles gift card', icon: 'basket-outline', pointsCost: 5000 },
 ];
@@ -670,7 +670,7 @@ export function RewardsProvider({ children }: { children: ReactNode }) {
         amount: tokens,
         pointsSpent: actualPointsSpent,
         date: new Date().toISOString(),
-        description: `Converted ${actualPointsSpent} pts to ${tokens} ppAUD`,
+        description: `Converted ${actualPointsSpent} coins to ${tokens} ppAUD`,
       };
       return {
         ...prev,

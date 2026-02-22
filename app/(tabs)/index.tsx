@@ -20,14 +20,14 @@ function SpinWheel() {
   const [prize, setPrize] = useState<number | null>(null);
   const rotation = useSharedValue(0);
   const SEGMENTS = [
-    { label: '25 pts', color: '#6366F1' },
-    { label: '75 pts', color: '#8B5CF6' },
-    { label: '150 pts', color: '#A855F7' },
-    { label: '300 pts', color: '#7C3AED' },
-    { label: '50 pts', color: '#6D28D9' },
-    { label: '200 pts', color: '#5B21B6' },
-    { label: '100 pts', color: '#4C1D95' },
-    { label: '500 pts', color: '#581C87' },
+    { label: '25', color: '#6366F1' },
+    { label: '75', color: '#8B5CF6' },
+    { label: '150', color: '#A855F7' },
+    { label: '300', color: '#7C3AED' },
+    { label: '50', color: '#6D28D9' },
+    { label: '200', color: '#5B21B6' },
+    { label: '100', color: '#4C1D95' },
+    { label: '500', color: '#581C87' },
   ];
 
   const wheelStyle = useAnimatedStyle(() => ({
@@ -60,8 +60,8 @@ function SpinWheel() {
           <Text style={s.spinResetTime}>{spinResetTime}</Text>
         </View>
       </View>
-      <Text style={s.spinTitle}>Spin for bonus points</Text>
-      <Text style={s.spinSub}>1 free spin per day — up to 500 pts</Text>
+      <Text style={s.spinTitle}>Spin for bonus Good Coins</Text>
+      <Text style={s.spinSub}>1 free spin per day — up to 500 coins</Text>
 
       <View style={s.wheelContainer}>
         <Animated.View style={[s.wheel, wheelStyle]}>
@@ -86,7 +86,7 @@ function SpinWheel() {
 
       {prize !== null && (
         <View style={s.prizeResult}>
-          <Text style={s.prizeText}>+{prize} pts earned!</Text>
+          <Text style={s.prizeText}>+{prize} coins earned!</Text>
         </View>
       )}
 
@@ -157,8 +157,8 @@ function ScratchCard() {
             ) : (
               <>
                 <Ionicons name="checkmark-circle" size={36} color="#4ade80" />
-                <Text style={s.scratchPrizeText}>+{prize} pts</Text>
-                <Text style={s.scratchWonText}>Bonus points added!</Text>
+                <Text style={s.scratchPrizeText}>+{prize} coins</Text>
+                <Text style={s.scratchWonText}>Bonus coins added!</Text>
               </>
             )}
           </LinearGradient>
@@ -203,7 +203,7 @@ function MissionItem({ mission }: { mission: Mission }) {
         <Text style={[s.missionPts, mission.completed && { color: Colors.light.gray400 }]}>
           {mission.completed ? 'Done' : `+${effectivePts}`}
         </Text>
-        {!mission.completed && !mission.is2xActive && <Text style={s.missionPtsSuffix}>pts</Text>}
+        {!mission.completed && !mission.is2xActive && <Text style={s.missionPtsSuffix}>coins</Text>}
       </View>
     </View>
   );
@@ -239,7 +239,7 @@ export default function RewardsScreen() {
   const levelName = levelNames[Math.min(state.level - 1, levelNames.length - 1)];
   const xpNeeded = xpForLevel(state.level);
   const xpPct = xpNeeded > 0 ? Math.min((state.xp / xpNeeded) * 100, 100) : 0;
-  const cashValue = (state.points / 100).toFixed(2);
+  const coinValue = (state.points / 100).toFixed(2);
 
   const completedMissions = missions.filter(m => m.completed).length;
   const unlockedBadges = badges.filter(b => b.unlocked).length;
@@ -248,10 +248,10 @@ export default function RewardsScreen() {
 
   const handleRedeem = (id: string, title: string, cost: number) => {
     if (state.points < cost) {
-      Alert.alert('Not enough points', `You need ${cost - state.points} more points to redeem ${title}.`);
+      Alert.alert('Not enough coins', `You need ${cost - state.points} more Good Coins to redeem ${title}.`);
       return;
     }
-    Alert.alert('Redeem Reward', `Spend ${cost} points for ${title}?`, [
+    Alert.alert('Redeem Reward', `Spend ${cost} Good Coins for ${title}?`, [
       { text: 'Cancel', style: 'cancel' },
       { text: 'Redeem', onPress: () => {
         const ok = redeemReward(id);
@@ -266,18 +266,18 @@ export default function RewardsScreen() {
   const handleConvert = () => {
     const pts = parseInt(convertAmount);
     if (isNaN(pts) || pts < TOKEN_RATE) {
-      Alert.alert('Minimum Conversion', `You need at least ${TOKEN_RATE} points to convert to 1 ppAUD token.`);
+      Alert.alert('Minimum Conversion', `You need at least ${TOKEN_RATE} Good Coins to convert to 1 ppAUD token.`);
       return;
     }
     if (pts > state.points) {
-      Alert.alert('Not Enough Points', `You only have ${state.points.toLocaleString()} points available.`);
+      Alert.alert('Not Enough Coins', `You only have ${state.points.toLocaleString()} Good Coins available.`);
       return;
     }
     const tokens = Math.floor(pts / TOKEN_RATE);
-    Alert.alert('Convert to ppAUD', `Convert ${tokens * TOKEN_RATE} points into ${tokens} ppAUD tokens?`, [
+    Alert.alert('Convert to ppAUD', `Convert ${tokens * TOKEN_RATE} Good Coins into ${tokens} ppAUD tokens?`, [
       { text: 'Cancel', style: 'cancel' },
       { text: 'Convert', onPress: () => {
-        const ok = convertPointsToTokens(pts);
+        const ok = convertPointsToTokens(pts); 
         if (ok) {
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
           setConvertAmount('');
@@ -310,9 +310,9 @@ export default function RewardsScreen() {
             <LinearGradient colors={['#1a2942', '#0f1c30']} style={s.pointsCardInner}>
               <View style={s.pointsTopRow}>
                 <View>
-                  <Text style={s.pointsLabel}>PP POINTS</Text>
-                  <Text style={s.pointsBig}>{state.points.toLocaleString()}<Text style={s.pointsSuffix}> pts</Text></Text>
-                  <Text style={s.pointsCash}>{'\u2248'} ${cashValue} cash value</Text>
+                  <Text style={s.pointsLabel}>GOOD COINS</Text>
+                  <Text style={s.pointsBig}>{state.points.toLocaleString()}<Text style={s.pointsSuffix}> coins</Text></Text>
+                  <Text style={s.pointsCash}>{'\u2248'} ${coinValue} cash value</Text>
                   {(state.tokenBalance ?? 0) > 0 && (
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 4 }}>
                       <View style={{ width: 14, height: 14, borderRadius: 7, backgroundColor: '#D4AF37', alignItems: 'center', justifyContent: 'center' }}>
@@ -405,7 +405,7 @@ export default function RewardsScreen() {
                 <View style={s.promoCard}>
                   <Ionicons name="flash" size={18} color="#D4AF37" />
                   <View style={s.promoInfo}>
-                    <Text style={s.promoTitle}>2x POINTS WEEKEND</Text>
+                    <Text style={s.promoTitle}>2x COINS WEEKEND</Text>
                     <Text style={s.promoDesc}>All missions earn double this weekend</Text>
                     <Text style={s.promoExpiry}>Ends Sunday at midnight</Text>
                   </View>
@@ -472,11 +472,11 @@ export default function RewardsScreen() {
                     <View style={s.walletStatDivider} />
                     <View style={s.walletStatItem}>
                       <Text style={s.walletStatLabel}>Rate</Text>
-                      <Text style={s.walletStatValue}>{TOKEN_RATE} pts = 1</Text>
+                      <Text style={s.walletStatValue}>{TOKEN_RATE} coins = 1</Text>
                     </View>
                     <View style={s.walletStatDivider} />
                     <View style={s.walletStatItem}>
-                      <Text style={s.walletStatLabel}>Available Pts</Text>
+                      <Text style={s.walletStatLabel}>Available Coins</Text>
                       <Text style={s.walletStatValue}>{state.points.toLocaleString()}</Text>
                     </View>
                   </View>
@@ -484,20 +484,20 @@ export default function RewardsScreen() {
               </View>
 
               <View style={s.convertSection}>
-                <Text style={s.convertTitle}>Convert Points to ppAUD</Text>
-                <Text style={s.convertDesc}>{TOKEN_RATE} points = 1.00 ppAUD (pegged 1:1 to AUD)</Text>
+                <Text style={s.convertTitle}>Convert Good Coins to ppAUD</Text>
+                <Text style={s.convertDesc}>{TOKEN_RATE} coins = 1.00 ppAUD (pegged 1:1 to AUD)</Text>
 
                 <View style={s.convertInputRow}>
                   <View style={s.convertInputWrap}>
                     <TextInput
                       style={s.convertInput}
-                      placeholder="Enter points"
+                      placeholder="Enter coins"
                       placeholderTextColor={Colors.light.gray500}
                       keyboardType="number-pad"
                       value={convertAmount}
                       onChangeText={setConvertAmount}
                     />
-                    <Text style={s.convertInputSuffix}>pts</Text>
+                    <Text style={s.convertInputSuffix}>coins</Text>
                   </View>
                   <Ionicons name="arrow-forward" size={20} color={Colors.light.gray400} />
                   <View style={s.convertOutputWrap}>
@@ -512,7 +512,7 @@ export default function RewardsScreen() {
                   {[100, 500, 1000, 'Max'].map((val, i) => (
                     <Pressable
                       key={i}
-                      onPress={() => setConvertAmount(val === 'Max' ? String(state.points) : String(val))}
+                      onPress={() => setConvertAmount(val === 'Max' ? String(state.points) : String(val))} 
                       style={s.convertQuickBtn}
                     >
                       <Text style={s.convertQuickText}>{val === 'Max' ? 'MAX' : val}</Text>
@@ -546,7 +546,7 @@ export default function RewardsScreen() {
                   </View>
                   <View style={s.tokenInfoContent}>
                     <Text style={s.tokenInfoLabel}>Instant Conversion</Text>
-                    <Text style={s.tokenInfoDesc}>Convert your earned points to ppAUD tokens instantly at {TOKEN_RATE} pts per token.</Text>
+                    <Text style={s.tokenInfoDesc}>Convert your earned Good Coins to ppAUD tokens instantly at {TOKEN_RATE} coins per token.</Text>
                   </View>
                 </View>
                 <View style={s.tokenInfoRow}>
@@ -585,7 +585,7 @@ export default function RewardsScreen() {
               <View style={s.sectionHeaderRow}>
                 <Text style={s.sectionTitle}>Popular Rewards</Text>
               </View>
-              <Text style={s.redeemBalance}>Your balance: {state.points.toLocaleString()} pts</Text>
+              <Text style={s.redeemBalance}>Your balance: {state.points.toLocaleString()} coins</Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} style={s.rewardsScroll} contentContainerStyle={s.rewardsScrollContent}>
                 {rewards.map(r => (
                   <Pressable
@@ -598,18 +598,18 @@ export default function RewardsScreen() {
                     </View>
                     <Text style={s.rewardTitle}>{r.title}</Text>
                     <Text style={[s.rewardCost, r.redeemed && { color: Colors.light.gray400 }]}>
-                      {r.redeemed ? 'Redeemed' : `${r.pointsCost.toLocaleString()} pts`}
+                      {r.redeemed ? 'Redeemed' : `${r.pointsCost.toLocaleString()} coins`}
                     </Text>
                   </Pressable>
                 ))}
               </ScrollView>
 
-              <Text style={[s.sectionTitle, { marginTop: 28 }]}>How to Earn Points</Text>
+              <Text style={[s.sectionTitle, { marginTop: 28 }]}>How to Earn Coins</Text>
               {[
                 { icon: 'flame-outline', label: 'Daily Check-in', pts: '+50/day', color: '#F59E0B' },
                 { icon: 'sync-outline', label: 'Daily Spin', pts: 'Up to +500', color: '#8B5CF6' },
                 { icon: 'ticket-outline', label: 'Weekly Scratch', pts: 'Up to +500', color: '#3B82F6' },
-                { icon: 'checkmark-circle-outline', label: 'Complete Missions', pts: '+50 to +400', color: '#10B981' },
+                { icon: 'checkmark-circle-outline', label: 'Missions', pts: '+50 to +400', color: '#10B981' },
               ].map((item, i) => (
                 <View key={i} style={s.earnRow}>
                   <View style={[s.earnIcon, { backgroundColor: item.color + '15' }]}>
