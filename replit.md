@@ -89,7 +89,18 @@ constants/
 - **Creating adviser logins**: God mode can create admin_users with role='adviser' linked to an advisor_id
 - Served as self-contained HTML SPA from `server/templates/adviser.html`
 
+## In-App Messaging System
+- **Database**: `app_messages` table stores tooltips, popups, and FTUE coach marks
+- **Types**: `tooltip` (contextual hints), `popup` (modal messages), `ftue` (first-time user experience coach marks)
+- **Display Rules**: `first_time_only`, `once`, `every_session`, `every_time`
+- **Targeting**: Screen-specific (overview, mortgage, super, budget, etc.) or `all` screens, optional segment targeting
+- **Scheduling**: Optional start_date/end_date for time-limited campaigns
+- **Back Office**: Messages management page in adviser portal (god mode), full CRUD with type filtering
+- **Mobile**: AppMessagesContext fetches active messages, tracks seen/dismissed state in AsyncStorage, MessageOverlay renders in each tab
+- **Public API**: GET /api/admin/messages/active (no auth) returns active messages for the mobile app
+
 ## Recent Changes
+- Feb 2026: Added customizable tooltips, marketing popups, and FTUE system with back office management
 - Feb 2026: Built Good Money Adviser portal — separate web app for advisers with client profiles, reports, role-based access
 - Feb 2026: Added comprehensive rewards/gamification system with points, levels, missions, spin wheel, scratch cards, badges, and redeem store
 - Feb 2026: Added Basiq Open Banking integration with Banks tab, connect-bank flow, transaction import
