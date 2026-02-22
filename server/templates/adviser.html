@@ -325,6 +325,11 @@ function buildNav() {
   html += navItem('optimization', 'flash-outline', 'Optimization');
   if (isGod()) {
     html += '<div class="nav-divider"></div>';
+    html += '<div class="nav-label">Marketing</div>';
+    html += navItem('campaigns', 'rocket-outline', 'Campaigns');
+    html += navItem('campaign-analytics', 'stats-chart-outline', 'Campaign Analytics');
+    html += navItem('cta-optimizer', 'color-wand-outline', 'CTA Optimizer');
+    html += '<div class="nav-divider"></div>';
     html += '<div class="nav-label">Administration</div>';
     html += navItem('advisers', 'person-outline', 'Advisers');
     html += navItem('quests', 'trophy-outline', 'Quests');
@@ -342,7 +347,7 @@ function navItem(page, icon, label) {
 function navigate(page) {
   currentPage = page;
   document.querySelectorAll('.nav-item').forEach(n => n.classList.toggle('active', n.dataset.page === page));
-  const renderers = { dashboard: renderDashboard, clients: renderClients, reports: renderReports, advisers: renderAdvisers, quests: renderQuests, ctas: renderCTAs, messages: renderMessages, 'content-reports': renderContentReports, optimization: renderOptimization, settings: renderSettings };
+  const renderers = { dashboard: renderDashboard, clients: renderClients, reports: renderReports, advisers: renderAdvisers, quests: renderQuests, ctas: renderCTAs, messages: renderMessages, 'content-reports': renderContentReports, optimization: renderOptimization, campaigns: renderCampaigns, 'campaign-analytics': renderCampaignAnalytics, 'cta-optimizer': renderCTAOptimizer, settings: renderSettings };
   if (renderers[page]) renderers[page]();
 }
 
@@ -1729,6 +1734,670 @@ async function toggleCtaOpt(id, field, value) {
     await api('/optimization/cta/' + id, { method: 'PUT', body: JSON.stringify(body) });
     toast('CTA updated');
     renderOptimization();
+  } catch (e) { toast('Failed: ' + e.message, 'error'); }
+}
+
+// ========== Marketing: Campaigns Page ==========
+let campaignStatusFilter = 'all';
+let campaignDetailId = null;
+async function renderCampaigns(detailId) {
+  if (!isGod()) { navigate('dashboard'); return; }
+  if (detailId || campaignDetailId) { renderCampaignDetail(detailId || campaignDetailId); return; }
+  setMain(`<div class="page-header"><h1>Marketing Campaigns</h1><p>Create, manage, and optimize campaigns</p></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+      <div style="display:flex;gap:6px">
+        ${['all','draft','active','paused','completed','archived'].map(s => `<button class="btn btn-sm ${campaignStatusFilter===s?'btn-primary':'btn-secondary'}" onclick="campaignStatusFilter='${s}';campaignDetailId=null;renderCampaigns()">${s.charAt(0).toUpperCase()+s.slice(1)}</button>`).join('')}
+      </div>
+      <button class="btn btn-primary btn-sm" onclick="showCampaignModal()"><ion-icon name="add-outline"></ion-icon> New Campaign</button>
+    </div>
+    <div id="campaigns-content"><div class="loading">Loading campaigns...</div></div>`);
+  try {
+    const url = '/campaigns' + (campaignStatusFilter !== 'all' ? '?status=' + campaignStatusFilter : '');
+    const campaigns = await api(url);
+    cache.campaigns = campaigns;
+    let html = '';
+    if (campaigns.length === 0) {
+      html = '<div class="card"><div class="empty-state">No campaigns found. Create your first campaign to get started.</div></div>';
+    } else {
+      html = '<div style="display:grid;gap:12px">';
+      campaigns.forEach(c => {
+        const statusColors = { draft:'rgba(100,116,139,0.15);color:#94A3B8', active:'rgba(16,185,129,0.15);color:#34D399', paused:'rgba(245,158,11,0.15);color:#FBBF24', completed:'rgba(139,92,246,0.15);color:#A78BFA', archived:'rgba(239,68,68,0.15);color:#F87171' };
+        const typeIcons = { in_app:'phone-portrait-outline', push_notification:'notifications-outline', email:'mail-outline', banner:'easel-outline' };
+        const totalImps = parseInt(c.total_impressions || 0);
+        const totalClicks = parseInt(c.total_clicks || 0);
+        const totalConvs = parseInt(c.total_conversions || 0);
+        const ctr = totalImps > 0 ? ((totalClicks/totalImps)*100).toFixed(1) : '0.0';
+        const goalPct = c.goal_target > 0 ? Math.min(100, Math.round((c.goal_type === 'impressions' ? totalImps : c.goal_type === 'clicks' ? totalClicks : totalConvs) / c.goal_target * 100)) : 0;
+        html += `<div class="card" style="cursor:pointer;transition:border-color .15s" onclick="campaignDetailId=${c.id};renderCampaigns(${c.id})" onmouseover="this.style.borderColor='var(--teal)'" onmouseout="this.style.borderColor='var(--card-border)'">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px">
+            <div style="display:flex;gap:14px;align-items:center;flex:1;min-width:200px">
+              <div style="width:44px;height:44px;border-radius:12px;background:rgba(13,148,136,0.15);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                <ion-icon name="${typeIcons[c.campaign_type]||'rocket-outline'}" style="font-size:22px;color:var(--teal-light)"></ion-icon>
+              </div>
+              <div>
+                <div style="font-weight:700;color:#fff;font-size:15px">${esc(c.name)}</div>
+                <div style="display:flex;gap:8px;margin-top:4px;flex-wrap:wrap">
+                  <span class="badge" style="${statusColors[c.status]||statusColors.draft}">${c.status}</span>
+                  <span style="font-size:12px;color:var(--text-muted)">${c.campaign_type.replace('_',' ')}</span>
+                  ${c.ab_enabled ? '<span class="badge" style="background:rgba(139,92,246,0.15);color:#A78BFA">A/B</span>' : ''}
+                  ${c.segment_name ? '<span class="badge badge-adviser">'+esc(c.segment_name)+'</span>' : ''}
+                </div>
+              </div>
+            </div>
+            <div style="display:flex;gap:24px;flex-wrap:wrap">
+              <div style="text-align:center"><div style="font-size:11px;color:var(--text-muted)">Impressions</div><div style="font-size:18px;font-weight:700;color:#fff">${fmt(totalImps)}</div></div>
+              <div style="text-align:center"><div style="font-size:11px;color:var(--text-muted)">Clicks</div><div style="font-size:18px;font-weight:700;color:#fff">${fmt(totalClicks)}</div></div>
+              <div style="text-align:center"><div style="font-size:11px;color:var(--text-muted)">CTR</div><div style="font-size:18px;font-weight:700;color:${parseFloat(ctr)>5?'#34D399':parseFloat(ctr)>2?'#FBBF24':'var(--text-secondary)'}">${ctr}%</div></div>
+              <div style="text-align:center"><div style="font-size:11px;color:var(--text-muted)">Goal</div>
+                <div style="width:60px;margin-top:6px"><div class="progress-bar"><div class="fill" style="width:${goalPct}%"></div></div></div>
+                <div style="font-size:10px;color:var(--text-muted);margin-top:2px">${goalPct}%</div>
+              </div>
+            </div>
+          </div>
+          <div style="display:flex;gap:12px;margin-top:12px;font-size:11px;color:var(--text-muted);border-top:1px solid var(--card-border);padding-top:8px">
+            <span><ion-icon name="calendar-outline" style="font-size:12px;vertical-align:middle"></ion-icon> Created ${fmtDate(c.created_at)}</span>
+            ${c.start_date ? '<span><ion-icon name="play-outline" style="font-size:12px;vertical-align:middle"></ion-icon> ' + fmtDate(c.start_date) + '</span>' : ''}
+            ${c.end_date ? '<span><ion-icon name="stop-outline" style="font-size:12px;vertical-align:middle"></ion-icon> ' + fmtDate(c.end_date) + '</span>' : ''}
+            <span>${parseInt(c.variant_count)} variant${parseInt(c.variant_count)!==1?'s':''}</span>
+          </div>
+        </div>`;
+      });
+      html += '</div>';
+    }
+    $('campaigns-content').innerHTML = html;
+  } catch (e) {
+    $('campaigns-content').innerHTML = '<div class="empty-state">Failed to load campaigns</div>';
+  }
+}
+
+async function renderCampaignDetail(id) {
+  campaignDetailId = id;
+  setMain(`<div class="breadcrumb"><a onclick="campaignDetailId=null;renderCampaigns()">Campaigns</a> <ion-icon name="chevron-forward-outline" style="font-size:10px"></ion-icon> <span>Campaign Detail</span></div>
+    <div id="cd-content"><div class="loading">Loading campaign...</div></div>`);
+  try {
+    const data = await api('/campaigns/' + id);
+    const c = data.campaign;
+    const variants = data.variants || [];
+    cache.campaignDetail = data;
+    let segments = [];
+    try { segments = await api('/segments'); cache.segments = segments; } catch {}
+
+    const statusColors = { draft:'rgba(100,116,139,0.15);color:#94A3B8', active:'rgba(16,185,129,0.15);color:#34D399', paused:'rgba(245,158,11,0.15);color:#FBBF24', completed:'rgba(139,92,246,0.15);color:#A78BFA', archived:'rgba(239,68,68,0.15);color:#F87171' };
+    const statusActions = {
+      draft: [{label:'Activate',status:'active',icon:'play',color:'#34D399'},{label:'Archive',status:'archived',icon:'archive',color:'#F87171'}],
+      active: [{label:'Pause',status:'paused',icon:'pause',color:'#FBBF24'},{label:'Complete',status:'completed',icon:'checkmark-circle',color:'#A78BFA'}],
+      paused: [{label:'Resume',status:'active',icon:'play',color:'#34D399'},{label:'Complete',status:'completed',icon:'checkmark-circle',color:'#A78BFA'}],
+      completed: [{label:'Archive',status:'archived',icon:'archive',color:'#F87171'}],
+      archived: [{label:'Reactivate to Draft',status:'draft',icon:'refresh',color:'#94A3B8'}]
+    };
+
+    let html = `<div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:16px;margin-bottom:20px">
+      <div>
+        <h1 style="font-size:22px;font-weight:700;color:#fff;margin:0">${esc(c.name)}</h1>
+        <div style="display:flex;gap:8px;margin-top:6px;flex-wrap:wrap">
+          <span class="badge" style="${statusColors[c.status]}">${c.status.toUpperCase()}</span>
+          <span style="font-size:12px;color:var(--text-muted)">${c.campaign_type.replace('_',' ')}</span>
+          ${c.ab_enabled ? '<span class="badge" style="background:rgba(139,92,246,0.15);color:#A78BFA">A/B Testing</span>' : ''}
+          ${c.auto_optimize ? '<span class="badge" style="background:rgba(16,185,129,0.15);color:#34D399">Auto-Optimize</span>' : ''}
+        </div>
+        ${c.description ? '<p style="color:var(--text-secondary);font-size:13px;margin-top:6px">'+esc(c.description)+'</p>' : ''}
+      </div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        ${(statusActions[c.status]||[]).map(a => `<button class="btn btn-sm" style="background:rgba(${a.color==='#34D399'?'16,185,129':a.color==='#FBBF24'?'245,158,11':a.color==='#A78BFA'?'139,92,246':a.color==='#F87171'?'239,68,68':'100,116,139'},0.15);color:${a.color};border:1px solid ${a.color}33" onclick="changeCampaignStatus(${c.id},'${a.status}')"><ion-icon name="${a.icon}-outline"></ion-icon> ${a.label}</button>`).join('')}
+        <button class="btn btn-secondary btn-sm" onclick="showCampaignModal(${c.id})"><ion-icon name="create-outline"></ion-icon> Edit</button>
+        <button class="btn btn-secondary btn-sm" onclick="duplicateCampaign(${c.id})"><ion-icon name="copy-outline"></ion-icon> Duplicate</button>
+        <button class="btn btn-sm" style="background:rgba(239,68,68,0.12);color:#F87171;border:1px solid rgba(239,68,68,0.25)" onclick="deleteCampaign(${c.id})"><ion-icon name="trash-outline"></ion-icon></button>
+      </div>
+    </div>`;
+
+    // Campaign info cards
+    const totalImps = variants.reduce((s,v) => s+v.impressions, 0);
+    const totalClicks = variants.reduce((s,v) => s+v.clicks, 0);
+    const totalConvs = variants.reduce((s,v) => s+v.conversions, 0);
+    const totalDismiss = variants.reduce((s,v) => s+v.dismissals, 0);
+    const ctr = totalImps > 0 ? ((totalClicks/totalImps)*100).toFixed(1) : '0.0';
+    const cvr = totalClicks > 0 ? ((totalConvs/totalClicks)*100).toFixed(1) : '0.0';
+
+    html += `<div class="stat-grid">
+      <div class="stat-card"><div class="stat-icon" style="background:rgba(59,130,246,0.15);color:#60A5FA"><ion-icon name="eye-outline"></ion-icon></div><div class="stat-label">Impressions</div><div class="stat-val">${fmt(totalImps)}</div></div>
+      <div class="stat-card"><div class="stat-icon" style="background:rgba(16,185,129,0.15);color:#34D399"><ion-icon name="finger-print-outline"></ion-icon></div><div class="stat-label">Clicks</div><div class="stat-val">${fmt(totalClicks)}</div><div class="stat-sub">${ctr}% CTR</div></div>
+      <div class="stat-card"><div class="stat-icon" style="background:rgba(139,92,246,0.15);color:#A78BFA"><ion-icon name="checkmark-done-outline"></ion-icon></div><div class="stat-label">Conversions</div><div class="stat-val">${fmt(totalConvs)}</div><div class="stat-sub">${cvr}% CVR</div></div>
+      <div class="stat-card"><div class="stat-icon" style="background:rgba(239,68,68,0.15);color:#F87171"><ion-icon name="close-circle-outline"></ion-icon></div><div class="stat-label">Dismissals</div><div class="stat-val">${fmt(totalDismiss)}</div></div>
+    </div>`;
+
+    // Settings card
+    html += `<div class="card"><div class="card-header"><h3>Campaign Settings</h3></div>
+      <div class="finance-grid">
+        <div class="finance-item"><div class="fi-label">Type</div><div class="fi-val">${c.campaign_type.replace('_',' ')}</div></div>
+        <div class="finance-item"><div class="fi-label">Target Screen</div><div class="fi-val">${c.target_screen || 'All'}</div></div>
+        <div class="finance-item"><div class="fi-label">Segment</div><div class="fi-val">${c.segment_name || 'All Users'}</div></div>
+        <div class="finance-item"><div class="fi-label">Priority</div><div class="fi-val">${c.priority}/10</div></div>
+        <div class="finance-item"><div class="fi-label">Start Date</div><div class="fi-val">${fmtDate(c.start_date)}</div></div>
+        <div class="finance-item"><div class="fi-label">End Date</div><div class="fi-val">${fmtDate(c.end_date)}</div></div>
+        <div class="finance-item"><div class="fi-label">Budget</div><div class="fi-val">$${Number(c.budget||0).toFixed(2)}</div></div>
+        <div class="finance-item"><div class="fi-label">Goal</div><div class="fi-val">${fmt(c.goal_target)} ${c.goal_type}</div></div>
+      </div>
+    </div>`;
+
+    // Variants card
+    html += `<div class="card"><div class="card-header"><h3>Variants (${variants.length})</h3><button class="btn btn-primary btn-sm" onclick="addCampaignVariant(${c.id})"><ion-icon name="add-outline"></ion-icon> Add Variant</button></div>`;
+    if (variants.length > 0) {
+      html += `<table><thead><tr><th>Label</th><th>Name</th><th>Headline</th><th>CTA Text</th><th>Traffic</th><th>Impressions</th><th>Clicks</th><th>CTR</th><th>Conversions</th><th>Actions</th></tr></thead><tbody>`;
+      variants.forEach(v => {
+        const vCtr = v.impressions > 0 ? ((v.clicks/v.impressions)*100).toFixed(1) : '0.0';
+        const isWinner = c.winning_variant_id === v.id;
+        html += `<tr style="${isWinner?'background:rgba(16,185,129,0.06)':''}">
+          <td><span class="badge" style="background:rgba(139,92,246,0.15);color:#A78BFA;font-weight:700;font-size:14px">${esc(v.variant_label)}</span>${isWinner?'<span style="color:#34D399;font-size:10px;margin-left:4px">WINNER</span>':''}</td>
+          <td><strong style="color:#fff">${esc(v.variant_name)}</strong></td>
+          <td style="max-width:150px;font-size:12px;color:var(--text-secondary)">${esc(v.headline||'')}</td>
+          <td><span style="background:rgba(13,148,136,0.15);color:var(--teal-light);padding:3px 8px;border-radius:6px;font-size:12px">${esc(v.cta_text||'')}</span></td>
+          <td>${v.traffic_pct}%</td>
+          <td>${fmt(v.impressions)}</td>
+          <td>${fmt(v.clicks)}</td>
+          <td><span style="color:${parseFloat(vCtr)>5?'#34D399':parseFloat(vCtr)>2?'#FBBF24':'var(--text-muted)'};font-weight:600">${vCtr}%</span></td>
+          <td>${fmt(v.conversions)}</td>
+          <td>
+            <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation();showVariantModal(${c.id},${v.id})" style="margin-right:4px"><ion-icon name="create-outline"></ion-icon></button>
+            ${variants.length > 1 ? `<button class="btn btn-danger btn-sm" onclick="event.stopPropagation();deleteVariant(${v.id},${c.id})"><ion-icon name="trash-outline"></ion-icon></button>` : ''}
+          </td>
+        </tr>`;
+      });
+      html += '</tbody></table>';
+    }
+    html += '</div>';
+
+    // Daily trend chart
+    const trends = data.daily_trends || [];
+    if (trends.length > 0) {
+      const dailyMap = {};
+      trends.forEach(t => {
+        if (!dailyMap[t.date]) dailyMap[t.date] = { impressions:0, clicks:0 };
+        if (t.event_type === 'impression') dailyMap[t.date].impressions += parseInt(t.count);
+        if (t.event_type === 'click' || t.event_type === 'cta_click') dailyMap[t.date].clicks += parseInt(t.count);
+      });
+      const dates = Object.keys(dailyMap).sort().slice(-14);
+      const maxVal = Math.max(...dates.map(d => dailyMap[d].impressions), 1);
+      html += `<div class="card"><div class="card-header"><h3>Daily Performance (Last 14 Days)</h3></div>
+        <div style="display:flex;gap:4px;align-items:flex-end;height:140px;padding:10px 0">`;
+      dates.forEach(d => {
+        const day = dailyMap[d];
+        const h = Math.max((day.impressions / maxVal)*120, 4);
+        const clickH = Math.max((day.clicks / maxVal)*120, 0);
+        const label = new Date(d).toLocaleDateString('en-AU',{day:'numeric',month:'short'});
+        html += `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px" title="${label}: ${day.impressions} imps, ${day.clicks} clicks">
+          <div style="width:100%;max-width:30px;height:${h}px;background:rgba(59,130,246,0.4);border-radius:4px 4px 0 0;position:relative">
+            <div style="position:absolute;bottom:0;width:100%;height:${clickH}px;background:var(--teal);border-radius:0 0 4px 4px;opacity:0.8"></div>
+          </div>
+          <span style="font-size:9px;color:var(--text-muted)">${label.split(' ')[0]}</span>
+        </div>`;
+      });
+      html += `</div>
+        <div style="display:flex;gap:16px;margin-top:8px;justify-content:center">
+          <span style="font-size:11px;color:var(--text-muted)"><span style="display:inline-block;width:10px;height:10px;background:rgba(59,130,246,0.4);border-radius:2px;vertical-align:middle;margin-right:4px"></span>Impressions</span>
+          <span style="font-size:11px;color:var(--text-muted)"><span style="display:inline-block;width:10px;height:10px;background:var(--teal);border-radius:2px;vertical-align:middle;margin-right:4px"></span>Clicks</span>
+        </div></div>`;
+    }
+
+    $('cd-content').innerHTML = html;
+  } catch (e) {
+    $('cd-content').innerHTML = '<div class="empty-state">Failed to load campaign details</div>';
+  }
+}
+
+function showCampaignModal(editId) {
+  const c = editId ? (cache.campaignDetail ? cache.campaignDetail.campaign : (cache.campaigns||[]).find(x => x.id === editId)) : null;
+  const segments = cache.segments || [];
+  let segOpts = '<option value="">All Users</option>';
+  segments.forEach(s => segOpts += `<option value="${s.id}" ${c && c.target_segment_id == s.id ? 'selected' : ''}>${esc(s.name)}</option>`);
+  const screens = ['overview','mortgage','super','insurance','savings','rewards','banks','budget','planning','fact_find','investor'];
+  let screenOpts = '<option value="">All Screens</option>';
+  screens.forEach(s => screenOpts += `<option value="${s}" ${c?.target_screen === s ? 'selected' : ''}>${s.charAt(0).toUpperCase()+s.slice(1).replace('_',' ')}</option>`);
+
+  showModal(`
+    <h2>${c ? 'Edit Campaign' : 'New Campaign'}</h2>
+    <div class="form-group"><label>Campaign Name</label><input id="m-camp-name" value="${esc(c?.name||'')}" placeholder="e.g. Summer Super Review"></div>
+    <div class="form-group"><label>Description</label><textarea id="m-camp-desc">${esc(c?.description||'')}</textarea></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="form-group"><label>Type</label><select id="m-camp-type">
+        <option value="in_app" ${(!c||c.campaign_type==='in_app')?'selected':''}>In-App</option>
+        <option value="push_notification" ${c?.campaign_type==='push_notification'?'selected':''}>Push Notification</option>
+        <option value="email" ${c?.campaign_type==='email'?'selected':''}>Email</option>
+        <option value="banner" ${c?.campaign_type==='banner'?'selected':''}>Banner</option>
+      </select></div>
+      <div class="form-group"><label>Target Screen</label><select id="m-camp-screen">${screenOpts}</select></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="form-group"><label>Segment</label><select id="m-camp-seg">${segOpts}</select></div>
+      <div class="form-group"><label>Priority (1-10)</label><input id="m-camp-priority" type="number" min="1" max="10" value="${c?.priority||5}"></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="form-group"><label>Start Date</label><input id="m-camp-start" type="date" value="${c?.start_date?c.start_date.slice(0,10):''}"></div>
+      <div class="form-group"><label>End Date</label><input id="m-camp-end" type="date" value="${c?.end_date?c.end_date.slice(0,10):''}"></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
+      <div class="form-group"><label>Budget ($)</label><input id="m-camp-budget" type="number" step="0.01" value="${c?.budget||0}"></div>
+      <div class="form-group"><label>Goal Type</label><select id="m-camp-goaltype">
+        <option value="impressions" ${(!c||c.goal_type==='impressions')?'selected':''}>Impressions</option>
+        <option value="clicks" ${c?.goal_type==='clicks'?'selected':''}>Clicks</option>
+        <option value="conversions" ${c?.goal_type==='conversions'?'selected':''}>Conversions</option>
+      </select></div>
+      <div class="form-group"><label>Goal Target</label><input id="m-camp-goaltarget" type="number" value="${c?.goal_target||1000}"></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="form-group"><label>A/B Testing</label><select id="m-camp-ab"><option value="false" ${!c?.ab_enabled?'selected':''}>Disabled</option><option value="true" ${c?.ab_enabled?'selected':''}>Enabled</option></select></div>
+      <div class="form-group"><label>Auto-Optimize</label><select id="m-camp-autoopt"><option value="false" ${!c?.auto_optimize?'selected':''}>Disabled</option><option value="true" ${c?.auto_optimize?'selected':''}>Enabled</option></select></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="hideModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveCampaign(${editId||'null'})">${c?'Update':'Create'}</button>
+    </div>
+  `);
+}
+
+async function saveCampaign(editId) {
+  const data = {
+    name: $('m-camp-name').value,
+    description: $('m-camp-desc').value,
+    campaign_type: $('m-camp-type').value,
+    target_segment_id: $('m-camp-seg').value || null,
+    target_screen: $('m-camp-screen').value || null,
+    priority: parseInt($('m-camp-priority').value) || 5,
+    start_date: $('m-camp-start').value || null,
+    end_date: $('m-camp-end').value || null,
+    budget: parseFloat($('m-camp-budget').value) || 0,
+    goal_type: $('m-camp-goaltype').value,
+    goal_target: parseInt($('m-camp-goaltarget').value) || 1000,
+    ab_enabled: $('m-camp-ab').value === 'true',
+    auto_optimize: $('m-camp-autoopt').value === 'true'
+  };
+  if (!data.name) { toast('Campaign name is required', 'error'); return; }
+  try {
+    if (editId) {
+      await api('/campaigns/' + editId, { method: 'PUT', body: JSON.stringify(data) });
+      toast('Campaign updated');
+    } else {
+      const result = await api('/campaigns', { method: 'POST', body: JSON.stringify(data) });
+      toast('Campaign created');
+      campaignDetailId = result.id;
+    }
+    hideModal();
+    renderCampaigns();
+  } catch (e) { toast('Failed: ' + e.message, 'error'); }
+}
+
+async function changeCampaignStatus(id, status) {
+  const labels = { active:'activate', paused:'pause', completed:'complete', archived:'archive', draft:'reset to draft' };
+  if (!confirm('Are you sure you want to ' + (labels[status]||status) + ' this campaign?')) return;
+  try {
+    await api('/campaigns/' + id + '/status', { method: 'PUT', body: JSON.stringify({ status }) });
+    toast('Campaign ' + status);
+    renderCampaignDetail(id);
+  } catch (e) { toast('Failed: ' + e.message, 'error'); }
+}
+
+async function duplicateCampaign(id) {
+  try {
+    const result = await api('/campaigns/' + id + '/duplicate', { method: 'POST' });
+    toast('Campaign duplicated');
+    campaignDetailId = result.id;
+    renderCampaigns();
+  } catch (e) { toast('Failed: ' + e.message, 'error'); }
+}
+
+async function deleteCampaign(id) {
+  if (!confirm('Delete this campaign and all its data? This cannot be undone.')) return;
+  try {
+    await api('/campaigns/' + id, { method: 'DELETE' });
+    toast('Campaign deleted');
+    campaignDetailId = null;
+    renderCampaigns();
+  } catch (e) { toast('Failed: ' + e.message, 'error'); }
+}
+
+async function addCampaignVariant(campaignId) {
+  try {
+    await api('/campaigns/' + campaignId + '/variants', { method: 'POST', body: JSON.stringify({}) });
+    toast('Variant added');
+    renderCampaignDetail(campaignId);
+  } catch (e) { toast('Failed: ' + e.message, 'error'); }
+}
+
+function showVariantModal(campaignId, variantId) {
+  const v = variantId ? ((cache.campaignDetail?.variants||[]).find(x => x.id === variantId)) : null;
+  showModal(`
+    <h2>${v ? 'Edit Variant ' + esc(v.variant_label) : 'Edit Variant'}</h2>
+    <div class="form-group"><label>Variant Name</label><input id="m-v-name" value="${esc(v?.variant_name||'')}"></div>
+    <div class="form-group"><label>Headline</label><input id="m-v-headline" value="${esc(v?.headline||'')}" placeholder="Main headline text"></div>
+    <div class="form-group"><label>Body</label><textarea id="m-v-body">${esc(v?.body||'')}</textarea></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="form-group"><label>CTA Text</label><input id="m-v-cta" value="${esc(v?.cta_text||'Learn More')}"></div>
+      <div class="form-group"><label>Traffic %</label><input id="m-v-traffic" type="number" min="0" max="100" value="${v?.traffic_pct||50}"></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
+      <div class="form-group"><label>Icon (Ionicons)</label><input id="m-v-icon" value="${esc(v?.icon||'')}" placeholder="e.g. rocket-outline"></div>
+      <div class="form-group"><label>Icon Color</label><input id="m-v-iconcolor" type="color" value="${v?.icon_color||'#0D9488'}" style="height:40px"></div>
+      <div class="form-group"><label>BG Color</label><input id="m-v-bgcolor" type="color" value="${v?.bg_color||'#132D46'}" style="height:40px"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="hideModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveVariant(${campaignId},${variantId||'null'})">Save</button>
+    </div>
+  `);
+}
+
+async function saveVariant(campaignId, variantId) {
+  const data = {
+    variant_name: $('m-v-name').value,
+    headline: $('m-v-headline').value,
+    body: $('m-v-body').value,
+    cta_text: $('m-v-cta').value,
+    traffic_pct: parseInt($('m-v-traffic').value) || 50,
+    icon: $('m-v-icon').value || null,
+    icon_color: $('m-v-iconcolor').value,
+    bg_color: $('m-v-bgcolor').value
+  };
+  try {
+    await api('/campaigns/variants/' + variantId, { method: 'PUT', body: JSON.stringify(data) });
+    hideModal();
+    toast('Variant updated');
+    renderCampaignDetail(campaignId);
+  } catch (e) { toast('Failed: ' + e.message, 'error'); }
+}
+
+async function deleteVariant(variantId, campaignId) {
+  if (!confirm('Delete this variant?')) return;
+  try {
+    await api('/campaigns/variants/' + variantId, { method: 'DELETE' });
+    toast('Variant deleted');
+    renderCampaignDetail(campaignId);
+  } catch (e) { toast('Failed: ' + e.message, 'error'); }
+}
+
+// ========== Marketing: Campaign Analytics Page ==========
+let analyticsSelectedCampaign = null;
+let analyticsDays = 30;
+async function renderCampaignAnalytics() {
+  if (!isGod()) { navigate('dashboard'); return; }
+  setMain(`<div class="page-header"><h1>Campaign Analytics</h1><p>Performance metrics, A/B test results, and conversion funnels</p></div>
+    <div id="ca-content"><div class="loading">Loading analytics...</div></div>`);
+  try {
+    const overview = await api('/marketing/overview');
+    const campaigns = await api('/campaigns');
+    cache.campaigns = campaigns;
+
+    let html = '';
+    // Overview KPIs
+    const statusMap = {};
+    (overview.campaign_counts || []).forEach(c => statusMap[c.status] = parseInt(c.count));
+    const globalCtr = overview.total_impressions > 0 ? ((overview.total_clicks / overview.total_impressions) * 100).toFixed(1) : '0.0';
+    const globalCvr = overview.total_clicks > 0 ? ((overview.total_conversions / overview.total_clicks) * 100).toFixed(1) : '0.0';
+
+    html += `<div class="stat-grid">
+      <div class="stat-card"><div class="stat-icon" style="background:rgba(13,148,136,0.15);color:var(--teal-light)"><ion-icon name="rocket"></ion-icon></div><div class="stat-label">Active Campaigns</div><div class="stat-val">${overview.active_campaigns}</div><div class="stat-sub">${fmt(statusMap.draft||0)} draft, ${fmt(statusMap.completed||0)} completed</div></div>
+      <div class="stat-card"><div class="stat-icon" style="background:rgba(59,130,246,0.15);color:#60A5FA"><ion-icon name="eye"></ion-icon></div><div class="stat-label">Total Impressions</div><div class="stat-val">${fmt(overview.total_impressions)}</div></div>
+      <div class="stat-card"><div class="stat-icon" style="background:rgba(16,185,129,0.15);color:#34D399"><ion-icon name="finger-print"></ion-icon></div><div class="stat-label">Total Clicks</div><div class="stat-val">${fmt(overview.total_clicks)}</div><div class="stat-sub">${globalCtr}% CTR</div></div>
+      <div class="stat-card"><div class="stat-icon" style="background:rgba(139,92,246,0.15);color:#A78BFA"><ion-icon name="checkmark-done"></ion-icon></div><div class="stat-label">Conversions</div><div class="stat-val">${fmt(overview.total_conversions)}</div><div class="stat-sub">${globalCvr}% CVR</div></div>
+    </div>`;
+
+    // Budget overview
+    if (overview.budget.total > 0) {
+      const budgetPct = overview.budget.total > 0 ? Math.min(100, Math.round(overview.budget.spent / overview.budget.total * 100)) : 0;
+      html += `<div class="card"><div class="card-header"><h3>Budget Overview</h3></div>
+        <div style="display:flex;align-items:center;gap:20px">
+          <div style="flex:1"><div class="progress-bar" style="height:14px"><div class="fill" style="width:${budgetPct}%;background:${budgetPct>90?'#F87171':budgetPct>70?'#FBBF24':'var(--teal)'}"></div></div></div>
+          <div style="white-space:nowrap;font-size:14px;color:#fff"><strong>$${Number(overview.budget.spent).toFixed(2)}</strong> / $${Number(overview.budget.total).toFixed(2)} <span style="color:var(--text-muted)">(${budgetPct}%)</span></div>
+        </div></div>`;
+    }
+
+    // Campaign comparison table
+    if (campaigns.length > 0) {
+      html += `<div class="card"><div class="card-header"><h3>Campaign Performance Comparison</h3></div>
+        <table><thead><tr><th>Campaign</th><th>Status</th><th>Type</th><th>Impressions</th><th>Clicks</th><th>CTR</th><th>Conversions</th><th>CVR</th><th>A/B</th></tr></thead><tbody>`;
+      campaigns.forEach(c => {
+        const imps = parseInt(c.total_impressions||0);
+        const clicks = parseInt(c.total_clicks||0);
+        const convs = parseInt(c.total_conversions||0);
+        const ctr = imps > 0 ? ((clicks/imps)*100).toFixed(1) : '0.0';
+        const cvr = clicks > 0 ? ((convs/clicks)*100).toFixed(1) : '0.0';
+        const statusColors = { draft:'#94A3B8', active:'#34D399', paused:'#FBBF24', completed:'#A78BFA', archived:'#F87171' };
+        html += `<tr class="clickable" onclick="analyticsSelectedCampaign=${c.id};showCampaignAnalyticsDetail(${c.id})">
+          <td><strong style="color:#fff">${esc(c.name)}</strong></td>
+          <td><span class="badge" style="background:rgba(${statusColors[c.status]==='#34D399'?'16,185,129':statusColors[c.status]==='#FBBF24'?'245,158,11':statusColors[c.status]==='#A78BFA'?'139,92,246':statusColors[c.status]==='#F87171'?'239,68,68':'100,116,139'},0.15);color:${statusColors[c.status]}">${c.status}</span></td>
+          <td style="font-size:12px;color:var(--text-secondary)">${c.campaign_type.replace('_',' ')}</td>
+          <td>${fmt(imps)}</td>
+          <td>${fmt(clicks)}</td>
+          <td><span style="color:${parseFloat(ctr)>5?'#34D399':parseFloat(ctr)>2?'#FBBF24':'var(--text-muted)'};font-weight:600">${ctr}%</span></td>
+          <td>${fmt(convs)}</td>
+          <td><span style="color:${parseFloat(cvr)>5?'#34D399':parseFloat(cvr)>2?'#FBBF24':'var(--text-muted)'}">${cvr}%</span></td>
+          <td>${c.ab_enabled?'<span class="badge" style="background:rgba(139,92,246,0.15);color:#A78BFA">A/B</span>':'—'}</td>
+        </tr>`;
+      });
+      html += '</tbody></table></div>';
+    } else {
+      html += '<div class="card"><div class="empty-state">No campaigns created yet. Go to Campaigns to create your first one.</div></div>';
+    }
+
+    $('ca-content').innerHTML = html;
+  } catch (e) {
+    $('ca-content').innerHTML = '<div class="empty-state">Failed to load campaign analytics</div>';
+  }
+}
+
+async function showCampaignAnalyticsDetail(id) {
+  setMain(`<div class="breadcrumb"><a onclick="renderCampaignAnalytics()">Campaign Analytics</a> <ion-icon name="chevron-forward-outline" style="font-size:10px"></ion-icon> <span>Detail</span></div>
+    <div style="display:flex;gap:6px;margin-bottom:16px">
+      ${[7,14,30,90].map(d => `<button class="btn btn-sm ${analyticsDays===d?'btn-primary':'btn-secondary'}" onclick="analyticsDays=${d};showCampaignAnalyticsDetail(${id})">${d}d</button>`).join('')}
+    </div>
+    <div id="cad-content"><div class="loading">Loading...</div></div>`);
+  try {
+    const data = await api('/campaigns/' + id + '/analytics?days=' + analyticsDays);
+    const campaign = await api('/campaigns/' + id);
+    const c = campaign.campaign;
+    const variants = data.variants || [];
+    let html = `<h2 style="color:#fff;font-size:18px;margin-bottom:16px">${esc(c.name)}</h2>`;
+
+    // Variant comparison
+    if (variants.length > 0) {
+      html += `<div class="card"><div class="card-header"><h3>Variant Performance</h3></div>
+        <table><thead><tr><th>Variant</th><th>Name</th><th>Traffic</th><th>Impressions</th><th>Clicks</th><th>CTR</th><th>Conversions</th><th>CVR</th><th>Dismiss Rate</th></tr></thead><tbody>`;
+
+      let bestCtr = 0;
+      let bestVariant = null;
+      variants.forEach(v => {
+        const ctr = parseFloat(v.ctr);
+        if (ctr > bestCtr && v.impressions > 10) { bestCtr = ctr; bestVariant = v.id; }
+      });
+
+      variants.forEach(v => {
+        const isBest = v.id === bestVariant && variants.length > 1;
+        html += `<tr style="${isBest?'background:rgba(16,185,129,0.06)':''}">
+          <td><span class="badge" style="background:rgba(139,92,246,0.15);color:#A78BFA;font-weight:700">${esc(v.variant_label)}</span>${isBest?'<span style="color:#34D399;font-size:10px;margin-left:4px">BEST</span>':''}</td>
+          <td><strong style="color:#fff">${esc(v.variant_name)}</strong></td>
+          <td>${v.traffic_pct}%</td>
+          <td>${fmt(v.impressions)}</td>
+          <td>${fmt(v.clicks)}</td>
+          <td><span style="color:${parseFloat(v.ctr)>5?'#34D399':parseFloat(v.ctr)>2?'#FBBF24':'var(--text-muted)'};font-weight:600">${v.ctr}%</span></td>
+          <td>${fmt(v.conversions)}</td>
+          <td>${v.cvr}%</td>
+          <td><span style="color:${parseFloat(v.dismiss_rate)>30?'#F87171':'var(--text-secondary)'}">${v.dismiss_rate}%</span></td>
+        </tr>`;
+      });
+      html += '</tbody></table></div>';
+
+      // Visual variant bar comparison
+      if (variants.length > 1) {
+        const maxImps = Math.max(...variants.map(v => v.impressions), 1);
+        html += `<div class="card"><div class="card-header"><h3>A/B Comparison</h3></div>
+          <div style="display:grid;gap:16px;padding:8px 0">`;
+        variants.forEach(v => {
+          const impW = Math.max((v.impressions / maxImps) * 100, 2);
+          const clickW = v.impressions > 0 ? Math.max((v.clicks / maxImps) * 100, 1) : 0;
+          html += `<div>
+            <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+              <span style="font-weight:600;color:#fff">${esc(v.variant_label)} — ${esc(v.variant_name)}</span>
+              <span style="font-size:12px;color:var(--text-muted)">${v.ctr}% CTR</span>
+            </div>
+            <div style="height:24px;background:rgba(255,255,255,0.05);border-radius:6px;overflow:hidden;position:relative">
+              <div style="height:100%;width:${impW}%;background:rgba(59,130,246,0.4);border-radius:6px;position:absolute"></div>
+              <div style="height:100%;width:${clickW}%;background:var(--teal);border-radius:6px;position:absolute"></div>
+            </div>
+          </div>`;
+        });
+        html += '</div></div>';
+      }
+    }
+
+    // Hourly distribution
+    const hourly = data.hourly_distribution || [];
+    if (hourly.length > 0) {
+      const hourMap = {};
+      for (let h = 0; h < 24; h++) hourMap[h] = { impressions: 0, clicks: 0 };
+      hourly.forEach(h => {
+        const hr = parseInt(h.hour);
+        if (h.event_type === 'impression') hourMap[hr].impressions += parseInt(h.count);
+        if (h.event_type === 'click' || h.event_type === 'cta_click') hourMap[hr].clicks += parseInt(h.count);
+      });
+      const maxHour = Math.max(...Object.values(hourMap).map(h => h.impressions), 1);
+      html += `<div class="card"><div class="card-header"><h3>Hourly Distribution</h3></div>
+        <div style="display:flex;gap:2px;align-items:flex-end;height:100px;padding:8px 0">`;
+      for (let h = 0; h < 24; h++) {
+        const d = hourMap[h];
+        const barH = Math.max((d.impressions / maxHour) * 80, 2);
+        html += `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px" title="${h}:00 — ${d.impressions} imps, ${d.clicks} clicks">
+          <div style="width:100%;height:${barH}px;background:rgba(59,130,246,0.4);border-radius:2px"></div>
+          <span style="font-size:8px;color:var(--text-muted)">${h}</span>
+        </div>`;
+      }
+      html += '</div></div>';
+    }
+
+    // Reach
+    if (data.reach) {
+      html += `<div class="card"><div class="card-header"><h3>Reach</h3></div>
+        <div class="finance-grid">
+          <div class="finance-item"><div class="fi-label">Unique Devices</div><div class="fi-val">${fmt(data.reach.unique_devices)}</div></div>
+          <div class="finance-item"><div class="fi-label">Total Events</div><div class="fi-val">${fmt(data.reach.total_events)}</div></div>
+        </div></div>`;
+    }
+
+    $('cad-content').innerHTML = html;
+  } catch (e) {
+    $('cad-content').innerHTML = '<div class="empty-state">Failed to load analytics detail</div>';
+  }
+}
+
+// ========== Marketing: CTA Optimizer Page ==========
+let ctaOptDays = 30;
+async function renderCTAOptimizer() {
+  if (!isGod()) { navigate('dashboard'); return; }
+  setMain(`<div class="page-header"><h1>CTA Optimizer</h1><p>Dynamic performance-based CTA ranking and optimization</p></div>
+    <div style="display:flex;gap:6px;margin-bottom:16px;align-items:center">
+      <span style="font-size:12px;color:var(--text-muted)">Period:</span>
+      ${[7,14,30,90].map(d => `<button class="btn btn-sm ${ctaOptDays===d?'btn-primary':'btn-secondary'}" onclick="ctaOptDays=${d};renderCTAOptimizer()">${d}d</button>`).join('')}
+    </div>
+    <div id="cto-content"><div class="loading">Loading optimizer data...</div></div>`);
+  try {
+    const data = await api('/cta-optimizer?days=' + ctaOptDays);
+    const ctas = data.ctas || [];
+    let html = '';
+
+    // Optimizer overview
+    const highPerf = ctas.filter(c => c.recommendation === 'high_performer').length;
+    const moderate = ctas.filter(c => c.recommendation === 'moderate').length;
+    const needsWork = ctas.filter(c => c.recommendation === 'needs_improvement').length;
+    const insuffData = ctas.filter(c => c.recommendation === 'insufficient_data').length;
+
+    html += `<div class="stat-grid">
+      <div class="stat-card"><div class="stat-icon" style="background:rgba(16,185,129,0.15);color:#34D399"><ion-icon name="rocket"></ion-icon></div><div class="stat-label">High Performers</div><div class="stat-val">${highPerf}</div></div>
+      <div class="stat-card"><div class="stat-icon" style="background:rgba(245,158,11,0.15);color:#FBBF24"><ion-icon name="trending-up"></ion-icon></div><div class="stat-label">Moderate</div><div class="stat-val">${moderate}</div></div>
+      <div class="stat-card"><div class="stat-icon" style="background:rgba(239,68,68,0.15);color:#F87171"><ion-icon name="trending-down"></ion-icon></div><div class="stat-label">Needs Improvement</div><div class="stat-val">${needsWork}</div></div>
+      <div class="stat-card"><div class="stat-icon" style="background:rgba(100,116,139,0.15);color:#94A3B8"><ion-icon name="help-circle"></ion-icon></div><div class="stat-label">Insufficient Data</div><div class="stat-val">${insuffData}</div></div>
+    </div>`;
+
+    // Auto-optimize toggle
+    html += `<div class="card" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px">
+      <div>
+        <div style="font-weight:700;color:#fff">Auto-Optimize CTA Ranking</div>
+        <div style="font-size:12px;color:var(--text-muted)">Automatically reorder CTAs based on performance scores</div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <span style="font-size:12px;color:${data.auto_optimize_enabled?'#34D399':'var(--text-muted)'}">${data.auto_optimize_enabled?'Enabled':'Disabled'}</span>
+        <button class="btn btn-primary btn-sm" onclick="applyCtaRanking()" ${ctas.length===0?'disabled':''}><ion-icon name="swap-vertical-outline"></ion-icon> Apply Optimized Ranking Now</button>
+      </div>
+    </div>`;
+
+    // CTA ranking table
+    if (ctas.length > 0) {
+      html += `<div class="card"><div class="card-header"><h3>CTA Performance Ranking</h3></div>
+        <table><thead><tr><th>#</th><th>Tab</th><th>CTA Text</th><th>Score</th><th>Impressions</th><th>Clicks</th><th>CTR</th><th>Conversions</th><th>CVR</th><th>Dismiss Rate</th><th>Status</th></tr></thead><tbody>`;
+      ctas.forEach((c, idx) => {
+        const recColors = { high_performer:'#34D399', moderate:'#FBBF24', needs_improvement:'#F87171', insufficient_data:'#94A3B8' };
+        const recLabels = { high_performer:'High Performer', moderate:'Moderate', needs_improvement:'Needs Work', insufficient_data:'No Data' };
+        const scoreColor = parseFloat(c.optimization_score) > 15 ? '#34D399' : parseFloat(c.optimization_score) > 5 ? '#FBBF24' : '#F87171';
+        html += `<tr>
+          <td style="font-weight:700;color:var(--teal-light)">${idx+1}</td>
+          <td><span class="badge" style="background:rgba(13,148,136,0.15);color:var(--teal-light)">${esc(c.tab_label || c.tab_key)}</span></td>
+          <td><strong style="color:#fff">${esc(c.cta_text)}</strong></td>
+          <td><span style="font-size:18px;font-weight:700;color:${scoreColor}">${c.optimization_score}</span></td>
+          <td>${fmt(c.performance?.impressions||0)}</td>
+          <td>${fmt(c.performance?.clicks||0)}</td>
+          <td><span style="color:${parseFloat(c.ctr)>5?'#34D399':parseFloat(c.ctr)>2?'#FBBF24':'var(--text-muted)'};font-weight:600">${c.ctr}%</span></td>
+          <td>${fmt(c.performance?.conversions||0)}</td>
+          <td>${c.cvr}%</td>
+          <td><span style="color:${parseFloat(c.dismiss_rate)>30?'#F87171':'var(--text-secondary)'}">${c.dismiss_rate}%</span></td>
+          <td><span class="badge" style="background:rgba(${recColors[c.recommendation]==='#34D399'?'16,185,129':recColors[c.recommendation]==='#FBBF24'?'245,158,11':recColors[c.recommendation]==='#F87171'?'239,68,68':'100,116,139'},0.15);color:${recColors[c.recommendation]}">${recLabels[c.recommendation]}</span></td>
+        </tr>`;
+      });
+      html += '</tbody></table></div>';
+
+      // Score visualization
+      html += `<div class="card"><div class="card-header"><h3>Optimization Scores</h3></div>
+        <div style="display:grid;gap:10px;padding:8px 0">`;
+      const maxScore = Math.max(...ctas.map(c => parseFloat(c.optimization_score)), 1);
+      ctas.slice(0, 10).forEach(c => {
+        const w = Math.max((parseFloat(c.optimization_score) / maxScore) * 100, 2);
+        const scoreColor = parseFloat(c.optimization_score) > 15 ? '#34D399' : parseFloat(c.optimization_score) > 5 ? '#FBBF24' : '#F87171';
+        html += `<div style="display:flex;align-items:center;gap:12px">
+          <div style="width:120px;font-size:12px;color:var(--text-secondary);text-align:right;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(c.tab_label||c.tab_key)}</div>
+          <div style="flex:1;height:20px;background:rgba(255,255,255,0.05);border-radius:4px;overflow:hidden">
+            <div style="height:100%;width:${w}%;background:${scoreColor};border-radius:4px;transition:width .3s"></div>
+          </div>
+          <div style="width:50px;font-size:13px;font-weight:700;color:${scoreColor}">${c.optimization_score}</div>
+        </div>`;
+      });
+      html += '</div></div>';
+
+      // Scoring formula explanation
+      html += `<div class="card"><div class="card-header"><h3>Scoring Formula</h3></div>
+        <div style="padding:8px 0">
+          <code style="color:var(--teal-light);font-size:13px;background:rgba(0,0,0,0.2);padding:8px 14px;border-radius:8px;display:block">
+            Score = (CTR × 3) + (CVR × 5) - (Dismiss Rate × 2) + (Unique Users × 0.1)
+          </code>
+          <div style="margin-top:12px;display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px;font-size:12px;color:var(--text-secondary)">
+            <div><strong style="color:#fff">CTR weight: 3×</strong> — Click-through rate importance</div>
+            <div><strong style="color:#fff">CVR weight: 5×</strong> — Conversion rate priority</div>
+            <div><strong style="color:#fff">Dismiss: -2×</strong> — Penalizes high dismiss rates</div>
+            <div><strong style="color:#fff">Users: 0.1×</strong> — Bonus for wider reach</div>
+          </div>
+        </div></div>`;
+    } else {
+      html += '<div class="card"><div class="empty-state">No CTAs configured. Create CTAs in the Administration section to start optimization.</div></div>';
+    }
+
+    $('cto-content').innerHTML = html;
+  } catch (e) {
+    $('cto-content').innerHTML = '<div class="empty-state">Failed to load CTA optimizer</div>';
+  }
+}
+
+async function applyCtaRanking() {
+  if (!confirm('Apply the optimized CTA ranking based on performance scores? This will reorder CTAs across the app.')) return;
+  try {
+    const data = await api('/cta-optimizer?days=' + ctaOptDays);
+    const rankings = (data.ctas || []).map(c => c.id);
+    await api('/cta-optimizer/apply-ranking', { method: 'POST', body: JSON.stringify({ rankings }) });
+    toast('Optimized ranking applied successfully');
+    renderCTAOptimizer();
   } catch (e) { toast('Failed: ' + e.message, 'error'); }
 }
 
