@@ -938,6 +938,352 @@ router.put('/optimization/message/:id', requireAuth, async (req: Request, res: R
   }
 });
 
+// ========== Marketing Campaigns ==========
+
+router.get('/campaigns', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const status = req.query.status as string;
+    let query = `SELECT mc.*, cs.name as segment_name,
+      (SELECT COUNT(*) FROM campaign_variants WHERE campaign_id = mc.id) as variant_count,
+      (SELECT COALESCE(SUM(impressions),0) FROM campaign_variants WHERE campaign_id = mc.id) as total_impressions,
+      (SELECT COALESCE(SUM(clicks),0) FROM campaign_variants WHERE campaign_id = mc.id) as total_clicks,
+      (SELECT COALESCE(SUM(conversions),0) FROM campaign_variants WHERE campaign_id = mc.id) as total_conversions
+      FROM marketing_campaigns mc
+      LEFT JOIN customer_segments cs ON mc.target_segment_id = cs.id`;
+    const params: any[] = [];
+    if (status && status !== 'all') {
+      query += ` WHERE mc.status = $1`;
+      params.push(status);
+    }
+    query += ` ORDER BY mc.updated_at DESC`;
+    const result = await pool.query(query, params);
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Campaigns fetch error:', err);
+    res.status(500).json({ error: 'Failed to fetch campaigns' });
+  }
+});
+
+router.get('/campaigns/:id', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const campaign = await pool.query(`SELECT mc.*, cs.name as segment_name FROM marketing_campaigns mc LEFT JOIN customer_segments cs ON mc.target_segment_id = cs.id WHERE mc.id = $1`, [req.params.id]);
+    if (campaign.rows.length === 0) return res.status(404).json({ error: 'Campaign not found' });
+    const variants = await pool.query(`SELECT * FROM campaign_variants WHERE campaign_id = $1 ORDER BY variant_label`, [req.params.id]);
+    const eventSummary = await pool.query(`
+      SELECT variant_id, event_type, COUNT(*) as count, COUNT(DISTINCT device_id) as unique_users
+      FROM campaign_events WHERE campaign_id = $1
+      GROUP BY variant_id, event_type
+    `, [req.params.id]);
+    const dailyTrends = await pool.query(`
+      SELECT DATE(created_at) as date, event_type, COUNT(*) as count
+      FROM campaign_events WHERE campaign_id = $1 AND created_at >= NOW() - INTERVAL '30 days'
+      GROUP BY DATE(created_at), event_type ORDER BY date
+    `, [req.params.id]);
+    res.json({ campaign: campaign.rows[0], variants: variants.rows, event_summary: eventSummary.rows, daily_trends: dailyTrends.rows });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch campaign' });
+  }
+});
+
+router.post('/campaigns', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const { name, description, campaign_type, target_segment_id, target_screen, start_date, end_date, budget, goal_type, goal_target, priority, ab_enabled } = req.body;
+    const adminUser = (req as any).adminUser;
+    const result = await pool.query(
+      `INSERT INTO marketing_campaigns (name, description, campaign_type, target_segment_id, target_screen, start_date, end_date, budget, goal_type, goal_target, priority, ab_enabled, created_by)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13) RETURNING *`,
+      [name, description || null, campaign_type || 'in_app', target_segment_id || null, target_screen || null, start_date || null, end_date || null, budget || 0, goal_type || 'impressions', goal_target || 1000, priority || 5, ab_enabled || false, adminUser?.email || 'unknown']
+    );
+    const campaign = result.rows[0];
+    await pool.query(
+      `INSERT INTO campaign_variants (campaign_id, variant_name, variant_label, cta_text, headline, body, traffic_pct)
+       VALUES ($1, 'Control', 'A', $2, $3, $4, 100)`,
+      [campaign.id, 'Learn More', name, description || '']
+    );
+    res.json(campaign);
+  } catch (err) {
+    console.error('Campaign create error:', err);
+    res.status(500).json({ error: 'Failed to create campaign' });
+  }
+});
+
+router.put('/campaigns/:id', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const { name, description, campaign_type, target_segment_id, target_screen, start_date, end_date, budget, goal_type, goal_target, priority, ab_enabled, auto_optimize } = req.body;
+    const result = await pool.query(
+      `UPDATE marketing_campaigns SET name=$1, description=$2, campaign_type=$3, target_segment_id=$4, target_screen=$5, start_date=$6, end_date=$7, budget=$8, goal_type=$9, goal_target=$10, priority=$11, ab_enabled=$12, auto_optimize=$13, updated_at=NOW()
+       WHERE id=$14 RETURNING *`,
+      [name, description, campaign_type, target_segment_id || null, target_screen || null, start_date || null, end_date || null, budget || 0, goal_type, goal_target, priority, ab_enabled, auto_optimize || false, req.params.id]
+    );
+    res.json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to update campaign' });
+  }
+});
+
+router.put('/campaigns/:id/status', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const { status } = req.body;
+    if (!['draft', 'active', 'paused', 'completed', 'archived'].includes(status)) {
+      return res.status(400).json({ error: 'Invalid status' });
+    }
+    const result = await pool.query(
+      `UPDATE marketing_campaigns SET status=$1, updated_at=NOW() WHERE id=$2 RETURNING *`,
+      [status, req.params.id]
+    );
+    res.json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to update campaign status' });
+  }
+});
+
+router.post('/campaigns/:id/duplicate', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const orig = await pool.query('SELECT * FROM marketing_campaigns WHERE id = $1', [req.params.id]);
+    if (orig.rows.length === 0) return res.status(404).json({ error: 'Campaign not found' });
+    const o = orig.rows[0];
+    const adminUser = (req as any).adminUser;
+    const result = await pool.query(
+      `INSERT INTO marketing_campaigns (name, description, campaign_type, target_segment_id, target_screen, budget, goal_type, goal_target, priority, ab_enabled, created_by)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING *`,
+      [o.name + ' (Copy)', o.description, o.campaign_type, o.target_segment_id, o.target_screen, o.budget, o.goal_type, o.goal_target, o.priority, o.ab_enabled, adminUser?.email]
+    );
+    const newId = result.rows[0].id;
+    const variants = await pool.query('SELECT * FROM campaign_variants WHERE campaign_id = $1', [req.params.id]);
+    for (const v of variants.rows) {
+      await pool.query(
+        `INSERT INTO campaign_variants (campaign_id, variant_name, variant_label, cta_text, headline, body, icon, icon_color, bg_color, traffic_pct)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)`,
+        [newId, v.variant_name, v.variant_label, v.cta_text, v.headline, v.body, v.icon, v.icon_color, v.bg_color, v.traffic_pct]
+      );
+    }
+    res.json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to duplicate campaign' });
+  }
+});
+
+router.delete('/campaigns/:id', requireAuth, async (req: Request, res: Response) => {
+  try {
+    await pool.query('DELETE FROM marketing_campaigns WHERE id = $1', [req.params.id]);
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to delete campaign' });
+  }
+});
+
+// Campaign variants
+router.get('/campaigns/:id/variants', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const result = await pool.query('SELECT * FROM campaign_variants WHERE campaign_id = $1 ORDER BY variant_label', [req.params.id]);
+    res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch variants' });
+  }
+});
+
+router.post('/campaigns/:id/variants', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const { variant_name, cta_text, headline, body, icon, icon_color, bg_color, traffic_pct } = req.body;
+    const existing = await pool.query('SELECT variant_label FROM campaign_variants WHERE campaign_id = $1 ORDER BY variant_label DESC LIMIT 1', [req.params.id]);
+    const nextLabel = existing.rows.length > 0 ? String.fromCharCode(existing.rows[0].variant_label.charCodeAt(0) + 1) : 'A';
+    const result = await pool.query(
+      `INSERT INTO campaign_variants (campaign_id, variant_name, variant_label, cta_text, headline, body, icon, icon_color, bg_color, traffic_pct)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING *`,
+      [req.params.id, variant_name || 'Variant ' + nextLabel, nextLabel, cta_text || 'Learn More', headline || '', body || '', icon || null, icon_color || '#0D9488', bg_color || '#132D46', traffic_pct || 50]
+    );
+    res.json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to create variant' });
+  }
+});
+
+router.put('/campaigns/variants/:vid', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const { variant_name, cta_text, headline, body, icon, icon_color, bg_color, traffic_pct, is_active } = req.body;
+    const result = await pool.query(
+      `UPDATE campaign_variants SET variant_name=$1, cta_text=$2, headline=$3, body=$4, icon=$5, icon_color=$6, bg_color=$7, traffic_pct=$8, is_active=$9
+       WHERE id=$10 RETURNING *`,
+      [variant_name, cta_text, headline, body, icon, icon_color, bg_color, traffic_pct, is_active !== false, req.params.vid]
+    );
+    res.json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to update variant' });
+  }
+});
+
+router.delete('/campaigns/variants/:vid', requireAuth, async (req: Request, res: Response) => {
+  try {
+    await pool.query('DELETE FROM campaign_variants WHERE id = $1', [req.params.vid]);
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to delete variant' });
+  }
+});
+
+// Campaign events + analytics
+router.post('/campaigns/:id/events', async (req: Request, res: Response) => {
+  try {
+    const { variant_id, event_type, device_id, session_id, screen, metadata } = req.body;
+    await pool.query(
+      `INSERT INTO campaign_events (campaign_id, variant_id, event_type, device_id, session_id, screen, metadata)
+       VALUES ($1,$2,$3,$4,$5,$6,$7)`,
+      [req.params.id, variant_id || null, event_type, device_id || null, session_id || null, screen || null, JSON.stringify(metadata || {})]
+    );
+    if (variant_id) {
+      const field = event_type === 'impression' ? 'impressions' : event_type === 'click' || event_type === 'cta_click' ? 'clicks' : event_type === 'conversion' ? 'conversions' : event_type === 'dismiss' ? 'dismissals' : null;
+      if (field) {
+        await pool.query(`UPDATE campaign_variants SET ${field} = ${field} + 1 WHERE id = $1`, [variant_id]);
+      }
+    }
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to record campaign event' });
+  }
+});
+
+router.get('/campaigns/:id/analytics', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const days = parseInt(req.query.days as string) || 30;
+    const since = new Date(Date.now() - days * 86400000).toISOString();
+    const variants = await pool.query('SELECT * FROM campaign_variants WHERE campaign_id = $1 ORDER BY variant_label', [req.params.id]);
+    const daily = await pool.query(`
+      SELECT DATE(created_at) as date, variant_id, event_type, COUNT(*) as count
+      FROM campaign_events WHERE campaign_id = $1 AND created_at >= $2
+      GROUP BY DATE(created_at), variant_id, event_type ORDER BY date
+    `, [req.params.id, since]);
+    const hourly = await pool.query(`
+      SELECT EXTRACT(HOUR FROM created_at) as hour, event_type, COUNT(*) as count
+      FROM campaign_events WHERE campaign_id = $1 AND created_at >= $2
+      GROUP BY EXTRACT(HOUR FROM created_at), event_type ORDER BY hour
+    `, [req.params.id, since]);
+    const devices = await pool.query(`
+      SELECT COUNT(DISTINCT device_id) as unique_devices, COUNT(*) as total_events
+      FROM campaign_events WHERE campaign_id = $1 AND created_at >= $2
+    `, [req.params.id, since]);
+
+    const variantPerf = variants.rows.map((v: any) => {
+      const ctr = v.impressions > 0 ? ((v.clicks / v.impressions) * 100).toFixed(2) : '0.00';
+      const cvr = v.clicks > 0 ? ((v.conversions / v.clicks) * 100).toFixed(2) : '0.00';
+      const dismissRate = v.impressions > 0 ? ((v.dismissals / v.impressions) * 100).toFixed(2) : '0.00';
+      return { ...v, ctr, cvr, dismiss_rate: dismissRate };
+    });
+
+    res.json({
+      variants: variantPerf,
+      daily_trends: daily.rows,
+      hourly_distribution: hourly.rows,
+      reach: devices.rows[0]
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch campaign analytics' });
+  }
+});
+
+// CTA Optimizer — dynamic ranking by performance
+router.get('/cta-optimizer', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const days = parseInt(req.query.days as string) || 30;
+    const since = new Date(Date.now() - days * 86400000).toISOString();
+
+    const ctas = await pool.query(`SELECT c.*, s.name as segment_name FROM sales_ctas c LEFT JOIN customer_segments s ON c.segment_id = s.id ORDER BY c.sort_order`);
+
+    const events = await pool.query(`
+      SELECT content_id, event_type, COUNT(*) as count, COUNT(DISTINCT device_id) as unique_users
+      FROM content_events
+      WHERE content_type = 'cta' AND created_at >= $1
+      GROUP BY content_id, event_type
+    `, [since]);
+
+    const eventMap: Record<string, any> = {};
+    events.rows.forEach((e: any) => {
+      if (!eventMap[e.content_id]) eventMap[e.content_id] = { impressions: 0, clicks: 0, conversions: 0, dismissals: 0, unique_users: 0 };
+      const m = eventMap[e.content_id];
+      if (e.event_type === 'impression') { m.impressions = parseInt(e.count); m.unique_users = parseInt(e.unique_users); }
+      if (e.event_type === 'click' || e.event_type === 'cta_click') m.clicks += parseInt(e.count);
+      if (e.event_type === 'conversion') m.conversions = parseInt(e.count);
+      if (e.event_type === 'dismiss') m.dismissals = parseInt(e.count);
+    });
+
+    const scored = ctas.rows.map((c: any) => {
+      const perf = eventMap[c.tab_key] || { impressions: 0, clicks: 0, conversions: 0, dismissals: 0, unique_users: 0 };
+      const ctr = perf.impressions > 0 ? (perf.clicks / perf.impressions) * 100 : 0;
+      const cvr = perf.clicks > 0 ? (perf.conversions / perf.clicks) * 100 : 0;
+      const dismissRate = perf.impressions > 0 ? (perf.dismissals / perf.impressions) * 100 : 0;
+      const score = (ctr * 3) + (cvr * 5) - (dismissRate * 2) + (perf.unique_users * 0.1);
+      return {
+        ...c,
+        performance: perf,
+        ctr: ctr.toFixed(2),
+        cvr: cvr.toFixed(2),
+        dismiss_rate: dismissRate.toFixed(2),
+        optimization_score: Math.max(0, score).toFixed(1),
+        recommendation: ctr > 5 ? 'high_performer' : ctr > 2 ? 'moderate' : perf.impressions > 50 ? 'needs_improvement' : 'insufficient_data'
+      };
+    });
+
+    scored.sort((a: any, b: any) => parseFloat(b.optimization_score) - parseFloat(a.optimization_score));
+
+    const autoOptSetting = await pool.query(`SELECT setting_value FROM optimization_settings WHERE setting_key = 'auto_prioritize_cta'`);
+    const autoOptEnabled = autoOptSetting.rows.length > 0 && autoOptSetting.rows[0].setting_value === 'true';
+
+    res.json({
+      ctas: scored,
+      auto_optimize_enabled: autoOptEnabled,
+      period_days: days,
+    });
+  } catch (err) {
+    console.error('CTA optimizer error:', err);
+    res.status(500).json({ error: 'Failed to fetch CTA optimizer data' });
+  }
+});
+
+router.post('/cta-optimizer/apply-ranking', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const { rankings } = req.body;
+    if (!Array.isArray(rankings)) return res.status(400).json({ error: 'rankings array required' });
+    for (let i = 0; i < rankings.length; i++) {
+      await pool.query('UPDATE sales_ctas SET sort_order = $1, updated_at = NOW() WHERE id = $2', [i + 1, rankings[i]]);
+    }
+    res.json({ ok: true, updated: rankings.length });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to apply CTA ranking' });
+  }
+});
+
+// Marketing overview stats
+router.get('/marketing/overview', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const campaigns = await pool.query(`
+      SELECT status, COUNT(*) as count FROM marketing_campaigns GROUP BY status
+    `);
+    const activeCampaigns = await pool.query(`SELECT COUNT(*) as count FROM marketing_campaigns WHERE status = 'active'`);
+    const totalImpressions = await pool.query(`SELECT COALESCE(SUM(impressions), 0) as total FROM campaign_variants`);
+    const totalClicks = await pool.query(`SELECT COALESCE(SUM(clicks), 0) as total FROM campaign_variants`);
+    const totalConversions = await pool.query(`SELECT COALESCE(SUM(conversions), 0) as total FROM campaign_variants`);
+    const totalBudget = await pool.query(`SELECT COALESCE(SUM(budget), 0) as total, COALESCE(SUM(spend), 0) as spent FROM marketing_campaigns WHERE status IN ('active', 'completed')`);
+
+    const recentCampaigns = await pool.query(`
+      SELECT id, name, status, campaign_type, created_at, updated_at,
+        (SELECT COALESCE(SUM(impressions),0) FROM campaign_variants WHERE campaign_id = mc.id) as impressions,
+        (SELECT COALESCE(SUM(clicks),0) FROM campaign_variants WHERE campaign_id = mc.id) as clicks
+      FROM marketing_campaigns mc ORDER BY updated_at DESC LIMIT 5
+    `);
+
+    res.json({
+      campaign_counts: campaigns.rows,
+      active_campaigns: parseInt(activeCampaigns.rows[0].count),
+      total_impressions: parseInt(totalImpressions.rows[0].total),
+      total_clicks: parseInt(totalClicks.rows[0].total),
+      total_conversions: parseInt(totalConversions.rows[0].total),
+      budget: { total: parseFloat(totalBudget.rows[0].total), spent: parseFloat(totalBudget.rows[0].spent) },
+      recent_campaigns: recentCampaigns.rows
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch marketing overview' });
+  }
+});
+
 router.put('/optimization/cta/:id', requireAuth, async (req: Request, res: Response) => {
   try {
     const { recommendation_enabled, dynamic_content_enabled } = req.body;

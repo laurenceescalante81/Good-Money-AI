@@ -207,6 +207,65 @@ export async function initDatabase() {
         updated_by VARCHAR(255),
         updated_at TIMESTAMP DEFAULT NOW()
       );
+
+      CREATE TABLE IF NOT EXISTS marketing_campaigns (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        description TEXT,
+        campaign_type VARCHAR(30) NOT NULL DEFAULT 'in_app',
+        status VARCHAR(20) NOT NULL DEFAULT 'draft',
+        target_segment_id INTEGER REFERENCES customer_segments(id) ON DELETE SET NULL,
+        target_screen VARCHAR(50),
+        start_date TIMESTAMP,
+        end_date TIMESTAMP,
+        budget NUMERIC(12,2) DEFAULT 0,
+        spend NUMERIC(12,2) DEFAULT 0,
+        goal_type VARCHAR(30) DEFAULT 'impressions',
+        goal_target INTEGER DEFAULT 1000,
+        priority INTEGER DEFAULT 5,
+        ab_enabled BOOLEAN DEFAULT false,
+        auto_optimize BOOLEAN DEFAULT false,
+        winning_variant_id INTEGER,
+        created_by VARCHAR(255),
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW()
+      );
+      CREATE INDEX IF NOT EXISTS idx_campaigns_status ON marketing_campaigns(status);
+
+      CREATE TABLE IF NOT EXISTS campaign_variants (
+        id SERIAL PRIMARY KEY,
+        campaign_id INTEGER NOT NULL REFERENCES marketing_campaigns(id) ON DELETE CASCADE,
+        variant_name VARCHAR(50) NOT NULL DEFAULT 'Control',
+        variant_label VARCHAR(10) DEFAULT 'A',
+        cta_text VARCHAR(255),
+        headline VARCHAR(255),
+        body TEXT,
+        icon VARCHAR(100),
+        icon_color VARCHAR(20) DEFAULT '#0D9488',
+        bg_color VARCHAR(20) DEFAULT '#132D46',
+        traffic_pct INTEGER DEFAULT 100,
+        impressions INTEGER DEFAULT 0,
+        clicks INTEGER DEFAULT 0,
+        conversions INTEGER DEFAULT 0,
+        dismissals INTEGER DEFAULT 0,
+        is_active BOOLEAN DEFAULT true,
+        created_at TIMESTAMP DEFAULT NOW()
+      );
+      CREATE INDEX IF NOT EXISTS idx_variants_campaign ON campaign_variants(campaign_id);
+
+      CREATE TABLE IF NOT EXISTS campaign_events (
+        id SERIAL PRIMARY KEY,
+        campaign_id INTEGER NOT NULL REFERENCES marketing_campaigns(id) ON DELETE CASCADE,
+        variant_id INTEGER REFERENCES campaign_variants(id) ON DELETE SET NULL,
+        event_type VARCHAR(30) NOT NULL,
+        device_id VARCHAR(255),
+        session_id VARCHAR(100),
+        screen VARCHAR(50),
+        metadata JSONB DEFAULT '{}',
+        created_at TIMESTAMP DEFAULT NOW()
+      );
+      CREATE INDEX IF NOT EXISTS idx_campaign_events_campaign ON campaign_events(campaign_id);
+      CREATE INDEX IF NOT EXISTS idx_campaign_events_created ON campaign_events(created_at);
     `);
 
     const adminCount = await client.query('SELECT COUNT(*) FROM admin_users');
