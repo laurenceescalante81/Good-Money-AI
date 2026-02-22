@@ -213,7 +213,10 @@ tbody tr.clickable:hover td{background:var(--teal-glow)}
     <div class="user-area">
       <div class="user-name" id="sidebar-user-name"></div>
       <div class="user-role" id="sidebar-user-role"></div>
-      <button class="logout-btn" onclick="doLogout()"><ion-icon name="log-out-outline" style="font-size:14px"></ion-icon> Sign Out</button>
+      <div style="display:flex;gap:6px;margin-top:10px">
+        <button class="btn btn-sm" style="flex:1;background:rgba(239,68,68,0.12);color:#F87171;border:1px solid rgba(239,68,68,0.25);font-size:11px;justify-content:center" onclick="doLogout()"><ion-icon name="log-out-outline" style="font-size:13px"></ion-icon> Logout</button>
+        <button id="sidebar-refresh-btn" class="btn btn-sm hidden" style="flex:1;background:rgba(59,130,246,0.12);color:#60A5FA;border:1px solid rgba(59,130,246,0.25);font-size:11px;justify-content:center" onclick="refreshApp()"><ion-icon name="refresh-outline" style="font-size:13px"></ion-icon> Refresh</button>
+      </div>
     </div>
   </div>
   <div class="main" id="main-content"></div>
@@ -284,6 +287,14 @@ function doLogout() {
   document.getElementById('app-page').classList.add('hidden');
 }
 
+function refreshApp() {
+  toast('Refreshing app — pulling latest features...', 'info');
+  cache = {};
+  setTimeout(() => {
+    window.location.reload();
+  }, 800);
+}
+
 async function showApp() {
   document.getElementById('login-page').classList.add('hidden');
   document.getElementById('app-page').classList.remove('hidden');
@@ -299,6 +310,8 @@ async function showApp() {
   }
   document.getElementById('sidebar-user-name').textContent = currentUser.name;
   document.getElementById('sidebar-user-role').textContent = isGod() ? 'God Mode' : 'Adviser';
+  if (isGod()) document.getElementById('sidebar-refresh-btn').classList.remove('hidden');
+  else document.getElementById('sidebar-refresh-btn').classList.add('hidden');
   buildNav();
   navigate('dashboard');
 }
@@ -1103,26 +1116,125 @@ async function deleteMessage(id) {
 
 async function renderSettings() {
   if (!isGod()) { navigate('dashboard'); return; }
-  setMain(`<div class="page-header"><h1>Settings</h1><p>Manage admin users and system access</p></div><div id="settings-content"><div class="loading">Loading...</div></div>`);
+  setMain(`<div class="page-header"><h1>Settings</h1><p>Manage admin users, adviser profiles, and system access</p></div><div id="settings-content"><div class="loading">Loading...</div></div>`);
   try {
-    const users = await api('/admin-users');
-    let html = `<div class="card"><div class="card-header"><h3>Admin Users</h3><button class="btn btn-primary btn-sm" onclick="showCreateUserModal()"><ion-icon name="add-outline"></ion-icon> Add User</button></div>
-      <table><thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Created</th><th>Last Login</th></tr></thead><tbody>`;
+    const [users] = await Promise.all([api('/admin-users'), api('/advisors').then(a => { cache.advisors = a; }).catch(() => {})]);
+    cache.adminUsers = users;
+    let html = `<div class="card"><div class="card-header"><h3>Admin Users (${users.length})</h3><button class="btn btn-primary btn-sm" onclick="showCreateUserModal()"><ion-icon name="add-outline"></ion-icon> Add User</button></div>
+      <table><thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Created</th><th>Last Login</th><th>Actions</th></tr></thead><tbody>`;
     users.forEach(u => {
       const roleBadge = u.role === 'god' ? 'badge-god' : u.role === 'adviser' ? 'badge-adviser' : 'badge-active';
       html += `<tr>
-        <td><strong>${esc(u.name)}</strong></td>
+        <td><strong style="color:#fff">${esc(u.name)}</strong></td>
         <td>${esc(u.email)}</td>
         <td><span class="badge ${roleBadge}">${u.role}</span></td>
         <td>${fmtDate(u.created_at)}</td>
-        <td>${u.last_login ? fmtDateTime(u.last_login) : 'Never'}</td>
+        <td>${u.last_login ? fmtDateTime(u.last_login) : '<span style="color:var(--text-muted)">Never</span>'}</td>
+        <td style="white-space:nowrap">
+          <button class="btn btn-secondary btn-sm" onclick="showEditUserModal(${u.id})" title="Edit"><ion-icon name="create-outline"></ion-icon></button>
+          <button class="btn btn-secondary btn-sm" onclick="showResetPasswordModal(${u.id},'${esc(u.name)}')" title="Reset Password" style="margin-left:4px"><ion-icon name="key-outline"></ion-icon></button>
+          <button class="btn btn-danger btn-sm" onclick="deleteAdminUser(${u.id},'${esc(u.name)}')" title="Delete" style="margin-left:4px"><ion-icon name="trash-outline"></ion-icon></button>
+        </td>
       </tr>`;
     });
     html += '</tbody></table></div>';
+
+    html += `<div class="card" style="margin-top:20px"><div class="card-header"><h3>System</h3></div>
+      <div style="display:flex;gap:12px;flex-wrap:wrap">
+        <button class="btn btn-secondary" onclick="refreshApp()"><ion-icon name="refresh-outline"></ion-icon> Refresh &amp; Republish</button>
+        <button class="btn btn-secondary" onclick="clearCacheAndReload()"><ion-icon name="trash-outline"></ion-icon> Clear Cache</button>
+      </div>
+      <p style="font-size:12px;color:var(--text-muted);margin-top:12px"><strong>Refresh &amp; Republish</strong> — Reloads the portal to pull the latest features. Use after new updates have been deployed.</p>
+      <p style="font-size:12px;color:var(--text-muted);margin-top:4px"><strong>Clear Cache</strong> — Clears local cached data and reloads the portal.</p>
+    </div>`;
+
     $('settings-content').innerHTML = html;
   } catch (e) {
     $('settings-content').innerHTML = '<div class="empty-state">Failed to load settings</div>';
   }
+}
+
+function showEditUserModal(userId) {
+  const u = (cache.adminUsers || []).find(x => x.id === userId);
+  if (!u) return;
+  const advisors = cache.advisors || [];
+  let advOpts = '<option value="">None</option>';
+  advisors.forEach(a => advOpts += `<option value="${a.id}" ${u.advisor_id==a.id?'selected':''}>${esc(a.name)}</option>`);
+
+  showModal(`
+    <h2>Edit Admin User</h2>
+    <div class="form-group"><label>Name</label><input id="m-eu-name" value="${esc(u.name)}"></div>
+    <div class="form-group"><label>Email</label><input id="m-eu-email" value="${esc(u.email)}"></div>
+    <div class="form-group"><label>Role</label><select id="m-eu-role" onchange="document.getElementById('m-eu-advisor-group').style.display=this.value==='adviser'?'block':'none'">
+      <option value="admin" ${u.role==='admin'?'selected':''}>Admin</option>
+      <option value="adviser" ${u.role==='adviser'?'selected':''}>Adviser</option>
+      <option value="god" ${u.role==='god'?'selected':''}>God</option>
+    </select></div>
+    <div class="form-group" id="m-eu-advisor-group" style="${u.role==='adviser'?'':'display:none'}"><label>Linked Adviser</label><select id="m-eu-advisor">${advOpts}</select></div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="hideModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="updateAdminUser(${userId})">Save Changes</button>
+    </div>
+  `);
+}
+
+async function updateAdminUser(userId) {
+  const data = {
+    name: $('m-eu-name').value,
+    email: $('m-eu-email').value,
+    role: $('m-eu-role').value,
+  };
+  if (data.role === 'adviser') {
+    const av = $('m-eu-advisor');
+    if (av && av.value) data.advisor_id = parseInt(av.value);
+  }
+  try {
+    await api('/admin-users/' + userId, { method: 'PUT', body: JSON.stringify(data) });
+    hideModal();
+    toast('User updated');
+    renderSettings();
+  } catch (e) { toast('Failed: ' + e.message, 'error'); }
+}
+
+function showResetPasswordModal(userId, name) {
+  showModal(`
+    <h2>Reset Password</h2>
+    <p style="font-size:13px;color:var(--text-secondary);margin-bottom:16px">Set a new password for <strong style="color:#fff">${esc(name)}</strong></p>
+    <div class="form-group"><label>New Password</label><input type="password" id="m-rp-pass" placeholder="Min 6 characters"></div>
+    <div class="form-group"><label>Confirm Password</label><input type="password" id="m-rp-confirm" placeholder="Re-enter password"></div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="hideModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="resetUserPassword(${userId})">Reset Password</button>
+    </div>
+  `);
+}
+
+async function resetUserPassword(userId) {
+  const pass = $('m-rp-pass').value;
+  const confirm = $('m-rp-confirm').value;
+  if (!pass || pass.length < 6) { toast('Password must be at least 6 characters', 'error'); return; }
+  if (pass !== confirm) { toast('Passwords do not match', 'error'); return; }
+  try {
+    await api('/admin-users/' + userId + '/password', { method: 'PUT', body: JSON.stringify({ password: pass }) });
+    hideModal();
+    toast('Password reset successfully');
+  } catch (e) { toast('Failed: ' + e.message, 'error'); }
+}
+
+async function deleteAdminUser(userId, name) {
+  if (!confirm('Delete admin user "' + name + '"? This cannot be undone.')) return;
+  try {
+    await api('/admin-users/' + userId, { method: 'DELETE' });
+    toast('User deleted');
+    renderSettings();
+  } catch (e) { toast('Failed: ' + e.message, 'error'); }
+}
+
+function clearCacheAndReload() {
+  cache = {};
+  localStorage.removeItem('adviser_user');
+  toast('Cache cleared, reloading...', 'info');
+  setTimeout(() => window.location.reload(), 800);
 }
 
 function showCreateUserModal() {

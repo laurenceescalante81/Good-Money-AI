@@ -503,6 +503,46 @@ router.post('/admin-users', requireAuth, requireGod, async (req: Request, res: R
   }
 });
 
+router.put('/admin-users/:id', requireAuth, requireGod, async (req: Request, res: Response) => {
+  try {
+    const { name, email, role, advisor_id } = req.body;
+    const result = await pool.query(
+      `UPDATE admin_users SET name=$1, email=$2, role=$3, advisor_id=$4 WHERE id=$5 RETURNING id, email, name, role, advisor_id, created_at, last_login`,
+      [name, email, role, advisor_id || null, req.params.id]
+    );
+    if (result.rows.length === 0) return res.status(404).json({ error: 'User not found' });
+    res.json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to update admin user' });
+  }
+});
+
+router.put('/admin-users/:id/password', requireAuth, requireGod, async (req: Request, res: Response) => {
+  try {
+    const { password } = req.body;
+    if (!password || password.length < 6) return res.status(400).json({ error: 'Password must be at least 6 characters' });
+    const hash = await bcrypt.hash(password, 10);
+    await pool.query('UPDATE admin_users SET password_hash=$1 WHERE id=$2', [hash, req.params.id]);
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to reset password' });
+  }
+});
+
+router.delete('/admin-users/:id', requireAuth, requireGod, async (req: Request, res: Response) => {
+  try {
+    const check = await pool.query('SELECT role FROM admin_users WHERE id=$1', [req.params.id]);
+    if (check.rows.length > 0 && check.rows[0].role === 'god') {
+      const godCount = await pool.query("SELECT COUNT(*) FROM admin_users WHERE role='god'");
+      if (parseInt(godCount.rows[0].count) <= 1) return res.status(400).json({ error: 'Cannot delete the last god mode user' });
+    }
+    await pool.query('DELETE FROM admin_users WHERE id=$1', [req.params.id]);
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to delete admin user' });
+  }
+});
+
 router.get('/fact-find-configs', requireAuth, async (_req: Request, res: Response) => {
   try {
     const result = await pool.query('SELECT * FROM fact_find_configs ORDER BY sort_order');
