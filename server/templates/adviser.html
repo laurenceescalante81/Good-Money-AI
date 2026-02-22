@@ -321,6 +321,8 @@ function buildNav() {
   html += navItem('dashboard', 'grid-outline', 'Dashboard');
   html += navItem('clients', 'people-outline', isGod() ? 'All Clients' : 'My Clients');
   html += navItem('reports', 'bar-chart-outline', 'Reports');
+  html += navItem('content-reports', 'analytics-outline', 'Content Reports');
+  html += navItem('optimization', 'flash-outline', 'Optimization');
   if (isGod()) {
     html += '<div class="nav-divider"></div>';
     html += '<div class="nav-label">Administration</div>';
@@ -340,7 +342,7 @@ function navItem(page, icon, label) {
 function navigate(page) {
   currentPage = page;
   document.querySelectorAll('.nav-item').forEach(n => n.classList.toggle('active', n.dataset.page === page));
-  const renderers = { dashboard: renderDashboard, clients: renderClients, reports: renderReports, advisers: renderAdvisers, quests: renderQuests, ctas: renderCTAs, messages: renderMessages, settings: renderSettings };
+  const renderers = { dashboard: renderDashboard, clients: renderClients, reports: renderReports, advisers: renderAdvisers, quests: renderQuests, ctas: renderCTAs, messages: renderMessages, 'content-reports': renderContentReports, optimization: renderOptimization, settings: renderSettings };
   if (renderers[page]) renderers[page]();
 }
 
@@ -1483,6 +1485,250 @@ async function deleteCTA(id) {
     await api('/ctas/' + id, { method: 'DELETE' });
     toast('CTA deleted');
     renderCTAs();
+  } catch (e) { toast('Failed: ' + e.message, 'error'); }
+}
+
+let contentReportsDays = 30;
+let contentReportsType = 'all';
+async function renderContentReports() {
+  if (!isGod() && !(currentUser && currentUser.role === 'adviser')) { navigate('dashboard'); return; }
+  setMain(`<div class="page-header"><h1>Content Reports</h1><p>FTUE, CTA & message performance analytics</p></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+      <div style="display:flex;gap:6px">
+        <button class="btn btn-sm ${contentReportsType==='all'?'btn-primary':'btn-secondary'}" onclick="contentReportsType='all';renderContentReports()">All</button>
+        <button class="btn btn-sm ${contentReportsType==='ftue'?'btn-primary':'btn-secondary'}" onclick="contentReportsType='ftue';renderContentReports()">FTUE</button>
+        <button class="btn btn-sm ${contentReportsType==='popup'?'btn-primary':'btn-secondary'}" onclick="contentReportsType='popup';renderContentReports()">Popups</button>
+        <button class="btn btn-sm ${contentReportsType==='tooltip'?'btn-primary':'btn-secondary'}" onclick="contentReportsType='tooltip';renderContentReports()">Tooltips</button>
+        <button class="btn btn-sm ${contentReportsType==='cta'?'btn-primary':'btn-secondary'}" onclick="contentReportsType='cta';renderContentReports()">CTAs</button>
+      </div>
+      <div style="display:flex;gap:6px;align-items:center">
+        <span style="font-size:12px;color:var(--text-muted)">Period:</span>
+        <button class="btn btn-sm ${contentReportsDays===7?'btn-primary':'btn-secondary'}" onclick="contentReportsDays=7;renderContentReports()">7d</button>
+        <button class="btn btn-sm ${contentReportsDays===14?'btn-primary':'btn-secondary'}" onclick="contentReportsDays=14;renderContentReports()">14d</button>
+        <button class="btn btn-sm ${contentReportsDays===30?'btn-primary':'btn-secondary'}" onclick="contentReportsDays=30;renderContentReports()">30d</button>
+        <button class="btn btn-sm ${contentReportsDays===90?'btn-primary':'btn-secondary'}" onclick="contentReportsDays=90;renderContentReports()">90d</button>
+      </div>
+    </div>
+    <div id="cr-content"><div class="loading">Loading reports...</div></div>`);
+
+  try {
+    const data = await api('/content-reports?days=' + contentReportsDays + '&content_type=' + contentReportsType);
+    let html = '';
+
+    const totals = { impressions: 0, clicks: 0, dismissals: 0, conversions: 0, unique_users: 0 };
+    (data.summary || []).forEach(s => {
+      if (s.event_type === 'impression') { totals.impressions += parseInt(s.count); totals.unique_users += parseInt(s.unique_users); }
+      if (s.event_type === 'click' || s.event_type === 'cta_click') totals.clicks += parseInt(s.count);
+      if (s.event_type === 'dismiss') totals.dismissals += parseInt(s.count);
+      if (s.event_type === 'conversion') totals.conversions += parseInt(s.count);
+    });
+    const clickRate = totals.impressions > 0 ? ((totals.clicks / totals.impressions) * 100).toFixed(1) : '0.0';
+    const dismissRate = totals.impressions > 0 ? ((totals.dismissals / totals.impressions) * 100).toFixed(1) : '0.0';
+
+    html += `<div class="stat-grid">
+      <div class="stat-card"><div class="stat-icon" style="background:rgba(59,130,246,0.15);color:#60A5FA"><ion-icon name="eye-outline"></ion-icon></div><div class="stat-label">Total Impressions</div><div class="stat-val">${fmt(totals.impressions)}</div><div class="stat-sub">${fmt(totals.unique_users)} unique users</div></div>
+      <div class="stat-card"><div class="stat-icon" style="background:rgba(16,185,129,0.15);color:#34D399"><ion-icon name="finger-print-outline"></ion-icon></div><div class="stat-label">CTA Clicks</div><div class="stat-val">${fmt(totals.clicks)}</div><div class="stat-sub">${clickRate}% click rate</div></div>
+      <div class="stat-card"><div class="stat-icon" style="background:rgba(239,68,68,0.15);color:#F87171"><ion-icon name="close-circle-outline"></ion-icon></div><div class="stat-label">Dismissals</div><div class="stat-val">${fmt(totals.dismissals)}</div><div class="stat-sub">${dismissRate}% dismiss rate</div></div>
+      <div class="stat-card"><div class="stat-icon" style="background:rgba(139,92,246,0.15);color:#A78BFA"><ion-icon name="checkmark-done-outline"></ion-icon></div><div class="stat-label">Conversions</div><div class="stat-val">${fmt(totals.conversions)}</div><div class="stat-sub">${totals.clicks > 0 ? ((totals.conversions / totals.clicks) * 100).toFixed(1) : '0.0'}% conversion rate</div></div>
+    </div>`;
+
+    const items = data.content_items || [];
+    if (items.length > 0) {
+      html += `<div class="card"><div class="card-header"><h3>Per-Element Breakdown</h3></div>
+        <table><thead><tr><th>Type</th><th>Content ID</th><th>Impressions</th><th>CTA Clicks</th><th>Click Rate</th><th>Dismissals</th><th>Dismiss Rate</th></tr></thead><tbody>`;
+      items.sort((a,b) => b.impressions - a.impressions).forEach(item => {
+        const typeBadge = item.content_type === 'tooltip' ? 'background:rgba(59,130,246,0.15);color:#60A5FA' : item.content_type === 'popup' ? 'background:rgba(139,92,246,0.15);color:#A78BFA' : item.content_type === 'ftue' ? 'background:rgba(16,185,129,0.15);color:#34D399' : 'background:rgba(245,158,11,0.15);color:#FBBF24';
+        html += `<tr>
+          <td><span class="badge" style="${typeBadge}">${item.content_type}</span></td>
+          <td><strong style="color:#fff">${esc(item.content_id)}</strong></td>
+          <td>${fmt(item.impressions)}<br><span style="font-size:11px;color:var(--text-muted)">${fmt(item.unique_impressions)} unique</span></td>
+          <td>${fmt(item.cta_clicks || item.clicks)}</td>
+          <td><span style="color:${parseFloat(item.click_rate) > 5 ? '#34D399' : parseFloat(item.click_rate) > 0 ? '#FBBF24' : 'var(--text-muted)'}">${item.click_rate}%</span></td>
+          <td>${fmt(item.dismissals)}</td>
+          <td><span style="color:${parseFloat(item.dismiss_rate) > 50 ? '#F87171' : 'var(--text-secondary)'}">${item.dismiss_rate}%</span></td>
+        </tr>`;
+      });
+      html += '</tbody></table></div>';
+    } else {
+      html += '<div class="card"><div class="empty-state">No content events recorded yet. Events will appear once users interact with FTUE, tooltips, popups, and CTAs in the app.</div></div>';
+    }
+
+    const trends = data.daily_trends || [];
+    if (trends.length > 0) {
+      const dailyMap = {};
+      trends.forEach(t => {
+        if (!dailyMap[t.date]) dailyMap[t.date] = { impressions: 0, clicks: 0, dismissals: 0 };
+        if (t.event_type === 'impression') dailyMap[t.date].impressions += parseInt(t.count);
+        if (t.event_type === 'click' || t.event_type === 'cta_click') dailyMap[t.date].clicks += parseInt(t.count);
+        if (t.event_type === 'dismiss') dailyMap[t.date].dismissals += parseInt(t.count);
+      });
+      const dates = Object.keys(dailyMap).sort().slice(-14);
+      const maxVal = Math.max(...dates.map(d => dailyMap[d].impressions), 1);
+
+      html += `<div class="card"><div class="card-header"><h3>Daily Trend (Last 14 Days)</h3></div>
+        <div style="display:flex;gap:4px;align-items:flex-end;height:140px;padding:10px 0">`;
+      dates.forEach(d => {
+        const day = dailyMap[d];
+        const h = Math.max((day.impressions / maxVal) * 120, 4);
+        const clickH = Math.max((day.clicks / maxVal) * 120, 0);
+        const dLabel = new Date(d).toLocaleDateString('en-AU', { day: 'numeric', month: 'short' });
+        html += `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px" title="${dLabel}: ${day.impressions} impressions, ${day.clicks} clicks">
+          <div style="width:100%;max-width:30px;height:${h}px;background:rgba(59,130,246,0.4);border-radius:4px 4px 0 0;position:relative">
+            <div style="position:absolute;bottom:0;width:100%;height:${clickH}px;background:var(--teal);border-radius:0 0 4px 4px;opacity:0.8"></div>
+          </div>
+          <span style="font-size:9px;color:var(--text-muted);white-space:nowrap">${dLabel.split(' ')[0]}</span>
+        </div>`;
+      });
+      html += `</div>
+        <div style="display:flex;gap:16px;margin-top:8px;justify-content:center">
+          <span style="font-size:11px;color:var(--text-muted)"><span style="display:inline-block;width:10px;height:10px;background:rgba(59,130,246,0.4);border-radius:2px;vertical-align:middle;margin-right:4px"></span>Impressions</span>
+          <span style="font-size:11px;color:var(--text-muted)"><span style="display:inline-block;width:10px;height:10px;background:var(--teal);border-radius:2px;vertical-align:middle;margin-right:4px"></span>Clicks</span>
+        </div></div>`;
+    }
+
+    const msgList = data.messages || [];
+    const ctaList = data.ctas || [];
+    if (msgList.length > 0 || ctaList.length > 0) {
+      html += `<div class="card"><div class="card-header"><h3>Recommendation Status</h3></div>
+        <table><thead><tr><th>Type</th><th>Name</th><th>Status</th><th>Recommendations</th><th>Dynamic Content</th></tr></thead><tbody>`;
+      msgList.forEach(m => {
+        const typeBadge = m.type === 'tooltip' ? 'background:rgba(59,130,246,0.15);color:#60A5FA' : m.type === 'popup' ? 'background:rgba(139,92,246,0.15);color:#A78BFA' : 'background:rgba(16,185,129,0.15);color:#34D399';
+        html += `<tr>
+          <td><span class="badge" style="${typeBadge}">${m.type}</span></td>
+          <td><strong style="color:#fff">${esc(m.title)}</strong><br><span style="font-size:11px;color:var(--text-muted)">${esc(m.message_id)}</span></td>
+          <td><span class="badge ${m.is_active ? 'badge-active' : 'badge-inactive'}">${m.is_active ? 'Active' : 'Inactive'}</span></td>
+          <td><span class="badge" style="${m.recommendation_enabled ? 'background:rgba(16,185,129,0.15);color:#34D399' : 'background:rgba(100,116,139,0.15);color:#94A3B8'}">${m.recommendation_enabled ? 'On' : 'Off'}</span></td>
+          <td><span class="badge" style="${m.dynamic_content_enabled ? 'background:rgba(139,92,246,0.15);color:#A78BFA' : 'background:rgba(100,116,139,0.15);color:#94A3B8'}">${m.dynamic_content_enabled ? 'On' : 'Off'}</span></td>
+        </tr>`;
+      });
+      ctaList.forEach(c => {
+        html += `<tr>
+          <td><span class="badge" style="background:rgba(245,158,11,0.15);color:#FBBF24">cta</span></td>
+          <td><strong style="color:#fff">${esc(c.cta_text)}</strong><br><span style="font-size:11px;color:var(--text-muted)">${esc(c.tab_key)}</span></td>
+          <td><span class="badge ${c.is_active ? 'badge-active' : 'badge-inactive'}">${c.is_active ? 'Active' : 'Inactive'}</span></td>
+          <td><span class="badge" style="${c.recommendation_enabled ? 'background:rgba(16,185,129,0.15);color:#34D399' : 'background:rgba(100,116,139,0.15);color:#94A3B8'}">${c.recommendation_enabled ? 'On' : 'Off'}</span></td>
+          <td><span class="badge" style="${c.dynamic_content_enabled ? 'background:rgba(139,92,246,0.15);color:#A78BFA' : 'background:rgba(100,116,139,0.15);color:#94A3B8'}">${c.dynamic_content_enabled ? 'On' : 'Off'}</span></td>
+        </tr>`;
+      });
+      html += '</tbody></table></div>';
+    }
+
+    $('cr-content').innerHTML = html;
+  } catch (e) {
+    $('cr-content').innerHTML = '<div class="empty-state">Failed to load content reports</div>';
+  }
+}
+
+async function renderOptimization() {
+  if (!isGod() && !(currentUser && currentUser.role === 'adviser')) { navigate('dashboard'); return; }
+  setMain(`<div class="page-header"><h1>Content Optimization</h1><p>Control dynamic content delivery and per-element recommendations</p></div>
+    <div id="opt-content"><div class="loading">Loading optimization settings...</div></div>`);
+
+  try {
+    const data = await api('/optimization');
+    const settings = data.settings || [];
+    const messages = data.messages || [];
+    const ctas = data.ctas || [];
+    let html = '';
+
+    html += `<div class="card"><div class="card-header"><h3>Global Settings</h3></div>
+      <div style="display:grid;gap:16px">`;
+    settings.forEach(s => {
+      const isOn = s.setting_value === 'true';
+      const label = s.setting_key.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+      html += `<div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--card-border)">
+        <div>
+          <div style="font-weight:600;color:#fff;font-size:14px">${label}</div>
+          <div style="font-size:12px;color:var(--text-muted);margin-top:2px">${esc(s.description || '')}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-size:12px;color:${isOn ? '#34D399' : 'var(--text-muted)'}">${isOn ? 'Enabled' : 'Disabled'}</span>
+          <button class="btn btn-sm ${isOn ? 'btn-primary' : 'btn-secondary'}" onclick="toggleOptSetting('${esc(s.setting_key)}', ${!isOn})">
+            <ion-icon name="${isOn ? 'toggle' : 'toggle-outline'}"></ion-icon> ${isOn ? 'Disable' : 'Enable'}
+          </button>
+        </div>
+      </div>`;
+    });
+    html += '</div></div>';
+
+    if (messages.length > 0) {
+      html += `<div class="card"><div class="card-header"><h3>Messages — Per-Element Controls</h3></div>
+        <table><thead><tr><th>Type</th><th>Title</th><th>Status</th><th>Recommendations</th><th>Dynamic Content</th></tr></thead><tbody>`;
+      messages.forEach(m => {
+        const typeBadge = m.type === 'tooltip' ? 'background:rgba(59,130,246,0.15);color:#60A5FA' : m.type === 'popup' ? 'background:rgba(139,92,246,0.15);color:#A78BFA' : 'background:rgba(16,185,129,0.15);color:#34D399';
+        html += `<tr>
+          <td><span class="badge" style="${typeBadge}">${m.type}</span></td>
+          <td><strong style="color:#fff">${esc(m.title)}</strong><br><span style="font-size:11px;color:var(--text-muted)">${esc(m.message_id)}</span></td>
+          <td><span class="badge ${m.is_active ? 'badge-active' : 'badge-inactive'}">${m.is_active ? 'Active' : 'Inactive'}</span></td>
+          <td>
+            <button class="btn btn-sm ${m.recommendation_enabled ? 'btn-primary' : 'btn-secondary'}" onclick="toggleMsgOpt(${m.id}, 'recommendation_enabled', ${!m.recommendation_enabled})">
+              <ion-icon name="${m.recommendation_enabled ? 'checkmark-circle' : 'ellipse-outline'}"></ion-icon> ${m.recommendation_enabled ? 'On' : 'Off'}
+            </button>
+          </td>
+          <td>
+            <button class="btn btn-sm ${m.dynamic_content_enabled ? 'btn-primary' : 'btn-secondary'}" onclick="toggleMsgOpt(${m.id}, 'dynamic_content_enabled', ${!m.dynamic_content_enabled})">
+              <ion-icon name="${m.dynamic_content_enabled ? 'flash' : 'flash-outline'}"></ion-icon> ${m.dynamic_content_enabled ? 'On' : 'Off'}
+            </button>
+          </td>
+        </tr>`;
+      });
+      html += '</tbody></table></div>';
+    }
+
+    if (ctas.length > 0) {
+      html += `<div class="card"><div class="card-header"><h3>Sales CTAs — Per-Element Controls</h3></div>
+        <table><thead><tr><th>Tab</th><th>CTA Text</th><th>Status</th><th>Recommendations</th><th>Dynamic Content</th></tr></thead><tbody>`;
+      ctas.forEach(c => {
+        html += `<tr>
+          <td><span class="badge" style="background:rgba(245,158,11,0.15);color:#FBBF24">${esc(c.tab_label || c.tab_key)}</span></td>
+          <td><strong style="color:#fff">${esc(c.cta_text)}</strong></td>
+          <td><span class="badge ${c.is_active ? 'badge-active' : 'badge-inactive'}">${c.is_active ? 'Active' : 'Inactive'}</span></td>
+          <td>
+            <button class="btn btn-sm ${c.recommendation_enabled ? 'btn-primary' : 'btn-secondary'}" onclick="toggleCtaOpt(${c.id}, 'recommendation_enabled', ${!c.recommendation_enabled})">
+              <ion-icon name="${c.recommendation_enabled ? 'checkmark-circle' : 'ellipse-outline'}"></ion-icon> ${c.recommendation_enabled ? 'On' : 'Off'}
+            </button>
+          </td>
+          <td>
+            <button class="btn btn-sm ${c.dynamic_content_enabled ? 'btn-primary' : 'btn-secondary'}" onclick="toggleCtaOpt(${c.id}, 'dynamic_content_enabled', ${!c.dynamic_content_enabled})">
+              <ion-icon name="${c.dynamic_content_enabled ? 'flash' : 'flash-outline'}"></ion-icon> ${c.dynamic_content_enabled ? 'On' : 'Off'}
+            </button>
+          </td>
+        </tr>`;
+      });
+      html += '</tbody></table></div>';
+    }
+
+    $('opt-content').innerHTML = html;
+  } catch (e) {
+    $('opt-content').innerHTML = '<div class="empty-state">Failed to load optimization settings</div>';
+  }
+}
+
+async function toggleOptSetting(key, value) {
+  try {
+    await api('/optimization/settings/' + key, { method: 'PUT', body: JSON.stringify({ value: String(value) }) });
+    toast(value ? 'Setting enabled' : 'Setting disabled');
+    renderOptimization();
+  } catch (e) { toast('Failed: ' + e.message, 'error'); }
+}
+
+async function toggleMsgOpt(id, field, value) {
+  try {
+    const body = {};
+    body[field] = value;
+    await api('/optimization/message/' + id, { method: 'PUT', body: JSON.stringify(body) });
+    toast('Message updated');
+    renderOptimization();
+  } catch (e) { toast('Failed: ' + e.message, 'error'); }
+}
+
+async function toggleCtaOpt(id, field, value) {
+  try {
+    const body = {};
+    body[field] = value;
+    await api('/optimization/cta/' + id, { method: 'PUT', body: JSON.stringify(body) });
+    toast('CTA updated');
+    renderOptimization();
   } catch (e) { toast('Failed: ' + e.message, 'error'); }
 }
 
