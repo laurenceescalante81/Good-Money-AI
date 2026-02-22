@@ -8,6 +8,7 @@ import { router } from "expo-router";
 import Colors from "@/constants/colors";
 import { useFinance } from "@/contexts/FinanceContext";
 import { useRewards } from "@/contexts/RewardsContext";
+import CoinHeader from '@/components/CoinHeader';
 
 function fmt(n: number): string { return "$" + Math.abs(n).toLocaleString("en-AU", { minimumFractionDigits: 0, maximumFractionDigits: 0 }); }
 function fmtK(n: number): string {
@@ -100,12 +101,7 @@ export default function PlanningScreen() {
   return (
     <View style={styles.container}>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
-        <View style={[styles.header, { paddingTop: topInset + 16 }]}>
-          <Text style={styles.title}>Planning</Text>
-          <View style={styles.headerRight}>
-            <Ionicons name="analytics-outline" size={24} color={Colors.light.tint} />
-          </View>
-        </View>
+        <CoinHeader title="Planning" />
 
         <View style={styles.summaryRow}>
           <View style={[styles.summaryCard, { backgroundColor: Colors.light.tint + "12" }]}>

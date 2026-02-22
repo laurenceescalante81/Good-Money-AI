@@ -8,6 +8,7 @@ import { router } from 'expo-router';
 import Colors from '@/constants/colors';
 import { useFinance } from '@/contexts/FinanceContext';
 import { useRewards, FactFindSection } from '@/contexts/RewardsContext';
+import CoinHeader from '@/components/CoinHeader';
 
 const AU_STATES = ['NSW', 'VIC', 'QLD', 'WA', 'SA', 'TAS', 'ACT', 'NT'];
 
@@ -662,14 +663,8 @@ export default function FactFindTabScreen() {
   return (
     <View style={styles.container}>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: bottomInset + 120 }} keyboardShouldPersistTaps="handled">
-        <LinearGradient colors={['#0C1B2A', '#132D46', '#1B3A5C']} style={[styles.heroGradient, { paddingTop: topInset + 16 }]}>
-          <View style={styles.headerRow}>
-            <View>
-              <Text style={styles.appName}>Fact Find</Text>
-              <Text style={styles.subtitle}>FINANCIAL FACT FIND</Text>
-            </View>
-            <Image source={require('@/assets/images/logo.jpeg')} style={styles.headerLogo} />
-          </View>
+        <LinearGradient colors={['#0C1B2A', '#132D46', '#1B3A5C']} style={[styles.heroGradient, { paddingTop: 0 }]}>
+          <CoinHeader title="Fact Find" subtitle="FINANCIAL FACT FIND" transparent />
 
           <View style={styles.progressCard}>
             <LinearGradient colors={['#1a2942', '#0f1c30']} style={styles.progressCardInner}>

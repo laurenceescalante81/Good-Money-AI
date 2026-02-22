@@ -6,6 +6,7 @@ import { router } from "expo-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import Colors from "@/constants/colors";
 import { getApiUrl } from "@/lib/query-client";
+import CoinHeader from '@/components/CoinHeader';
 
 function fmt(n: number): string { return "$" + Math.abs(n).toLocaleString("en-AU", { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
 
@@ -187,14 +188,14 @@ export default function BanksScreen() {
         contentContainerStyle={{ paddingBottom: 100 }}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.light.tint} />}
       >
-        <View style={[styles.header, { paddingTop: topInset + 16 }]}>
-          <Text style={styles.title}>Banks</Text>
-          {isConfigured && (
+        <CoinHeader
+          title="Banks"
+          rightElement={isConfigured ? (
             <Pressable onPress={() => router.push("/connect-bank")} hitSlop={12}>
               <Ionicons name="add-circle" size={28} color={Colors.light.tint} />
             </Pressable>
-          )}
-        </View>
+          ) : undefined}
+        />
 
         {isLoading && (
           <View style={styles.loadingState}>

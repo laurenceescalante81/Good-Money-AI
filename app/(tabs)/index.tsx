@@ -9,6 +9,7 @@ import { router } from 'expo-router';
 import { useRewards, Mission, TokenTransaction } from '@/contexts/RewardsContext';
 import { MessageOverlay } from '@/contexts/AppMessagesContext';
 import Colors from '@/constants/colors';
+import CoinHeader from '@/components/CoinHeader';
 
 const { width: SCREEN_W } = Dimensions.get('window');
 const fmt = (n: number) => '$' + n.toLocaleString('en-AU', { maximumFractionDigits: 0 });
@@ -298,14 +299,8 @@ export default function RewardsScreen() {
   return (
     <View style={s.container}>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 120 }}>
-        <LinearGradient colors={['#0C1B2A', '#132D46', '#1B3A5C']} style={[s.heroGradient, { paddingTop: topInset + 16 }]}>
-          <View style={s.headerRow}>
-            <View>
-              <Text style={s.appName}>Good Money</Text>
-              <Text style={s.greeting}>REWARDS & MISSIONS</Text>
-            </View>
-            <Image source={require('@/assets/images/logo.jpeg')} style={s.headerLogo} />
-          </View>
+        <LinearGradient colors={['#0C1B2A', '#132D46', '#1B3A5C']} style={[s.heroGradient, { paddingTop: 0 }]}>
+          <CoinHeader title="Good Money" subtitle="REWARDS & MISSIONS" transparent />
 
           <View style={s.pointsCard}>
             <LinearGradient colors={['#1a2942', '#0f1c30']} style={s.pointsCardInner}>

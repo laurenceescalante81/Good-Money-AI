@@ -6,6 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import Colors from '@/constants/colors';
+import CoinHeader from '@/components/CoinHeader';
 
 const SECTIONS = [
   { route: '/(tabs)/overview', label: 'Overview', icon: 'pie-chart', color: '#0D9488' },
@@ -29,8 +30,8 @@ export default function HomeScreen() {
   const bottomPad = isWeb ? 34 : insets.bottom;
 
   return (
-    <View style={[styles.container, { paddingTop: topPad + 20, paddingBottom: bottomPad + 110 }]}>
-      <Text style={styles.title}>Good Money</Text>
+    <View style={[styles.container, { paddingBottom: bottomPad + 110 }]}>
+      <CoinHeader />
       <Text style={styles.subtitle}>Your Australian Finance Hub</Text>
 
       <View style={styles.iconGrid}>

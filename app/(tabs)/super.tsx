@@ -8,6 +8,7 @@ import Colors from "@/constants/colors";
 import { useFinance } from "@/contexts/FinanceContext";
 import { useRewards } from "@/contexts/RewardsContext";
 import { MessageOverlay } from "@/contexts/AppMessagesContext";
+import CoinHeader from '@/components/CoinHeader';
 
 function fmt(n: number): string { return "$" + n.toLocaleString("en-AU", { minimumFractionDigits: 0, maximumFractionDigits: 0 }); }
 
@@ -30,9 +31,7 @@ export default function SuperScreen() {
   if (!superDetails) {
     return (
       <View style={styles.container}>
-        <View style={[styles.header, { paddingTop: topInset + 16 }]}>
-          <Text style={styles.title}>Super</Text>
-        </View>
+        <CoinHeader title="Super" />
         <View style={styles.emptyState}>
           <View style={[styles.emptyIcon, { backgroundColor: Colors.light.super + "15" }]}>
             <Ionicons name="trending-up-outline" size={48} color={Colors.light.super} />
@@ -65,8 +64,9 @@ export default function SuperScreen() {
   return (
     <View style={styles.container}>
       <ScrollView contentInsetAdjustmentBehavior="automatic" showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
-        <View style={[styles.header, { paddingTop: topInset + 16 }]}>
-          <Text style={styles.title}>Super</Text>
+        <CoinHeader title="Super" />
+        <View style={[styles.header]}>
+          <View />
           <View style={styles.headerBtns}>
             <Pressable onPress={() => router.push("/setup-super")} hitSlop={12}>
               <Ionicons name="pencil" size={22} color={Colors.light.super} />

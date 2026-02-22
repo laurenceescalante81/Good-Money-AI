@@ -9,6 +9,7 @@ import Colors from "@/constants/colors";
 import { useFinance } from "@/contexts/FinanceContext";
 import { useRewards } from "@/contexts/RewardsContext";
 import { MessageOverlay } from "@/contexts/AppMessagesContext";
+import CoinHeader from '@/components/CoinHeader';
 
 const DEFAULT_CTAS: Record<string, string> = {
   mortgage: "Get a free rate review",
@@ -163,19 +164,17 @@ export default function DashboardScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 120 }}
       >
-        <View style={[styles.header, { paddingTop: topInset + 12 }]}>
-          <View>
-            <Text style={styles.headerTitle}>Overview</Text>
-            <Text style={styles.headerDate}>
-              {new Date().toLocaleDateString("en-AU", { month: "long", year: "numeric" })}
-            </Text>
-          </View>
-          <Pressable onPress={() => router.push("/settings")} hitSlop={12}>
-            <View style={styles.settingsBtn}>
-              <Feather name="settings" size={20} color={Colors.light.textSecondary} />
-            </View>
-          </Pressable>
-        </View>
+        <CoinHeader
+          title="Overview"
+          subtitle={new Date().toLocaleDateString("en-AU", { month: "long", year: "numeric" })}
+          rightElement={
+            <Pressable onPress={() => router.push("/settings")} hitSlop={12}>
+              <View style={styles.settingsBtn}>
+                <Feather name="settings" size={20} color={Colors.light.textSecondary} />
+              </View>
+            </Pressable>
+          }
+        />
 
         <View style={styles.body}>
           <Text style={styles.sectionTitle}>Financial Snapshot</Text>

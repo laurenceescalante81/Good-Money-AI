@@ -9,6 +9,7 @@ import Colors from "@/constants/colors";
 import { useFinance, Transaction } from "@/contexts/FinanceContext";
 import { useRewards } from "@/contexts/RewardsContext";
 import { MessageOverlay } from "@/contexts/AppMessagesContext";
+import CoinHeader from '@/components/CoinHeader';
 
 const CATS: Record<string, { icon: string; color: string }> = {
   "Groceries": { icon: "cart-outline", color: "#F59E0B" },
@@ -105,12 +106,14 @@ export default function BudgetScreen() {
         showsVerticalScrollIndicator={false}
         ListHeaderComponent={
           <View>
-            <View style={[styles.header, { paddingTop: topInset + 16 }]}>
-              <Text style={styles.title}>Budget</Text>
-              <Pressable onPress={() => router.push("/add-transaction")} hitSlop={12}>
-                <Ionicons name="add-circle" size={28} color={Colors.light.tint} />
-              </Pressable>
-            </View>
+            <CoinHeader
+              title="Budget"
+              rightElement={
+                <Pressable onPress={() => router.push("/add-transaction")} hitSlop={12}>
+                  <Ionicons name="add-circle" size={28} color={Colors.light.tint} />
+                </Pressable>
+              }
+            />
 
             <View style={styles.summaryRow}>
               <View style={[styles.summaryCard, { backgroundColor: Colors.light.income + "10" }]}>

@@ -8,6 +8,7 @@ import Colors from "@/constants/colors";
 import { useFinance } from "@/contexts/FinanceContext";
 import { useRewards } from "@/contexts/RewardsContext";
 import { MessageOverlay } from "@/contexts/AppMessagesContext";
+import CoinHeader from '@/components/CoinHeader';
 
 function fmt(n: number): string { return "$" + n.toLocaleString("en-AU", { minimumFractionDigits: 0, maximumFractionDigits: 0 }); }
 function fmtDec(n: number): string { return "$" + n.toLocaleString("en-AU", { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
@@ -31,9 +32,7 @@ export default function MortgageScreen() {
   if (!mortgage) {
     return (
       <View style={styles.container}>
-        <View style={[styles.header, { paddingTop: topInset + 16 }]}>
-          <Text style={styles.title}>Mortgage</Text>
-        </View>
+        <CoinHeader title="Mortgage" />
         <View style={styles.emptyState}>
           <View style={[styles.emptyIcon, { backgroundColor: Colors.light.mortgage + "15" }]}>
             <Ionicons name="home-outline" size={48} color={Colors.light.mortgage} />
@@ -67,8 +66,9 @@ export default function MortgageScreen() {
   return (
     <View style={styles.container}>
       <ScrollView contentInsetAdjustmentBehavior="automatic" showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
-        <View style={[styles.header, { paddingTop: topInset + 16 }]}>
-          <Text style={styles.title}>Mortgage</Text>
+        <CoinHeader title="Mortgage" />
+        <View style={[styles.header]}>
+          <View />
           <View style={styles.headerBtns}>
             <Pressable onPress={() => router.push("/setup-mortgage")} hitSlop={12}>
               <Ionicons name="pencil" size={22} color={Colors.light.mortgage} />

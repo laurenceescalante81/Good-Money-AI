@@ -6,6 +6,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import Colors from "@/constants/colors";
 import { useFinance } from "@/contexts/FinanceContext";
+import CoinHeader from '@/components/CoinHeader';
 
 type CategoryKey = "car" | "home" | "life";
 
@@ -247,12 +248,14 @@ export default function InsuranceScreen() {
   return (
     <View style={styles.container}>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 120 }}>
-        <View style={[styles.header, { paddingTop: topInset + 16 }]}>
-          <Text style={styles.title}>Insurance</Text>
-          <Pressable onPress={() => router.push("/add-insurance")} hitSlop={12}>
-            <Ionicons name="add-circle" size={28} color={Colors.light.insurance} />
-          </Pressable>
-        </View>
+        <CoinHeader
+          title="Insurance"
+          rightElement={
+            <Pressable onPress={() => router.push("/add-insurance")} hitSlop={12}>
+              <Ionicons name="add-circle" size={28} color={Colors.light.insurance} />
+            </Pressable>
+          }
+        />
 
         {insurancePolicies.length > 0 && (
           <View style={styles.summaryRow}>

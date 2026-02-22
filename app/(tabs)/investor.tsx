@@ -9,6 +9,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import Colors from '@/constants/colors';
 import { useFinance, InvestorProfile } from '@/contexts/FinanceContext';
+import CoinHeader from '@/components/CoinHeader';
 
 interface QuestionOption {
   value: string;
@@ -373,7 +374,8 @@ export default function InvestorScreen() {
 
   if (showResult && investorProfile.profile) {
     return (
-      <View style={[styles.container, { paddingTop: topInset }]}>
+      <View style={[styles.container, { paddingTop: 0 }]}>
+        <CoinHeader title="Investor Profile" subtitle="Results" />
         <ScrollView
           ref={scrollRef}
           style={styles.scroll}
@@ -498,7 +500,8 @@ export default function InvestorScreen() {
     : QUESTIONS;
 
   return (
-    <View style={[styles.container, { paddingTop: topInset }]}>
+    <View style={[styles.container, { paddingTop: 0 }]}>
+      <CoinHeader title="Investor Profile" />
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Investor Profile</Text>
         <Text style={styles.headerSub}>Answer {totalQ} questions to discover your risk profile</Text>
