@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, ReactNode, useRef } from 'react';
-import { View, Text, StyleSheet, Modal, Pressable, Dimensions, Animated as RNAnimated } from 'react-native';
+import { View, Text, StyleSheet, Modal, Pressable, Dimensions, Animated as RNAnimated, Easing } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
@@ -7,7 +7,9 @@ import { getApiUrl } from '@/lib/query-client';
 import Colors from '@/constants/colors';
 
 const STORAGE_KEY = 'good_money_seen_messages';
-const { width: SCREEN_W } = Dimensions.get('window');
+const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get('window');
+
+type AnimationType = 'fade' | 'slide_up' | 'slide_down' | 'slide_right' | 'bounce' | 'zoom' | 'flip' | 'pulse' | 'confetti';
 
 interface AppMessage {
   id: number;
@@ -27,6 +29,7 @@ interface AppMessage {
   delay_ms: number;
   is_active: boolean;
   sort_order: number;
+  animation_type?: AnimationType;
 }
 
 interface AppMessagesContextValue {
@@ -111,18 +114,163 @@ export function AppMessagesProvider({ children }: { children: ReactNode }) {
   );
 }
 
-function AppTooltip({ message, onDismiss }: { message: AppMessage; onDismiss: () => void }) {
-  const fadeAnim = useRef(new RNAnimated.Value(0)).current;
+function useAnimatedEntry(animType: AnimationType, delayMs: number) {
+  const opacity = useRef(new RNAnimated.Value(0)).current;
+  const translateY = useRef(new RNAnimated.Value(0)).current;
+  const translateX = useRef(new RNAnimated.Value(0)).current;
+  const scale = useRef(new RNAnimated.Value(1)).current;
+  const rotateVal = useRef(new RNAnimated.Value(0)).current;
+  const glowAnim = useRef(new RNAnimated.Value(0)).current;
 
   useEffect(() => {
+    switch (animType) {
+      case 'slide_up': translateY.setValue(80); break;
+      case 'slide_down': translateY.setValue(-80); break;
+      case 'slide_right': translateX.setValue(-SCREEN_W); break;
+      case 'bounce': translateY.setValue(60); scale.setValue(0.3); break;
+      case 'zoom': scale.setValue(0); break;
+      case 'flip': rotateVal.setValue(0); scale.setValue(0.8); break;
+      case 'pulse': scale.setValue(0.85); break;
+      case 'confetti': scale.setValue(0); rotateVal.setValue(0); break;
+      default: break;
+    }
+
     const t = setTimeout(() => {
-      RNAnimated.timing(fadeAnim, { toValue: 1, duration: 300, useNativeDriver: true }).start();
-    }, message.delay_ms);
+      const anims: RNAnimated.CompositeAnimation[] = [];
+
+      anims.push(RNAnimated.timing(opacity, { toValue: 1, duration: 300, useNativeDriver: true }));
+
+      switch (animType) {
+        case 'fade':
+          break;
+        case 'slide_up':
+          anims.push(RNAnimated.spring(translateY, { toValue: 0, friction: 8, tension: 40, useNativeDriver: true }));
+          break;
+        case 'slide_down':
+          anims.push(RNAnimated.spring(translateY, { toValue: 0, friction: 8, tension: 40, useNativeDriver: true }));
+          break;
+        case 'slide_right':
+          anims.push(RNAnimated.spring(translateX, { toValue: 0, friction: 10, tension: 30, useNativeDriver: true }));
+          break;
+        case 'bounce':
+          anims.push(RNAnimated.spring(translateY, { toValue: 0, friction: 3, tension: 80, useNativeDriver: true }));
+          anims.push(RNAnimated.spring(scale, { toValue: 1, friction: 3, tension: 80, useNativeDriver: true }));
+          break;
+        case 'zoom':
+          anims.push(RNAnimated.spring(scale, { toValue: 1, friction: 5, tension: 60, useNativeDriver: true }));
+          break;
+        case 'flip':
+          anims.push(RNAnimated.timing(rotateVal, { toValue: 1, duration: 600, easing: Easing.out(Easing.back(1.5)), useNativeDriver: true }));
+          anims.push(RNAnimated.timing(scale, { toValue: 1, duration: 600, easing: Easing.out(Easing.back(1.5)), useNativeDriver: true }));
+          break;
+        case 'pulse':
+          anims.push(RNAnimated.sequence([
+            RNAnimated.spring(scale, { toValue: 1.08, friction: 3, useNativeDriver: true }),
+            RNAnimated.spring(scale, { toValue: 1, friction: 5, useNativeDriver: true }),
+          ]));
+          RNAnimated.loop(
+            RNAnimated.sequence([
+              RNAnimated.timing(glowAnim, { toValue: 1, duration: 1200, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+              RNAnimated.timing(glowAnim, { toValue: 0, duration: 1200, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+            ])
+          ).start();
+          break;
+        case 'confetti':
+          anims.push(RNAnimated.spring(scale, { toValue: 1, friction: 4, tension: 50, useNativeDriver: true }));
+          anims.push(RNAnimated.timing(rotateVal, { toValue: 1, duration: 500, useNativeDriver: true }));
+          break;
+      }
+
+      RNAnimated.parallel(anims).start();
+    }, delayMs);
+
     return () => clearTimeout(t);
   }, []);
 
+  const rotateInterp = rotateVal.interpolate({
+    inputRange: [0, 1],
+    outputRange: animType === 'flip' ? ['90deg', '0deg'] : ['-10deg', '0deg'],
+  });
+
+  const glowOpacity = glowAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0.6, 1],
+  });
+
+  return {
+    style: {
+      opacity: animType === 'pulse' ? glowOpacity : opacity,
+      transform: [
+        { translateY },
+        { translateX },
+        { scale },
+        { rotate: (animType === 'flip' || animType === 'confetti') ? rotateInterp : '0deg' },
+      ],
+    },
+  };
+}
+
+function ConfettiBurst() {
+  const particles = useRef(
+    Array.from({ length: 20 }, () => ({
+      x: new RNAnimated.Value(0),
+      y: new RNAnimated.Value(0),
+      opacity: new RNAnimated.Value(1),
+      scale: new RNAnimated.Value(1),
+      color: ['#FFD700', '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FF69B4', '#A78BFA', '#34D399'][Math.floor(Math.random() * 8)],
+    }))
+  ).current;
+
+  useEffect(() => {
+    particles.forEach(p => {
+      const angle = Math.random() * Math.PI * 2;
+      const dist = 80 + Math.random() * 120;
+      const dx = Math.cos(angle) * dist;
+      const dy = Math.sin(angle) * dist - 40;
+
+      RNAnimated.parallel([
+        RNAnimated.timing(p.x, { toValue: dx, duration: 800, easing: Easing.out(Easing.quad), useNativeDriver: true }),
+        RNAnimated.timing(p.y, { toValue: dy, duration: 800, easing: Easing.out(Easing.quad), useNativeDriver: true }),
+        RNAnimated.timing(p.opacity, { toValue: 0, duration: 800, delay: 200, useNativeDriver: true }),
+        RNAnimated.timing(p.scale, { toValue: 0, duration: 800, delay: 300, useNativeDriver: true }),
+      ]).start();
+    });
+  }, []);
+
   return (
-    <RNAnimated.View style={[ttStyles.container, { opacity: fadeAnim, transform: [{ translateY: fadeAnim.interpolate({ inputRange: [0, 1], outputRange: [12, 0] }) }] }]}>
+    <View style={confettiStyles.container} pointerEvents="none">
+      {particles.map((p, i) => (
+        <RNAnimated.View
+          key={i}
+          style={[
+            confettiStyles.particle,
+            {
+              backgroundColor: p.color,
+              width: 6 + Math.random() * 6,
+              height: 6 + Math.random() * 6,
+              borderRadius: Math.random() > 0.5 ? 10 : 2,
+              transform: [{ translateX: p.x }, { translateY: p.y }, { scale: p.scale }],
+              opacity: p.opacity,
+            },
+          ]}
+        />
+      ))}
+    </View>
+  );
+}
+
+const confettiStyles = StyleSheet.create({
+  container: { position: 'absolute', top: '40%', left: '50%', width: 0, height: 0, zIndex: 100 },
+  particle: { position: 'absolute' },
+});
+
+function AppTooltip({ message, onDismiss }: { message: AppMessage; onDismiss: () => void }) {
+  const animType = (message.animation_type || 'fade') as AnimationType;
+  const { style: animStyle } = useAnimatedEntry(animType, message.delay_ms);
+
+  return (
+    <RNAnimated.View style={[ttStyles.container, animStyle]}>
+      {animType === 'confetti' && <ConfettiBurst />}
       <View style={[ttStyles.card, { backgroundColor: message.bg_color || '#132D46' }]}>
         <Pressable style={ttStyles.close} onPress={onDismiss} hitSlop={12}>
           <Ionicons name="close" size={16} color="rgba(255,255,255,0.6)" />
@@ -167,15 +315,13 @@ const ttStyles = StyleSheet.create({
 });
 
 function AppPopup({ message, onDismiss }: { message: AppMessage; onDismiss: () => void }) {
-  const fadeAnim = useRef(new RNAnimated.Value(0)).current;
-  const scaleAnim = useRef(new RNAnimated.Value(0.9)).current;
+  const animType = (message.animation_type || 'fade') as AnimationType;
+  const overlayOpacity = useRef(new RNAnimated.Value(0)).current;
+  const { style: animStyle } = useAnimatedEntry(animType, message.delay_ms);
 
   useEffect(() => {
     const t = setTimeout(() => {
-      RNAnimated.parallel([
-        RNAnimated.timing(fadeAnim, { toValue: 1, duration: 300, useNativeDriver: true }),
-        RNAnimated.spring(scaleAnim, { toValue: 1, friction: 8, useNativeDriver: true }),
-      ]).start();
+      RNAnimated.timing(overlayOpacity, { toValue: 1, duration: 300, useNativeDriver: true }).start();
     }, message.delay_ms);
     return () => clearTimeout(t);
   }, []);
@@ -189,9 +335,10 @@ function AppPopup({ message, onDismiss }: { message: AppMessage; onDismiss: () =
 
   return (
     <Modal transparent visible animationType="none" onRequestClose={onDismiss}>
-      <RNAnimated.View style={[popStyles.overlay, { opacity: fadeAnim }]}>
+      <RNAnimated.View style={[popStyles.overlay, { opacity: overlayOpacity }]}>
         <Pressable style={StyleSheet.absoluteFill} onPress={onDismiss} />
-        <RNAnimated.View style={[popStyles.card, { backgroundColor: message.bg_color || '#132D46', transform: [{ scale: scaleAnim }] }]}>
+        {animType === 'confetti' && <ConfettiBurst />}
+        <RNAnimated.View style={[popStyles.card, { backgroundColor: message.bg_color || '#132D46' }, animStyle]}>
           <Pressable style={popStyles.closeBtn} onPress={onDismiss} hitSlop={12}>
             <Ionicons name="close-circle" size={28} color="rgba(255,255,255,0.4)" />
           </Pressable>
@@ -226,18 +373,59 @@ const popStyles = StyleSheet.create({
 
 function AppFTUE({ messages, currentIndex, onDismiss, onNext }: { messages: AppMessage[]; currentIndex: number; onDismiss: () => void; onNext: () => void }) {
   const msg = messages[currentIndex];
-  const fadeAnim = useRef(new RNAnimated.Value(0)).current;
-  const slideAnim = useRef(new RNAnimated.Value(30)).current;
+  const animType = (msg.animation_type || 'slide_up') as AnimationType;
+  const overlayOpacity = useRef(new RNAnimated.Value(0)).current;
+  const cardOpacity = useRef(new RNAnimated.Value(0)).current;
+  const cardTranslateY = useRef(new RNAnimated.Value(30)).current;
+  const cardScale = useRef(new RNAnimated.Value(0.9)).current;
 
   useEffect(() => {
-    fadeAnim.setValue(0);
-    slideAnim.setValue(30);
+    cardOpacity.setValue(0);
+    cardTranslateY.setValue(30);
+    cardScale.setValue(0.9);
+
+    const delay = currentIndex === 0 ? msg.delay_ms : 200;
     const t = setTimeout(() => {
-      RNAnimated.parallel([
-        RNAnimated.timing(fadeAnim, { toValue: 1, duration: 300, useNativeDriver: true }),
-        RNAnimated.timing(slideAnim, { toValue: 0, duration: 300, useNativeDriver: true }),
-      ]).start();
-    }, currentIndex === 0 ? msg.delay_ms : 200);
+      if (currentIndex === 0) {
+        RNAnimated.timing(overlayOpacity, { toValue: 1, duration: 300, useNativeDriver: true }).start();
+      }
+
+      const anims: RNAnimated.CompositeAnimation[] = [
+        RNAnimated.timing(cardOpacity, { toValue: 1, duration: 300, useNativeDriver: true }),
+      ];
+
+      switch (animType) {
+        case 'slide_up':
+          cardTranslateY.setValue(60);
+          anims.push(RNAnimated.spring(cardTranslateY, { toValue: 0, friction: 8, useNativeDriver: true }));
+          break;
+        case 'slide_down':
+          cardTranslateY.setValue(-60);
+          anims.push(RNAnimated.spring(cardTranslateY, { toValue: 0, friction: 8, useNativeDriver: true }));
+          break;
+        case 'slide_right':
+          cardTranslateY.setValue(0);
+          anims.push(RNAnimated.spring(cardTranslateY, { toValue: 0, friction: 8, useNativeDriver: true }));
+          break;
+        case 'bounce':
+          cardTranslateY.setValue(50);
+          cardScale.setValue(0.5);
+          anims.push(RNAnimated.spring(cardTranslateY, { toValue: 0, friction: 3, tension: 80, useNativeDriver: true }));
+          anims.push(RNAnimated.spring(cardScale, { toValue: 1, friction: 3, tension: 80, useNativeDriver: true }));
+          break;
+        case 'zoom':
+          cardScale.setValue(0);
+          cardTranslateY.setValue(0);
+          anims.push(RNAnimated.spring(cardScale, { toValue: 1, friction: 5, tension: 60, useNativeDriver: true }));
+          break;
+        default:
+          anims.push(RNAnimated.spring(cardTranslateY, { toValue: 0, friction: 8, useNativeDriver: true }));
+          anims.push(RNAnimated.spring(cardScale, { toValue: 1, friction: 8, useNativeDriver: true }));
+          break;
+      }
+
+      RNAnimated.parallel(anims).start();
+    }, delay);
     return () => clearTimeout(t);
   }, [currentIndex]);
 
@@ -245,9 +433,9 @@ function AppFTUE({ messages, currentIndex, onDismiss, onNext }: { messages: AppM
 
   return (
     <Modal transparent visible animationType="none" onRequestClose={onDismiss}>
-      <RNAnimated.View style={[ftueStyles.overlay, { opacity: fadeAnim }]}>
+      <RNAnimated.View style={[ftueStyles.overlay, { opacity: overlayOpacity }]}>
         <Pressable style={StyleSheet.absoluteFill} onPress={onDismiss} />
-        <RNAnimated.View style={[ftueStyles.card, { backgroundColor: msg.bg_color || '#132D46', transform: [{ translateY: slideAnim }] }]}>
+        <RNAnimated.View style={[ftueStyles.card, { backgroundColor: msg.bg_color || '#132D46', opacity: cardOpacity, transform: [{ translateY: cardTranslateY }, { scale: cardScale }] }]}>
           <View style={ftueStyles.stepBadge}>
             <Text style={ftueStyles.stepText}>{currentIndex + 1}/{messages.length}</Text>
           </View>
