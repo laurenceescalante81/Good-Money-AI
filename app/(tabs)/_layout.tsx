@@ -17,20 +17,22 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import type { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 
 const TAB_META: Record<string, { active: string; inactive: string; color: string }> = {
-  index: { active: "apps", inactive: "apps-outline", color: "#0D9488" },
+  index: { active: "star", inactive: "star-outline", color: "#F59E0B" },
   overview: { active: "pie-chart", inactive: "pie-chart-outline", color: "#0D9488" },
   mortgage: { active: "home", inactive: "home-outline", color: "#3B82F6" },
   super: { active: "trending-up", inactive: "trending-up-outline", color: "#8B5CF6" },
   budget: { active: "wallet", inactive: "wallet-outline", color: "#10B981" },
   banks: { active: "business", inactive: "business-outline", color: "#6366F1" },
-  rewards: { active: "star", inactive: "star-outline", color: "#F59E0B" },
+  rewards: { active: "apps", inactive: "apps-outline", color: "#0D9488" },
   insurance: { active: "shield-checkmark", inactive: "shield-checkmark-outline", color: "#EF4444" },
   investor: { active: "bar-chart", inactive: "bar-chart-outline", color: "#D97706" },
   "fact-find": { active: "document-text", inactive: "document-text-outline", color: "#EC4899" },
   planning: { active: "analytics", inactive: "analytics-outline", color: "#14B8A6" },
 };
 
-function SimpleTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
+const ROW_SIZE = 6;
+
+function TwoRowTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
   const isWeb = Platform.OS === "web";
@@ -38,14 +40,48 @@ function SimpleTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
 
   const bottomPad = isWeb ? 34 : insets.bottom;
-  const barHeight = 52 + bottomPad;
+  const barHeight = 96 + bottomPad;
 
-  const homeRoute = state.routes[0];
-  const homeKey = homeRoute?.key;
-  const isHomeFocused = state.index === 0;
-  const homeMeta = TAB_META["index"];
-  const homeOptions = descriptors[homeKey]?.options;
-  const homeLabel = homeOptions?.title || "Home";
+  const row1 = state.routes.slice(0, ROW_SIZE);
+  const row2 = state.routes.slice(ROW_SIZE);
+
+  const renderTab = (route: any, index: number) => {
+    const { options } = descriptors[route.key];
+    const isFocused = state.index === index;
+    const meta = TAB_META[route.name] || { active: "ellipse", inactive: "ellipse-outline", color: "#999" };
+    const label = options.title || route.name;
+
+    return (
+      <TouchableOpacity
+        key={route.key}
+        accessibilityRole="button"
+        accessibilityState={isFocused ? { selected: true } : {}}
+        onPress={() => {
+          const event = navigation.emit({ type: "tabPress", target: route.key, canPreventDefault: true });
+          if (!isFocused && !event.defaultPrevented) navigation.navigate(route.name, route.params);
+        }}
+        style={styles.tab}
+        activeOpacity={0.7}
+      >
+        <View style={[styles.iconWrap, isFocused && { backgroundColor: `${meta.color}18` }]}>
+          <Ionicons
+            name={(isFocused ? meta.active : meta.inactive) as any}
+            size={18}
+            color={isFocused ? meta.color : Colors.light.tabIconDefault}
+          />
+        </View>
+        <Text
+          style={[
+            styles.label,
+            { color: isFocused ? meta.color : Colors.light.tabIconDefault, fontWeight: isFocused ? "600" : "500" },
+          ]}
+          numberOfLines={1}
+        >
+          {label}
+        </Text>
+      </TouchableOpacity>
+    );
+  };
 
   return (
     <View style={[styles.barContainer, { height: barHeight }]}>
@@ -56,34 +92,15 @@ function SimpleTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
       )}
       <View style={[styles.topBorder, { borderTopColor: isDark ? "#333" : Colors.light.border }]} />
 
-      <View style={[styles.singleTabWrap, { paddingBottom: bottomPad }]}>
-        <TouchableOpacity
-          accessibilityRole="button"
-          accessibilityState={isHomeFocused ? { selected: true } : {}}
-          onPress={() => {
-            const event = navigation.emit({ type: "tabPress", target: homeKey, canPreventDefault: true });
-            if (!isHomeFocused && !event.defaultPrevented) navigation.navigate(homeRoute.name, homeRoute.params);
-          }}
-          style={styles.tab}
-          activeOpacity={0.7}
-        >
-          <View style={[styles.iconWrap, isHomeFocused && { backgroundColor: `${homeMeta.color}18` }]}>
-            <Ionicons
-              name={(isHomeFocused ? homeMeta.active : homeMeta.inactive) as any}
-              size={20}
-              color={isHomeFocused ? homeMeta.color : Colors.light.tabIconDefault}
-            />
+      <View style={[styles.rowsWrap, { paddingBottom: bottomPad }]}>
+        <View style={styles.tabRow}>
+          {row1.map((route, i) => renderTab(route, i))}
+        </View>
+        {row2.length > 0 && (
+          <View style={styles.tabRow}>
+            {row2.map((route, i) => renderTab(route, ROW_SIZE + i))}
           </View>
-          <Text
-            style={[
-              styles.label,
-              { color: isHomeFocused ? homeMeta.color : Colors.light.tabIconDefault, fontWeight: isHomeFocused ? "600" : "500" },
-            ]}
-            numberOfLines={1}
-          >
-            {homeLabel}
-          </Text>
-        </TouchableOpacity>
+        )}
       </View>
     </View>
   );
@@ -93,8 +110,8 @@ function NativeTabLayout() {
   return (
     <NativeTabs>
       <NativeTabs.Trigger name="index">
-        <Icon sf={{ default: "square.grid.2x2", selected: "square.grid.2x2.fill" }} />
-        <Label>Home</Label>
+        <Icon sf={{ default: "star", selected: "star.fill" }} />
+        <Label>Rewards</Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="overview">
         <Icon sf={{ default: "chart.pie", selected: "chart.pie.fill" }} />
@@ -117,8 +134,8 @@ function NativeTabLayout() {
         <Label>Banks</Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="rewards">
-        <Icon sf={{ default: "star", selected: "star.fill" }} />
-        <Label>Rewards</Label>
+        <Icon sf={{ default: "square.grid.2x2", selected: "square.grid.2x2.fill" }} />
+        <Label>Home</Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="insurance">
         <Icon sf={{ default: "shield", selected: "shield.fill" }} />
@@ -143,16 +160,16 @@ function NativeTabLayout() {
 function ClassicTabLayout() {
   return (
     <Tabs
-      tabBar={(props) => <SimpleTabBar {...props} />}
+      tabBar={(props) => <TwoRowTabBar {...props} />}
       screenOptions={{ headerShown: false }}
     >
-      <Tabs.Screen name="index" options={{ title: "Home" }} />
+      <Tabs.Screen name="index" options={{ title: "Rewards" }} />
       <Tabs.Screen name="overview" options={{ title: "Overview" }} />
       <Tabs.Screen name="mortgage" options={{ title: "Mortgage" }} />
       <Tabs.Screen name="super" options={{ title: "Super" }} />
       <Tabs.Screen name="budget" options={{ title: "Budget" }} />
       <Tabs.Screen name="banks" options={{ title: "Banks" }} />
-      <Tabs.Screen name="rewards" options={{ title: "Rewards" }} />
+      <Tabs.Screen name="rewards" options={{ title: "Home" }} />
       <Tabs.Screen name="insurance" options={{ title: "Insurance" }} />
       <Tabs.Screen name="investor" options={{ title: "Investor" }} />
       <Tabs.Screen name="fact-find" options={{ title: "Fact Find" }} />
@@ -182,33 +199,33 @@ const styles = StyleSheet.create({
     height: 1,
     borderTopWidth: StyleSheet.hairlineWidth,
   },
-  scrollContent: {
-    alignItems: "flex-start",
-    paddingTop: 6,
+  rowsWrap: {
+    flex: 1,
+    paddingTop: 4,
+  },
+  tabRow: {
+    flexDirection: "row",
+    justifyContent: "space-evenly",
+    alignItems: "center",
+    height: 44,
   },
   tab: {
+    flex: 1,
     alignItems: "center",
     justifyContent: "center",
     paddingTop: 2,
   },
   iconWrap: {
-    width: 36,
-    height: 28,
+    width: 32,
+    height: 24,
     alignItems: "center",
     justifyContent: "center",
-    borderRadius: 14,
-    marginBottom: 2,
+    borderRadius: 12,
+    marginBottom: 1,
   },
   label: {
     fontFamily: "DMSans_500Medium",
-    fontSize: 10,
+    fontSize: 9,
     textAlign: "center",
-  },
-  singleTabWrap: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "flex-start",
-    justifyContent: "center",
-    paddingTop: 6,
   },
 });
