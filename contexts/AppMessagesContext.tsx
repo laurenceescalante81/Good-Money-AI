@@ -9,6 +9,36 @@ import Colors from '@/constants/colors';
 const STORAGE_KEY = 'good_money_seen_messages';
 const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get('window');
 
+let _sessionId: string = '';
+function getSessionId(): string {
+  if (!_sessionId) {
+    _sessionId = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+      const r = Math.random() * 16 | 0;
+      return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+    });
+  }
+  return _sessionId;
+}
+
+function trackContentEvent(contentType: string, contentId: string, eventType: string, screen?: string, metadata?: Record<string, any>) {
+  try {
+    const url = new URL('/api/admin/events', getApiUrl());
+    fetch(url.toString(), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        content_type: contentType,
+        content_id: contentId,
+        event_type: eventType,
+        screen: screen || null,
+        device_id: getSessionId().substring(0, 8),
+        session_id: getSessionId(),
+        metadata: metadata || {},
+      }),
+    }).catch(() => {});
+  } catch {}
+}
+
 type AnimationType = 'fade' | 'slide_up' | 'slide_down' | 'slide_right' | 'bounce' | 'zoom' | 'flip' | 'pulse' | 'confetti';
 
 interface AppMessage {
@@ -264,15 +294,19 @@ const confettiStyles = StyleSheet.create({
   particle: { position: 'absolute' },
 });
 
-function AppTooltip({ message, onDismiss }: { message: AppMessage; onDismiss: () => void }) {
+function AppTooltip({ message, onDismiss, screen }: { message: AppMessage; onDismiss: () => void; screen?: string }) {
   const animType = (message.animation_type || 'fade') as AnimationType;
   const { style: animStyle } = useAnimatedEntry(animType, message.delay_ms);
+
+  useEffect(() => {
+    trackContentEvent('tooltip', message.message_id, 'impression', screen, { title: message.title });
+  }, []);
 
   return (
     <RNAnimated.View style={[ttStyles.container, animStyle]}>
       {animType === 'confetti' && <ConfettiBurst />}
       <View style={[ttStyles.card, { backgroundColor: message.bg_color || '#132D46' }]}>
-        <Pressable style={ttStyles.close} onPress={onDismiss} hitSlop={12}>
+        <Pressable style={ttStyles.close} onPress={() => { trackContentEvent('tooltip', message.message_id, 'dismiss', screen); onDismiss(); }} hitSlop={12}>
           <Ionicons name="close" size={16} color="rgba(255,255,255,0.6)" />
         </Pressable>
         <View style={ttStyles.row}>
@@ -288,6 +322,7 @@ function AppTooltip({ message, onDismiss }: { message: AppMessage; onDismiss: ()
         </View>
         {message.cta_text && (
           <Pressable style={[ttStyles.cta, { backgroundColor: message.icon_color || '#0D9488' }]} onPress={() => {
+            trackContentEvent('tooltip', message.message_id, 'cta_click', screen, { cta_text: message.cta_text });
             if (message.cta_action) {
               try { router.push(`/(tabs)/${message.cta_action}` as any); } catch {}
             }
@@ -314,12 +349,13 @@ const ttStyles = StyleSheet.create({
   ctaText: { fontFamily: 'DMSans_600SemiBold', fontSize: 13, color: '#fff' },
 });
 
-function AppPopup({ message, onDismiss }: { message: AppMessage; onDismiss: () => void }) {
+function AppPopup({ message, onDismiss, screen }: { message: AppMessage; onDismiss: () => void; screen?: string }) {
   const animType = (message.animation_type || 'fade') as AnimationType;
   const overlayOpacity = useRef(new RNAnimated.Value(0)).current;
   const { style: animStyle } = useAnimatedEntry(animType, message.delay_ms);
 
   useEffect(() => {
+    trackContentEvent('popup', message.message_id, 'impression', screen, { title: message.title });
     const t = setTimeout(() => {
       RNAnimated.timing(overlayOpacity, { toValue: 1, duration: 300, useNativeDriver: true }).start();
     }, message.delay_ms);
@@ -327,6 +363,7 @@ function AppPopup({ message, onDismiss }: { message: AppMessage; onDismiss: () =
   }, []);
 
   const handleCTA = () => {
+    trackContentEvent('popup', message.message_id, 'cta_click', screen, { cta_text: message.cta_text });
     if (message.cta_action) {
       try { router.push(`/(tabs)/${message.cta_action}` as any); } catch {}
     }
@@ -334,12 +371,12 @@ function AppPopup({ message, onDismiss }: { message: AppMessage; onDismiss: () =
   };
 
   return (
-    <Modal transparent visible animationType="none" onRequestClose={onDismiss}>
+    <Modal transparent visible animationType="none" onRequestClose={() => { trackContentEvent('popup', message.message_id, 'dismiss', screen); onDismiss(); }}>
       <RNAnimated.View style={[popStyles.overlay, { opacity: overlayOpacity }]}>
-        <Pressable style={StyleSheet.absoluteFill} onPress={onDismiss} />
+        <Pressable style={StyleSheet.absoluteFill} onPress={() => { trackContentEvent('popup', message.message_id, 'dismiss', screen); onDismiss(); }} />
         {animType === 'confetti' && <ConfettiBurst />}
         <RNAnimated.View style={[popStyles.card, { backgroundColor: message.bg_color || '#132D46' }, animStyle]}>
-          <Pressable style={popStyles.closeBtn} onPress={onDismiss} hitSlop={12}>
+          <Pressable style={popStyles.closeBtn} onPress={() => { trackContentEvent('popup', message.message_id, 'dismiss', screen); onDismiss(); }} hitSlop={12}>
             <Ionicons name="close-circle" size={28} color="rgba(255,255,255,0.4)" />
           </Pressable>
           {message.icon && (
@@ -371,7 +408,7 @@ const popStyles = StyleSheet.create({
   ctaText: { fontFamily: 'DMSans_700Bold', fontSize: 16, color: '#fff' },
 });
 
-function AppFTUE({ messages, currentIndex, onDismiss, onNext }: { messages: AppMessage[]; currentIndex: number; onDismiss: () => void; onNext: () => void }) {
+function AppFTUE({ messages, currentIndex, onDismiss, onNext, screen }: { messages: AppMessage[]; currentIndex: number; onDismiss: () => void; onNext: () => void; screen?: string }) {
   const msg = messages[currentIndex];
   const animType = (msg.animation_type || 'slide_up') as AnimationType;
   const overlayOpacity = useRef(new RNAnimated.Value(0)).current;
@@ -380,6 +417,7 @@ function AppFTUE({ messages, currentIndex, onDismiss, onNext }: { messages: AppM
   const cardScale = useRef(new RNAnimated.Value(0.9)).current;
 
   useEffect(() => {
+    trackContentEvent('ftue', msg.message_id, 'impression', screen, { title: msg.title, step: currentIndex + 1, total: messages.length });
     cardOpacity.setValue(0);
     cardTranslateY.setValue(30);
     cardScale.setValue(0.9);
@@ -432,14 +470,14 @@ function AppFTUE({ messages, currentIndex, onDismiss, onNext }: { messages: AppM
   const isLast = currentIndex === messages.length - 1;
 
   return (
-    <Modal transparent visible animationType="none" onRequestClose={onDismiss}>
+    <Modal transparent visible animationType="none" onRequestClose={() => { trackContentEvent('ftue', msg.message_id, 'dismiss', screen); onDismiss(); }}>
       <RNAnimated.View style={[ftueStyles.overlay, { opacity: overlayOpacity }]}>
-        <Pressable style={StyleSheet.absoluteFill} onPress={onDismiss} />
+        <Pressable style={StyleSheet.absoluteFill} onPress={() => { trackContentEvent('ftue', msg.message_id, 'dismiss', screen); onDismiss(); }} />
         <RNAnimated.View style={[ftueStyles.card, { backgroundColor: msg.bg_color || '#132D46', opacity: cardOpacity, transform: [{ translateY: cardTranslateY }, { scale: cardScale }] }]}>
           <View style={ftueStyles.stepBadge}>
             <Text style={ftueStyles.stepText}>{currentIndex + 1}/{messages.length}</Text>
           </View>
-          <Pressable style={ftueStyles.closeBtn} onPress={onDismiss} hitSlop={12}>
+          <Pressable style={ftueStyles.closeBtn} onPress={() => { trackContentEvent('ftue', msg.message_id, 'dismiss', screen); onDismiss(); }} hitSlop={12}>
             <Ionicons name="close" size={20} color="rgba(255,255,255,0.5)" />
           </Pressable>
           {msg.icon && (
@@ -449,7 +487,7 @@ function AppFTUE({ messages, currentIndex, onDismiss, onNext }: { messages: AppM
           )}
           <Text style={ftueStyles.title}>{msg.title}</Text>
           {msg.body && <Text style={ftueStyles.body}>{msg.body}</Text>}
-          <Pressable style={[ftueStyles.nextBtn, { backgroundColor: msg.icon_color || '#3B82F6' }]} onPress={isLast ? onDismiss : onNext}>
+          <Pressable style={[ftueStyles.nextBtn, { backgroundColor: msg.icon_color || '#3B82F6' }]} onPress={() => { trackContentEvent('ftue', msg.message_id, 'cta_click', screen, { step: currentIndex + 1, is_last: isLast }); isLast ? onDismiss() : onNext(); }}>
             <Text style={ftueStyles.nextText}>{msg.cta_text || (isLast ? 'Got It' : 'Next')}</Text>
           </Pressable>
           <View style={ftueStyles.dots}>
@@ -505,7 +543,7 @@ export function MessageOverlay({ screen }: { screen: string }) {
 
   if (popups.length > 0) {
     const popup = popups[0];
-    return <AppPopup message={popup} onDismiss={() => handleDismiss(popup.message_id)} />;
+    return <AppPopup message={popup} onDismiss={() => handleDismiss(popup.message_id)} screen={screen} />;
   }
 
   if (ftues.length > 0) {
@@ -523,13 +561,14 @@ export function MessageOverlay({ screen }: { screen: string }) {
             setFtueIndex(prev => prev + 1);
           }
         }}
+        screen={screen}
       />
     );
   }
 
   if (tooltips.length > 0) {
     const tooltip = tooltips[0];
-    return <AppTooltip message={tooltip} onDismiss={() => handleDismiss(tooltip.message_id)} />;
+    return <AppTooltip message={tooltip} onDismiss={() => handleDismiss(tooltip.message_id)} screen={screen} />;
   }
 
   return null;
