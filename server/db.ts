@@ -178,7 +178,33 @@ export async function initDatabase() {
         segment_id INTEGER REFERENCES customer_segments(id) ON DELETE SET NULL,
         animation_type VARCHAR(30) DEFAULT 'fade',
         sort_order INTEGER DEFAULT 0,
+        recommendation_enabled BOOLEAN DEFAULT true,
+        dynamic_content_enabled BOOLEAN DEFAULT false,
         created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW()
+      );
+
+      CREATE TABLE IF NOT EXISTS content_events (
+        id SERIAL PRIMARY KEY,
+        content_type VARCHAR(20) NOT NULL,
+        content_id VARCHAR(100) NOT NULL,
+        event_type VARCHAR(30) NOT NULL,
+        screen VARCHAR(50),
+        device_id VARCHAR(255),
+        session_id VARCHAR(100),
+        metadata JSONB DEFAULT '{}',
+        created_at TIMESTAMP DEFAULT NOW()
+      );
+      CREATE INDEX IF NOT EXISTS idx_content_events_content ON content_events(content_type, content_id);
+      CREATE INDEX IF NOT EXISTS idx_content_events_created ON content_events(created_at);
+      CREATE INDEX IF NOT EXISTS idx_content_events_type ON content_events(event_type);
+
+      CREATE TABLE IF NOT EXISTS optimization_settings (
+        id SERIAL PRIMARY KEY,
+        setting_key VARCHAR(100) UNIQUE NOT NULL,
+        setting_value TEXT NOT NULL,
+        description TEXT,
+        updated_by VARCHAR(255),
         updated_at TIMESTAMP DEFAULT NOW()
       );
     `);
@@ -284,6 +310,24 @@ export async function initDatabase() {
         ('bank_connect', 'tooltip', 'Connect Your Bank', 'Link your bank accounts for automatic balance updates and transaction imports.', 'Connect Now', 'banks', 'banks', 'link-outline', '#0D9488', 'once', 4, 8)
       `);
     }
+
+    const optCount = await client.query('SELECT COUNT(*) FROM optimization_settings');
+    if (parseInt(optCount.rows[0].count) === 0) {
+      await client.query(`
+        INSERT INTO optimization_settings (setting_key, setting_value, description) VALUES
+        ('dynamic_content_global', 'false', 'Master toggle for dynamic optimised content delivery'),
+        ('auto_prioritize_cta', 'false', 'Automatically prioritize CTAs based on engagement metrics'),
+        ('auto_prioritize_ftue', 'false', 'Automatically prioritize FTUE messages based on completion rates'),
+        ('recommendation_engine', 'false', 'Enable AI-driven content recommendations for CTAs')
+      `);
+    }
+
+    try {
+      await client.query(`ALTER TABLE app_messages ADD COLUMN IF NOT EXISTS recommendation_enabled BOOLEAN DEFAULT true`);
+      await client.query(`ALTER TABLE app_messages ADD COLUMN IF NOT EXISTS dynamic_content_enabled BOOLEAN DEFAULT false`);
+      await client.query(`ALTER TABLE sales_ctas ADD COLUMN IF NOT EXISTS recommendation_enabled BOOLEAN DEFAULT true`);
+      await client.query(`ALTER TABLE sales_ctas ADD COLUMN IF NOT EXISTS dynamic_content_enabled BOOLEAN DEFAULT false`);
+    } catch {}
 
     console.log('Database initialized successfully');
   } finally {

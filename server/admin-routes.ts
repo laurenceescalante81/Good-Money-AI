@@ -772,4 +772,188 @@ router.delete('/messages/:id', requireAuth, async (req: Request, res: Response) 
   }
 });
 
+router.post('/events', async (req: Request, res: Response) => {
+  try {
+    const { content_type, content_id, event_type, screen, device_id, session_id, metadata } = req.body;
+    if (!content_type || !content_id || !event_type) {
+      return res.status(400).json({ error: 'content_type, content_id, and event_type are required' });
+    }
+    await pool.query(
+      `INSERT INTO content_events (content_type, content_id, event_type, screen, device_id, session_id, metadata)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+      [content_type, content_id, event_type, screen || null, device_id || null, session_id || null, JSON.stringify(metadata || {})]
+    );
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to record event' });
+  }
+});
+
+router.post('/events/batch', async (req: Request, res: Response) => {
+  try {
+    const { events } = req.body;
+    if (!Array.isArray(events) || events.length === 0) {
+      return res.status(400).json({ error: 'events array is required' });
+    }
+    const values: any[] = [];
+    const placeholders: string[] = [];
+    events.forEach((e: any, i: number) => {
+      const offset = i * 7;
+      placeholders.push(`($${offset+1},$${offset+2},$${offset+3},$${offset+4},$${offset+5},$${offset+6},$${offset+7})`);
+      values.push(e.content_type, e.content_id, e.event_type, e.screen || null, e.device_id || null, e.session_id || null, JSON.stringify(e.metadata || {}));
+    });
+    await pool.query(
+      `INSERT INTO content_events (content_type, content_id, event_type, screen, device_id, session_id, metadata) VALUES ${placeholders.join(',')}`,
+      values
+    );
+    res.json({ ok: true, count: events.length });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to record events' });
+  }
+});
+
+router.get('/content-reports', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const days = parseInt(req.query.days as string) || 30;
+    const contentType = req.query.content_type as string || 'all';
+    const since = new Date(Date.now() - days * 86400000).toISOString();
+
+    const typeFilter = contentType !== 'all' ? `AND content_type = '${contentType}'` : '';
+
+    const summary = await pool.query(`
+      SELECT
+        content_type,
+        event_type,
+        COUNT(*) as count,
+        COUNT(DISTINCT device_id) as unique_users
+      FROM content_events
+      WHERE created_at >= $1 ${typeFilter}
+      GROUP BY content_type, event_type
+      ORDER BY content_type, event_type
+    `, [since]);
+
+    const perContent = await pool.query(`
+      SELECT
+        content_type,
+        content_id,
+        event_type,
+        COUNT(*) as count,
+        COUNT(DISTINCT device_id) as unique_users
+      FROM content_events
+      WHERE created_at >= $1 ${typeFilter}
+      GROUP BY content_type, content_id, event_type
+      ORDER BY content_type, content_id, event_type
+    `, [since]);
+
+    const daily = await pool.query(`
+      SELECT
+        DATE(created_at) as date,
+        content_type,
+        event_type,
+        COUNT(*) as count
+      FROM content_events
+      WHERE created_at >= $1 ${typeFilter}
+      GROUP BY DATE(created_at), content_type, event_type
+      ORDER BY date DESC
+    `, [since]);
+
+    const contentItems: Record<string, any> = {};
+    perContent.rows.forEach((row: any) => {
+      const key = `${row.content_type}:${row.content_id}`;
+      if (!contentItems[key]) {
+        contentItems[key] = { content_type: row.content_type, content_id: row.content_id, impressions: 0, clicks: 0, dismissals: 0, cta_clicks: 0, conversions: 0, unique_impressions: 0, unique_clicks: 0 };
+      }
+      const item = contentItems[key];
+      if (row.event_type === 'impression') { item.impressions = parseInt(row.count); item.unique_impressions = parseInt(row.unique_users); }
+      if (row.event_type === 'click' || row.event_type === 'cta_click') { item.clicks += parseInt(row.count); item.unique_clicks += parseInt(row.unique_users); item.cta_clicks = parseInt(row.count); }
+      if (row.event_type === 'dismiss') { item.dismissals = parseInt(row.count); }
+      if (row.event_type === 'conversion') { item.conversions = parseInt(row.count); }
+    });
+    Object.values(contentItems).forEach((item: any) => {
+      item.click_rate = item.impressions > 0 ? ((item.clicks / item.impressions) * 100).toFixed(1) : '0.0';
+      item.dismiss_rate = item.impressions > 0 ? ((item.dismissals / item.impressions) * 100).toFixed(1) : '0.0';
+      item.conversion_rate = item.clicks > 0 ? ((item.conversions / item.clicks) * 100).toFixed(1) : '0.0';
+    });
+
+    const messages = await pool.query(`SELECT id, message_id, type, title, is_active, recommendation_enabled, dynamic_content_enabled FROM app_messages ORDER BY sort_order`);
+    const ctas = await pool.query(`SELECT id, tab_key, tab_label, cta_text, is_active, recommendation_enabled, dynamic_content_enabled FROM sales_ctas ORDER BY sort_order`);
+
+    res.json({
+      period: { days, since },
+      summary: summary.rows,
+      content_items: Object.values(contentItems),
+      daily_trends: daily.rows,
+      messages: messages.rows,
+      ctas: ctas.rows
+    });
+  } catch (err) {
+    console.error('Content reports error:', err);
+    res.status(500).json({ error: 'Failed to fetch content reports' });
+  }
+});
+
+router.get('/optimization', requireAuth, async (_req: Request, res: Response) => {
+  try {
+    const settings = await pool.query('SELECT * FROM optimization_settings ORDER BY setting_key');
+    const messages = await pool.query('SELECT id, message_id, type, title, recommendation_enabled, dynamic_content_enabled, is_active FROM app_messages ORDER BY sort_order');
+    const ctas = await pool.query('SELECT id, tab_key, tab_label, cta_text, recommendation_enabled, dynamic_content_enabled, is_active FROM sales_ctas ORDER BY sort_order');
+    res.json({ settings: settings.rows, messages: messages.rows, ctas: ctas.rows });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch optimization settings' });
+  }
+});
+
+router.put('/optimization/settings/:key', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const { value } = req.body;
+    const adminUser = (req as any).adminUser;
+    const result = await pool.query(
+      `INSERT INTO optimization_settings (setting_key, setting_value, updated_by, updated_at)
+       VALUES ($1, $2, $3, NOW())
+       ON CONFLICT (setting_key) DO UPDATE SET setting_value = $2, updated_by = $3, updated_at = NOW()
+       RETURNING *`,
+      [req.params.key, value, adminUser?.email || 'unknown']
+    );
+    res.json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to update optimization setting' });
+  }
+});
+
+router.put('/optimization/message/:id', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const { recommendation_enabled, dynamic_content_enabled } = req.body;
+    const updates: string[] = [];
+    const params: any[] = [];
+    let idx = 1;
+    if (recommendation_enabled !== undefined) { updates.push(`recommendation_enabled = $${idx++}`); params.push(recommendation_enabled); }
+    if (dynamic_content_enabled !== undefined) { updates.push(`dynamic_content_enabled = $${idx++}`); params.push(dynamic_content_enabled); }
+    if (updates.length === 0) return res.status(400).json({ error: 'No fields to update' });
+    updates.push(`updated_at = NOW()`);
+    params.push(req.params.id);
+    const result = await pool.query(`UPDATE app_messages SET ${updates.join(', ')} WHERE id = $${idx} RETURNING *`, params);
+    res.json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to update message optimization' });
+  }
+});
+
+router.put('/optimization/cta/:id', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const { recommendation_enabled, dynamic_content_enabled } = req.body;
+    const updates: string[] = [];
+    const params: any[] = [];
+    let idx = 1;
+    if (recommendation_enabled !== undefined) { updates.push(`recommendation_enabled = $${idx++}`); params.push(recommendation_enabled); }
+    if (dynamic_content_enabled !== undefined) { updates.push(`dynamic_content_enabled = $${idx++}`); params.push(dynamic_content_enabled); }
+    if (updates.length === 0) return res.status(400).json({ error: 'No fields to update' });
+    updates.push(`updated_at = NOW()`);
+    params.push(req.params.id);
+    const result = await pool.query(`UPDATE sales_ctas SET ${updates.join(', ')} WHERE id = $${idx} RETURNING *`, params);
+    res.json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to update CTA optimization' });
+  }
+});
+
 export default router;
