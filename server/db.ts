@@ -17,6 +17,7 @@ export async function initDatabase() {
         password_hash VARCHAR(255) NOT NULL,
         name VARCHAR(255) NOT NULL,
         role VARCHAR(50) NOT NULL DEFAULT 'admin',
+        advisor_id INTEGER REFERENCES advisors(id) ON DELETE SET NULL,
         created_at TIMESTAMP DEFAULT NOW(),
         last_login TIMESTAMP
       );

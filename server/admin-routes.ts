@@ -4,7 +4,7 @@ import pool from './db';
 
 const router = Router();
 
-const sessions = new Map<string, { userId: number; role: string; email: string; name: string; expires: number }>();
+const sessions = new Map<string, { userId: number; role: string; email: string; name: string; advisorId: number | null; expires: number }>();
 
 function generateToken(): string {
   return Date.now().toString(36) + Math.random().toString(36).substr(2, 16) + Math.random().toString(36).substr(2, 16);
@@ -38,9 +38,9 @@ router.post('/login', async (req: Request, res: Response) => {
     const valid = await bcrypt.compare(password, user.password_hash);
     if (!valid) return res.status(401).json({ error: 'Invalid credentials' });
     const token = generateToken();
-    sessions.set(token, { userId: user.id, role: user.role, email: user.email, name: user.name, expires: Date.now() + 24 * 60 * 60 * 1000 });
+    sessions.set(token, { userId: user.id, role: user.role, email: user.email, name: user.name, advisorId: user.advisor_id || null, expires: Date.now() + 24 * 60 * 60 * 1000 });
     await pool.query('UPDATE admin_users SET last_login = NOW() WHERE id = $1', [user.id]);
-    res.json({ token, user: { id: user.id, name: user.name, email: user.email, role: user.role } });
+    res.json({ token, user: { id: user.id, name: user.name, email: user.email, role: user.role, advisorId: user.advisor_id } });
   } catch (err) {
     res.status(500).json({ error: 'Login failed' });
   }
