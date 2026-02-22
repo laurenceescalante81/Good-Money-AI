@@ -99,7 +99,17 @@ constants/
 - **Mobile**: AppMessagesContext fetches active messages, tracks seen/dismissed state in AsyncStorage, MessageOverlay renders in each tab
 - **Public API**: GET /api/admin/messages/active (no auth) returns active messages for the mobile app
 
+## Content Analytics & Optimization
+- **Event Tracking**: Mobile app automatically records impression, cta_click, dismiss events for tooltips, popups, and FTUE messages via POST /api/admin/events
+- **Database**: `content_events` table stores all interaction events with content_type, content_id, event_type, device_id, session_id
+- **Optimization Settings**: `optimization_settings` table stores global toggles (dynamic content, auto-prioritize CTAs/FTUE, recommendation engine)
+- **Per-Element Controls**: `app_messages` and `sales_ctas` have `recommendation_enabled` and `dynamic_content_enabled` boolean columns
+- **Content Reports Page**: Adviser portal page accessible to both god mode and adviser users — shows impressions, clicks, dismissals, conversion metrics with type/period filters, per-element breakdown table, daily trend chart, recommendation status overview
+- **Optimization Page**: Adviser portal page for controlling global optimization settings and per-message/CTA recommendation and dynamic content toggles
+- **API Endpoints**: POST /api/admin/events (no auth), GET /api/admin/content-reports (auth), GET/PUT /api/admin/optimization (auth), PUT /api/admin/optimization/message/:id and /cta/:id (auth)
+
 ## Recent Changes
+- Feb 2026: Added content analytics, testing & optimization system with event tracking, reports dashboard, and per-element recommendation controls
 - Feb 2026: Added customizable tooltips, marketing popups, and FTUE system with back office management
 - Feb 2026: Built Good Money Adviser portal — separate web app for advisers with client profiles, reports, role-based access
 - Feb 2026: Added comprehensive rewards/gamification system with points, levels, missions, spin wheel, scratch cards, badges, and redeem store
