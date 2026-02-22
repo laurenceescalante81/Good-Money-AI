@@ -108,7 +108,16 @@ constants/
 - **Optimization Page**: Adviser portal page for controlling global optimization settings and per-message/CTA recommendation and dynamic content toggles
 - **API Endpoints**: POST /api/admin/events (no auth), GET /api/admin/content-reports (auth), GET/PUT /api/admin/optimization (auth), PUT /api/admin/optimization/message/:id and /cta/:id (auth)
 
+## App Marketing Platform
+- **Database**: `marketing_campaigns` (name, type, status, targeting, dates, budget, goals, A/B config), `campaign_variants` (variant content, traffic split, performance metrics), `campaign_events` (event tracking with device/session data)
+- **Campaign Management**: Full CRUD, status workflow (draft→active→paused→completed→archived), campaign duplication, variant management with A/B testing
+- **Campaign Analytics**: Variant performance comparison (CTR, CVR, dismiss rates), daily/hourly trend analysis, reach metrics, budget tracking
+- **CTA Optimizer**: Performance-based scoring engine (CTR×3 + CVR×5 - dismiss_rate×2 + unique_users×0.1), auto-ranking system, recommendations (high_performer/moderate/needs_improvement/insufficient_data)
+- **Adviser Portal Pages**: Campaigns list (filterable by status), Campaign Detail (variant editor, settings, performance chart), Campaign Analytics dashboard (KPIs, comparison table, A/B charts, hourly distribution), CTA Optimizer (ranking table, score visualization, formula display)
+- **API Endpoints**: GET/POST /api/admin/campaigns, GET/PUT/DELETE /api/admin/campaigns/:id, PUT /api/admin/campaigns/:id/status, POST /api/admin/campaigns/:id/duplicate, GET/POST /api/admin/campaigns/:id/variants, PUT/DELETE /api/admin/campaigns/variants/:vid, POST /api/admin/campaigns/:id/events (no auth), GET /api/admin/campaigns/:id/analytics, GET /api/admin/cta-optimizer, POST /api/admin/cta-optimizer/apply-ranking, GET /api/admin/marketing/overview
+
 ## Recent Changes
+- Feb 2026: Added complete app marketing platform with campaign management, A/B testing, performance analytics, and dynamic CTA optimization engine
 - Feb 2026: Added content analytics, testing & optimization system with event tracking, reports dashboard, and per-element recommendation controls
 - Feb 2026: Added customizable tooltips, marketing popups, and FTUE system with back office management
 - Feb 2026: Built Good Money Adviser portal — separate web app for advisers with client profiles, reports, role-based access
