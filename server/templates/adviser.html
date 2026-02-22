@@ -312,6 +312,8 @@ function buildNav() {
     html += '<div class="nav-divider"></div>';
     html += '<div class="nav-label">Administration</div>';
     html += navItem('advisers', 'person-outline', 'Advisers');
+    html += navItem('quests', 'trophy-outline', 'Quests');
+    html += navItem('ctas', 'megaphone-outline', 'CTAs');
     html += navItem('messages', 'chatbubbles-outline', 'Messages');
     html += navItem('settings', 'settings-outline', 'Settings');
   }
@@ -325,7 +327,7 @@ function navItem(page, icon, label) {
 function navigate(page) {
   currentPage = page;
   document.querySelectorAll('.nav-item').forEach(n => n.classList.toggle('active', n.dataset.page === page));
-  const renderers = { dashboard: renderDashboard, clients: renderClients, reports: renderReports, advisers: renderAdvisers, messages: renderMessages, settings: renderSettings };
+  const renderers = { dashboard: renderDashboard, clients: renderClients, reports: renderReports, advisers: renderAdvisers, quests: renderQuests, ctas: renderCTAs, messages: renderMessages, settings: renderSettings };
   if (renderers[page]) renderers[page]();
 }
 
@@ -1159,6 +1161,213 @@ async function createUser() {
     hideModal();
     toast('User created');
     renderSettings();
+  } catch (e) { toast('Failed: ' + e.message, 'error'); }
+}
+
+let questTypeFilter = 'all';
+async function renderQuests() {
+  if (!isGod()) { navigate('dashboard'); return; }
+  setMain(`<div class="page-header"><h1>Quests & Missions</h1><p>Manage in-app quests and missions for users</p></div><div id="quests-content"><div class="loading">Loading...</div></div>`);
+  try {
+    const quests = await api('/quests');
+    cache.quests = quests;
+    let segments = [];
+    try { segments = await api('/segments'); cache.segments = segments; } catch {}
+
+    let html = `<div class="card"><div class="card-header"><h3>All Quests (${quests.length})</h3><button class="btn btn-primary btn-sm" onclick="showQuestModal()"><ion-icon name="add-outline"></ion-icon> Add Quest</button></div>`;
+    html += `<table><thead><tr><th>Icon</th><th>Title</th><th>Description</th><th>Base Coins</th><th>2x Active</th><th>Category</th><th>Segment</th><th>Status</th><th>Actions</th></tr></thead><tbody>`;
+    quests.forEach(q => {
+      const statusBadge = q.is_active ? '<span class="badge badge-active">Active</span>' : '<span class="badge badge-inactive">Inactive</span>';
+      const twoxBadge = q.is_2x_active ? '<span class="badge badge-god">2x</span>' : '<span style="color:var(--text-muted);font-size:12px">—</span>';
+      html += `<tr>
+        <td><ion-icon name="${esc(q.icon || 'help-outline')}" style="font-size:20px;color:${esc(q.icon_bg || 'var(--teal)')}"></ion-icon></td>
+        <td><strong>${esc(q.title)}</strong></td>
+        <td style="max-width:220px;font-size:12px;color:var(--text-secondary)">${esc(q.description || '')}</td>
+        <td>${fmt(q.base_points)}</td>
+        <td>${twoxBadge}</td>
+        <td><span style="font-size:12px;color:var(--text-muted)">${esc(q.category || 'mission')}</span></td>
+        <td>${q.segment_name ? '<span class="badge badge-adviser">' + esc(q.segment_name) + '</span>' : '<span style="font-size:12px;color:var(--text-muted)">All</span>'}</td>
+        <td>${statusBadge}</td>
+        <td>
+          <button class="btn btn-secondary btn-sm" onclick="showQuestModal(${q.id})" style="margin-right:4px"><ion-icon name="create-outline"></ion-icon></button>
+          <button class="btn btn-danger btn-sm" onclick="deleteQuest(${q.id})"><ion-icon name="trash-outline"></ion-icon></button>
+        </td>
+      </tr>`;
+    });
+    if (quests.length === 0) html += '<tr><td colspan="9" class="empty-state">No quests configured</td></tr>';
+    html += '</tbody></table></div>';
+    $('quests-content').innerHTML = html;
+  } catch (e) {
+    $('quests-content').innerHTML = '<div class="empty-state">Failed to load quests</div>';
+  }
+}
+
+function showQuestModal(editId) {
+  const q = editId ? (cache.quests || []).find(x => x.id === editId) : null;
+  const segments = cache.segments || [];
+  let segOpts = '<option value="">All Users</option>';
+  segments.forEach(s => segOpts += `<option value="${s.id}" ${q && q.segment_id == s.id ? 'selected' : ''}>${esc(s.name)}</option>`);
+
+  showModal(`
+    <h2>${q ? 'Edit Quest' : 'Add New Quest'}</h2>
+    ${!q ? '<div class="form-group"><label>Quest ID (slug)</label><input id="m-q-qid" placeholder="e.g. review_super"></div>' : ''}
+    <div class="form-group"><label>Title</label><input id="m-q-title" value="${esc(q?.title || '')}"></div>
+    <div class="form-group"><label>Description</label><textarea id="m-q-desc">${esc(q?.description || '')}</textarea></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="form-group"><label>Icon (Ionicons)</label><input id="m-q-icon" value="${esc(q?.icon || 'help-outline')}" placeholder="e.g. shield-checkmark-outline"></div>
+      <div class="form-group"><label>Icon Background</label><input id="m-q-iconbg" type="color" value="${q?.icon_bg || '#3B82F6'}" style="height:40px"></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
+      <div class="form-group"><label>Base Coins</label><input id="m-q-points" type="number" value="${q?.base_points || 100}"></div>
+      <div class="form-group"><label>Category</label><select id="m-q-cat"><option value="mission" ${(!q || q.category === 'mission') ? 'selected' : ''}>Mission</option><option value="daily" ${q?.category === 'daily' ? 'selected' : ''}>Daily</option><option value="weekly" ${q?.category === 'weekly' ? 'selected' : ''}>Weekly</option><option value="special" ${q?.category === 'special' ? 'selected' : ''}>Special</option></select></div>
+      <div class="form-group"><label>Sort Order</label><input id="m-q-sort" type="number" value="${q?.sort_order || 0}"></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="form-group"><label>2x Multiplier Active</label><select id="m-q-2x"><option value="false" ${!q?.is_2x_active ? 'selected' : ''}>No</option><option value="true" ${q?.is_2x_active ? 'selected' : ''}>Yes</option></select></div>
+      <div class="form-group"><label>Segment</label><select id="m-q-seg">${segOpts}</select></div>
+    </div>
+    ${q ? `<div class="form-group"><label>Status</label><select id="m-q-active"><option value="true" ${q.is_active ? 'selected' : ''}>Active</option><option value="false" ${!q.is_active ? 'selected' : ''}>Inactive</option></select></div>` : ''}
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="hideModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveQuest(${editId || 'null'})">Save</button>
+    </div>
+  `);
+}
+
+async function saveQuest(editId) {
+  const data = {
+    title: $('m-q-title').value,
+    description: $('m-q-desc').value,
+    icon: $('m-q-icon').value,
+    icon_bg: $('m-q-iconbg').value,
+    base_points: parseInt($('m-q-points').value) || 100,
+    is_2x_active: $('m-q-2x').value === 'true',
+    category: $('m-q-cat').value,
+    sort_order: parseInt($('m-q-sort').value) || 0,
+    segment_id: $('m-q-seg').value || null,
+  };
+  if (!editId) data.quest_id = $('m-q-qid').value;
+  if (editId) data.is_active = $('m-q-active').value === 'true';
+  try {
+    if (editId) await api('/quests/' + editId, { method: 'PUT', body: JSON.stringify(data) });
+    else await api('/quests', { method: 'POST', body: JSON.stringify(data) });
+    hideModal();
+    toast(editId ? 'Quest updated' : 'Quest created');
+    renderQuests();
+  } catch (e) { toast('Failed: ' + e.message, 'error'); }
+}
+
+async function deleteQuest(id) {
+  if (!confirm('Delete this quest?')) return;
+  try {
+    await api('/quests/' + id, { method: 'DELETE' });
+    toast('Quest deleted');
+    renderQuests();
+  } catch (e) { toast('Failed: ' + e.message, 'error'); }
+}
+
+let ctaTabFilter = 'all';
+async function renderCTAs() {
+  if (!isGod()) { navigate('dashboard'); return; }
+  setMain(`<div class="page-header"><h1>Sales CTAs</h1><p>Manage call-to-action banners shown on each app tab</p></div><div id="ctas-content"><div class="loading">Loading...</div></div>`);
+  try {
+    const ctas = await api('/ctas');
+    cache.ctas = ctas;
+    let segments = [];
+    try { segments = await api('/segments'); cache.segments = segments; } catch {}
+
+    const tabs = [...new Set(ctas.map(c => c.tab_key))].sort();
+    let filterHtml = `<div style="display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap">`;
+    filterHtml += `<button class="btn btn-sm ${ctaTabFilter === 'all' ? 'btn-primary' : 'btn-secondary'}" onclick="ctaTabFilter='all';renderCTAs()">All</button>`;
+    tabs.forEach(t => {
+      filterHtml += `<button class="btn btn-sm ${ctaTabFilter === t ? 'btn-primary' : 'btn-secondary'}" onclick="ctaTabFilter='${t}';renderCTAs()">${esc(t.charAt(0).toUpperCase() + t.slice(1))}</button>`;
+    });
+    filterHtml += '</div>';
+
+    const filtered = ctaTabFilter === 'all' ? ctas : ctas.filter(c => c.tab_key === ctaTabFilter);
+
+    let html = filterHtml;
+    html += `<div class="card"><div class="card-header"><h3>CTAs (${filtered.length})</h3><button class="btn btn-primary btn-sm" onclick="showCTAModal()"><ion-icon name="add-outline"></ion-icon> Add CTA</button></div>`;
+    html += `<table><thead><tr><th>Icon</th><th>Tab</th><th>CTA Text</th><th>Segment</th><th>Status</th><th>Actions</th></tr></thead><tbody>`;
+    filtered.forEach(c => {
+      const statusBadge = c.is_active ? '<span class="badge badge-active">Active</span>' : '<span class="badge badge-inactive">Inactive</span>';
+      html += `<tr>
+        <td><ion-icon name="${esc(c.icon || 'megaphone-outline')}" style="font-size:20px;color:${esc(c.icon_color || 'var(--teal)')}"></ion-icon></td>
+        <td><span class="badge" style="background:rgba(13,148,136,0.15);color:var(--teal-light)">${esc(c.tab_label || c.tab_key)}</span></td>
+        <td><strong>${esc(c.cta_text)}</strong></td>
+        <td>${c.segment_name ? '<span class="badge badge-adviser">' + esc(c.segment_name) + '</span>' : '<span style="font-size:12px;color:var(--text-muted)">All</span>'}</td>
+        <td>${statusBadge}</td>
+        <td>
+          <button class="btn btn-secondary btn-sm" onclick="showCTAModal(${c.id})" style="margin-right:4px"><ion-icon name="create-outline"></ion-icon></button>
+          <button class="btn btn-danger btn-sm" onclick="deleteCTA(${c.id})"><ion-icon name="trash-outline"></ion-icon></button>
+        </td>
+      </tr>`;
+    });
+    if (filtered.length === 0) html += '<tr><td colspan="6" class="empty-state">No CTAs found</td></tr>';
+    html += '</tbody></table></div>';
+    $('ctas-content').innerHTML = html;
+  } catch (e) {
+    $('ctas-content').innerHTML = '<div class="empty-state">Failed to load CTAs</div>';
+  }
+}
+
+function showCTAModal(editId) {
+  const c = editId ? (cache.ctas || []).find(x => x.id === editId) : null;
+  const segments = cache.segments || [];
+  let segOpts = '<option value="">All Users</option>';
+  segments.forEach(s => segOpts += `<option value="${s.id}" ${c && c.segment_id == s.id ? 'selected' : ''}>${esc(s.name)}</option>`);
+
+  const tabOptions = ['mortgage','super','insurance','savings','rewards','banks','budget','planning','fact_find','investor','overview'].map(t =>
+    `<option value="${t}" ${c?.tab_key === t ? 'selected' : ''}>${t.charAt(0).toUpperCase() + t.slice(1).replace('_',' ')}</option>`
+  ).join('');
+
+  showModal(`
+    <h2>${c ? 'Edit CTA' : 'Add New CTA'}</h2>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="form-group"><label>Tab</label><select id="m-cta-tab" onchange="var l=$('m-cta-label');if(!l.value||l.dataset.auto)l.value=this.options[this.selectedIndex].text,l.dataset.auto='1'">${tabOptions}</select></div>
+      <div class="form-group"><label>Tab Label</label><input id="m-cta-label" value="${esc(c?.tab_label || '')}" ${!c ? 'data-auto="1"' : ''}></div>
+    </div>
+    <div class="form-group"><label>CTA Text</label><input id="m-cta-text" value="${esc(c?.cta_text || '')}" placeholder="e.g. Get a free rate review"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="form-group"><label>Icon (Ionicons)</label><input id="m-cta-icon" value="${esc(c?.icon || 'megaphone-outline')}" placeholder="e.g. home-outline"></div>
+      <div class="form-group"><label>Icon Color</label><input id="m-cta-color" type="color" value="${c?.icon_color || '#0D9488'}" style="height:40px"></div>
+    </div>
+    <div class="form-group"><label>Segment</label><select id="m-cta-seg">${segOpts}</select></div>
+    ${c ? `<div class="form-group"><label>Status</label><select id="m-cta-active"><option value="true" ${c.is_active ? 'selected' : ''}>Active</option><option value="false" ${!c.is_active ? 'selected' : ''}>Inactive</option></select></div>` : ''}
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="hideModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveCTA(${editId || 'null'})">Save</button>
+    </div>
+  `);
+}
+
+async function saveCTA(editId) {
+  const data = {
+    cta_text: $('m-cta-text').value,
+    icon: $('m-cta-icon').value,
+    icon_color: $('m-cta-color').value,
+    segment_id: $('m-cta-seg').value || null,
+  };
+  if (!editId) {
+    data.tab_key = $('m-cta-tab').value;
+    data.tab_label = $('m-cta-label').value;
+  }
+  if (editId) data.is_active = $('m-cta-active').value === 'true';
+  try {
+    if (editId) await api('/ctas/' + editId, { method: 'PUT', body: JSON.stringify(data) });
+    else await api('/ctas', { method: 'POST', body: JSON.stringify(data) });
+    hideModal();
+    toast(editId ? 'CTA updated' : 'CTA created');
+    renderCTAs();
+  } catch (e) { toast('Failed: ' + e.message, 'error'); }
+}
+
+async function deleteCTA(id) {
+  if (!confirm('Delete this CTA?')) return;
+  try {
+    await api('/ctas/' + id, { method: 'DELETE' });
+    toast('CTA deleted');
+    renderCTAs();
   } catch (e) { toast('Failed: ' + e.message, 'error'); }
 }
 
