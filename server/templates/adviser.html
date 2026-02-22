@@ -973,13 +973,14 @@ async function renderMessages() {
     const msgs = await api('/messages?type=' + messagesFilter);
     messagesCache = msgs;
     if (!msgs.length) { $('messages-content').innerHTML = '<div class="empty-state">No messages found</div>'; return; }
-    let html = '<div class="card"><table><thead><tr><th>Type</th><th>Title</th><th>Target</th><th>Display Rule</th><th>Priority</th><th>Status</th><th>Actions</th></tr></thead><tbody>';
+    let html = '<div class="card"><table><thead><tr><th>Type</th><th>Title</th><th>Target</th><th>Animation</th><th>Display Rule</th><th>Priority</th><th>Status</th><th>Actions</th></tr></thead><tbody>';
     msgs.forEach(m => {
       const typeBadge = m.type === 'tooltip' ? 'background:rgba(59,130,246,0.15);color:#60A5FA' : m.type === 'popup' ? 'background:rgba(139,92,246,0.15);color:#A78BFA' : 'background:rgba(16,185,129,0.15);color:#34D399';
       html += `<tr>
         <td><span class="badge" style="${typeBadge}">${m.type}</span></td>
         <td><strong style="color:#fff">${esc(m.title)}</strong>${m.body ? '<br><span style="font-size:11px;color:var(--text-muted)">' + esc(m.body).substring(0,60) + (m.body.length>60?'...':'') + '</span>' : ''}</td>
         <td>${m.target_screen || 'all'}</td>
+        <td><span style="font-size:11px;color:var(--teal-light)">${m.animation_type || 'fade'}</span></td>
         <td>${m.display_rule}</td>
         <td>${m.priority}</td>
         <td><span class="badge ${m.is_active?'badge-active':'badge-inactive'}" style="cursor:pointer" onclick="toggleMessageActive(${m.id},${!m.is_active})">${m.is_active?'Active':'Inactive'}</span></td>
@@ -1033,19 +1034,20 @@ async function showMessageModal(editId) {
       <div class="form-group"><label>Icon Color</label><input type="color" id="m-msg-iconcolor" value="${msg?msg.icon_color||'#0D9488':'#0D9488'}" style="height:38px"></div>
       <div class="form-group"><label>BG Color</label><input type="color" id="m-msg-bgcolor" value="${msg?msg.bg_color||'#132D46':'#132D46'}" style="height:38px"></div>
     </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
       <div class="form-group"><label>Display Rule</label><select id="m-msg-rule"><option value="once" ${msg&&msg.display_rule==='once'?'selected':''}>Once</option><option value="every_session" ${msg&&msg.display_rule==='every_session'?'selected':''}>Every Session</option><option value="every_time" ${msg&&msg.display_rule==='every_time'?'selected':''}>Every Time</option><option value="first_time_only" ${msg&&msg.display_rule==='first_time_only'?'selected':''}>First Time Only</option></select></div>
+      <div class="form-group"><label>Animation</label><select id="m-msg-anim"><option value="fade" ${msg&&msg.animation_type==='fade'?'selected':''}>Fade In</option><option value="slide_up" ${msg&&msg.animation_type==='slide_up'?'selected':''}>Slide Up</option><option value="slide_down" ${msg&&msg.animation_type==='slide_down'?'selected':''}>Slide Down</option><option value="slide_right" ${msg&&msg.animation_type==='slide_right'?'selected':''}>Slide Right</option><option value="bounce" ${msg&&msg.animation_type==='bounce'?'selected':''}>Bounce</option><option value="zoom" ${msg&&msg.animation_type==='zoom'?'selected':''}>Zoom</option><option value="flip" ${msg&&msg.animation_type==='flip'?'selected':''}>Flip</option><option value="pulse" ${msg&&msg.animation_type==='pulse'?'selected':''}>Pulse Glow</option><option value="confetti" ${msg&&msg.animation_type==='confetti'?'selected':''}>Confetti Burst</option></select></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
       <div class="form-group"><label>Priority (1-10)</label><input type="number" id="m-msg-priority" min="1" max="10" value="${msg?msg.priority:5}"></div>
       <div class="form-group"><label>Delay (ms)</label><input type="number" id="m-msg-delay" min="0" value="${msg?msg.delay_ms:500}"></div>
+      <div class="form-group"><label>Sort Order</label><input type="number" id="m-msg-sort" min="0" value="${msg?msg.sort_order:0}"></div>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
       <div class="form-group"><label>Start Date</label><input type="datetime-local" id="m-msg-start" value="${msg&&msg.start_date?new Date(msg.start_date).toISOString().slice(0,16):''}"></div>
       <div class="form-group"><label>End Date</label><input type="datetime-local" id="m-msg-end" value="${msg&&msg.end_date?new Date(msg.end_date).toISOString().slice(0,16):''}"></div>
     </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-      <div class="form-group"><label>Segment</label><select id="m-msg-segment">${segOpts}</select></div>
-      <div class="form-group"><label>Sort Order</label><input type="number" id="m-msg-sort" min="0" value="${msg?msg.sort_order:0}"></div>
-    </div>
+    <div class="form-group"><label>Segment</label><select id="m-msg-segment">${segOpts}</select></div>
     <div class="modal-actions">
       <button class="btn btn-secondary" onclick="hideModal()">Cancel</button>
       <button class="btn btn-primary" onclick="saveMessage(${editId||'null'})">${editId?'Update':'Create'} Message</button>
@@ -1073,7 +1075,8 @@ async function saveMessage(editId) {
     start_date: $('m-msg-start').value || null,
     end_date: $('m-msg-end').value || null,
     segment_id: $('m-msg-segment').value ? parseInt($('m-msg-segment').value) : null,
-    sort_order: parseInt($('m-msg-sort').value) || 0
+    sort_order: parseInt($('m-msg-sort').value) || 0,
+    animation_type: $('m-msg-anim').value || 'fade'
   };
   if (!data.message_id || !data.title) { toast('Message ID and Title are required', 'error'); return; }
   try {

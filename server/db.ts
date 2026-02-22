@@ -176,6 +176,7 @@ export async function initDatabase() {
         start_date TIMESTAMP,
         end_date TIMESTAMP,
         segment_id INTEGER REFERENCES customer_segments(id) ON DELETE SET NULL,
+        animation_type VARCHAR(30) DEFAULT 'fade',
         sort_order INTEGER DEFAULT 0,
         created_at TIMESTAMP DEFAULT NOW(),
         updated_at TIMESTAMP DEFAULT NOW()
