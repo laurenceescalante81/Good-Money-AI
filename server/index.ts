@@ -177,6 +177,11 @@ function configureExpoAndLanding(app: express.Application) {
     res.sendFile(adminPath);
   });
 
+  const adviserPath = path.resolve(process.cwd(), "server", "templates", "adviser.html");
+  app.get("/adviser", (_req: Request, res: Response) => {
+    res.sendFile(adviserPath);
+  });
+
   app.use((req: Request, res: Response, next: NextFunction) => {
     if (req.path.startsWith("/api")) {
       return next();

@@ -491,11 +491,11 @@ router.get('/admin-users', requireAuth, requireGod, async (_req: Request, res: R
 
 router.post('/admin-users', requireAuth, requireGod, async (req: Request, res: Response) => {
   try {
-    const { email, password, name, role } = req.body;
+    const { email, password, name, role, advisor_id } = req.body;
     const hash = await bcrypt.hash(password, 10);
     const result = await pool.query(
-      `INSERT INTO admin_users (email, password_hash, name, role) VALUES ($1, $2, $3, $4) RETURNING id, email, name, role, created_at`,
-      [email, hash, name, role || 'admin']
+      `INSERT INTO admin_users (email, password_hash, name, role, advisor_id) VALUES ($1, $2, $3, $4, $5) RETURNING id, email, name, role, advisor_id, created_at`,
+      [email, hash, name, role || 'admin', advisor_id || null]
     );
     res.json(result.rows[0]);
   } catch (err) {
