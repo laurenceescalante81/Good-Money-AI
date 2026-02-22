@@ -663,4 +663,73 @@ router.get('/segments/:id/customers', requireAuth, async (req: Request, res: Res
   }
 });
 
+router.get('/messages/active', async (_req: Request, res: Response) => {
+  try {
+    const result = await pool.query(`
+      SELECT * FROM app_messages
+      WHERE is_active = true
+        AND (start_date IS NULL OR start_date <= NOW())
+        AND (end_date IS NULL OR end_date >= NOW())
+      ORDER BY priority ASC, sort_order ASC
+    `);
+    res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch active messages' });
+  }
+});
+
+router.get('/messages', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const typeFilter = req.query.type as string | undefined;
+    let query = `SELECT m.*, cs.name as segment_name FROM app_messages m LEFT JOIN customer_segments cs ON m.segment_id = cs.id`;
+    const params: any[] = [];
+    if (typeFilter && typeFilter !== 'all') {
+      query += ` WHERE m.type = $1`;
+      params.push(typeFilter);
+    }
+    query += ` ORDER BY m.sort_order ASC, m.priority ASC`;
+    const result = await pool.query(query, params);
+    res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch messages' });
+  }
+});
+
+router.post('/messages', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const { message_id, type, title, body, cta_text, cta_action, target_screen, position, icon, icon_color, bg_color, display_rule, priority, delay_ms, is_active, start_date, end_date, segment_id, sort_order } = req.body;
+    const result = await pool.query(
+      `INSERT INTO app_messages (message_id, type, title, body, cta_text, cta_action, target_screen, position, icon, icon_color, bg_color, display_rule, priority, delay_ms, is_active, start_date, end_date, segment_id, sort_order)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19) RETURNING *`,
+      [message_id, type, title, body || null, cta_text || null, cta_action || null, target_screen || 'all', position || 'center', icon || null, icon_color || '#0D9488', bg_color || '#132D46', display_rule || 'once', priority || 5, delay_ms || 500, is_active !== false, start_date || null, end_date || null, segment_id || null, sort_order || 0]
+    );
+    res.json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to create message' });
+  }
+});
+
+router.put('/messages/:id', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const { message_id, type, title, body, cta_text, cta_action, target_screen, position, icon, icon_color, bg_color, display_rule, priority, delay_ms, is_active, start_date, end_date, segment_id, sort_order } = req.body;
+    const result = await pool.query(
+      `UPDATE app_messages SET message_id=$1, type=$2, title=$3, body=$4, cta_text=$5, cta_action=$6, target_screen=$7, position=$8, icon=$9, icon_color=$10, bg_color=$11, display_rule=$12, priority=$13, delay_ms=$14, is_active=$15, start_date=$16, end_date=$17, segment_id=$18, sort_order=$19, updated_at=NOW()
+       WHERE id=$20 RETURNING *`,
+      [message_id, type, title, body || null, cta_text || null, cta_action || null, target_screen || 'all', position || 'center', icon || null, icon_color || '#0D9488', bg_color || '#132D46', display_rule || 'once', priority || 5, delay_ms || 500, is_active !== false, start_date || null, end_date || null, segment_id || null, sort_order || 0, req.params.id]
+    );
+    res.json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to update message' });
+  }
+});
+
+router.delete('/messages/:id', requireAuth, async (req: Request, res: Response) => {
+  try {
+    await pool.query('DELETE FROM app_messages WHERE id = $1', [req.params.id]);
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to delete message' });
+  }
+});
+
 export default router;

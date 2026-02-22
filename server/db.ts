@@ -155,6 +155,31 @@ export async function initDatabase() {
         created_at TIMESTAMP DEFAULT NOW(),
         updated_at TIMESTAMP DEFAULT NOW()
       );
+
+      CREATE TABLE IF NOT EXISTS app_messages (
+        id SERIAL PRIMARY KEY,
+        message_id VARCHAR(100) UNIQUE NOT NULL,
+        type VARCHAR(20) NOT NULL,
+        title VARCHAR(255) NOT NULL,
+        body TEXT,
+        cta_text VARCHAR(100),
+        cta_action VARCHAR(255),
+        target_screen VARCHAR(50),
+        position VARCHAR(20) DEFAULT 'center',
+        icon VARCHAR(100),
+        icon_color VARCHAR(20) DEFAULT '#0D9488',
+        bg_color VARCHAR(20) DEFAULT '#132D46',
+        display_rule VARCHAR(30) DEFAULT 'once',
+        priority INTEGER DEFAULT 5,
+        delay_ms INTEGER DEFAULT 500,
+        is_active BOOLEAN DEFAULT true,
+        start_date TIMESTAMP,
+        end_date TIMESTAMP,
+        segment_id INTEGER REFERENCES customer_segments(id) ON DELETE SET NULL,
+        sort_order INTEGER DEFAULT 0,
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW()
+      );
     `);
 
     const adminCount = await client.query('SELECT COUNT(*) FROM admin_users');
@@ -241,6 +266,21 @@ export async function initDatabase() {
         ('budget', 'Budget', 'Take control of your cash flow', 'wallet-outline', '#10B981', 7),
         ('planning', 'Planning', 'See your wealth projection to retirement', 'analytics-outline', '#6366F1', 8),
         ('fact_find', 'Fact Find', 'Complete your profile for tailored advice', 'document-text-outline', '#F59E0B', 9)
+      `);
+    }
+
+    const msgCount = await client.query('SELECT COUNT(*) FROM app_messages');
+    if (parseInt(msgCount.rows[0].count) === 0) {
+      await client.query(`
+        INSERT INTO app_messages (message_id, type, title, body, cta_text, cta_action, target_screen, icon, icon_color, display_rule, priority, sort_order) VALUES
+        ('welcome_popup', 'popup', 'Welcome to Good Money! 🎉', 'Your personal finance companion built for Australians. Track your mortgage, super, insurance, and budget all in one place.', 'Get Started', 'overview', 'rewards', 'rocket-outline', '#0D9488', 'first_time_only', 1, 1),
+        ('ftue_overview', 'ftue', 'Your Financial Dashboard', 'This is your overview. See all your finances at a glance — mortgage equity, super balance, insurance coverage, and savings progress.', 'Next', null, 'overview', 'grid-outline', '#3B82F6', 'first_time_only', 2, 2),
+        ('ftue_budget', 'ftue', 'Track Your Spending', 'Log your income and expenses to understand where your money goes. Set savings goals and watch them grow.', 'Got It', null, 'budget', 'wallet-outline', '#10B981', 'first_time_only', 3, 3),
+        ('ftue_rewards', 'ftue', 'Earn Good Coins', 'Complete missions, spin the wheel, and earn Good Coins. Convert them to ppAUD tokens or redeem for gift cards!', 'Awesome', null, 'rewards', 'gift-outline', '#D4AF37', 'first_time_only', 4, 4),
+        ('mortgage_tip', 'tooltip', 'Extra Repayments Save You Thousands', 'Even $50 extra per week on your mortgage can save years of interest. Try the extra repayment calculator!', null, null, 'mortgage', 'bulb-outline', '#F59E0B', 'once', 5, 5),
+        ('super_tip', 'tooltip', 'Check Your Super Fees', 'High fees can erode your retirement savings. Compare your fund fees using the fund comparison tool.', null, null, 'super', 'bulb-outline', '#8B5CF6', 'once', 6, 6),
+        ('promo_factfind', 'popup', 'Complete Your Financial Profile', 'Fill out the Fact Find to get personalised advice from your adviser. Earn bonus Good Coins for each section!', 'Start Fact Find', 'fact-find', 'all', 'document-text-outline', '#F59E0B', 'every_session', 3, 7),
+        ('bank_connect', 'tooltip', 'Connect Your Bank', 'Link your bank accounts for automatic balance updates and transaction imports.', 'Connect Now', 'banks', 'banks', 'link-outline', '#0D9488', 'once', 4, 8)
       `);
     }
 

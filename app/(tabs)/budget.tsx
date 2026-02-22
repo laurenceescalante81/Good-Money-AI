@@ -8,6 +8,7 @@ import * as Haptics from "expo-haptics";
 import Colors from "@/constants/colors";
 import { useFinance, Transaction } from "@/contexts/FinanceContext";
 import { useRewards } from "@/contexts/RewardsContext";
+import { MessageOverlay } from "@/contexts/AppMessagesContext";
 
 const CATS: Record<string, { icon: string; color: string }> = {
   "Groceries": { icon: "cart-outline", color: "#F59E0B" },
@@ -320,6 +321,7 @@ export default function BudgetScreen() {
           </Pressable>
         </Pressable>
       </Modal>
+      <MessageOverlay screen="budget" />
     </View>
   );
 }

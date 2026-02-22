@@ -8,6 +8,7 @@ import Svg, { Path, Line, Text as SvgText, Circle, Defs, LinearGradient as SvgLi
 import Colors from "@/constants/colors";
 import { useFinance } from "@/contexts/FinanceContext";
 import { useRewards } from "@/contexts/RewardsContext";
+import { MessageOverlay } from "@/contexts/AppMessagesContext";
 
 const DEFAULT_CTAS: Record<string, string> = {
   mortgage: "Get a free rate review",
@@ -386,6 +387,7 @@ export default function DashboardScreen() {
           </Pressable>
         </View>
       </ScrollView>
+      <MessageOverlay screen="overview" />
     </View>
   );
 }

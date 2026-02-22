@@ -7,6 +7,7 @@ import * as Haptics from 'expo-haptics';
 import Animated, { useSharedValue, useAnimatedStyle, withTiming, withSpring, withSequence, Easing, runOnJS } from 'react-native-reanimated';
 import { router } from 'expo-router';
 import { useRewards, Mission, TokenTransaction } from '@/contexts/RewardsContext';
+import { MessageOverlay } from '@/contexts/AppMessagesContext';
 import Colors from '@/constants/colors';
 
 const { width: SCREEN_W } = Dimensions.get('window');
@@ -623,6 +624,7 @@ export default function RewardsScreen() {
           )}
         </View>
       </ScrollView>
+      <MessageOverlay screen="rewards" />
     </View>
   );
 }

@@ -8,6 +8,7 @@ import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { queryClient } from "@/lib/query-client";
 import { FinanceProvider } from "@/contexts/FinanceContext";
 import { RewardsProvider } from "@/contexts/RewardsContext";
+import { AppMessagesProvider } from "@/contexts/AppMessagesContext";
 import { useFonts, DMSans_400Regular, DMSans_500Medium, DMSans_600SemiBold, DMSans_700Bold } from "@expo-google-fonts/dm-sans";
 
 SplashScreen.preventAutoHideAsync();
@@ -51,7 +52,9 @@ export default function RootLayout() {
           <KeyboardProvider>
             <FinanceProvider>
               <RewardsProvider>
-                <RootLayoutNav />
+                <AppMessagesProvider>
+                  <RootLayoutNav />
+                </AppMessagesProvider>
               </RewardsProvider>
             </FinanceProvider>
           </KeyboardProvider>

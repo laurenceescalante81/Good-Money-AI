@@ -7,6 +7,7 @@ import { router } from "expo-router";
 import Colors from "@/constants/colors";
 import { useFinance } from "@/contexts/FinanceContext";
 import { useRewards } from "@/contexts/RewardsContext";
+import { MessageOverlay } from "@/contexts/AppMessagesContext";
 
 function fmt(n: number): string { return "$" + n.toLocaleString("en-AU", { minimumFractionDigits: 0, maximumFractionDigits: 0 }); }
 
@@ -227,6 +228,7 @@ export default function SuperScreen() {
         </Pressable>
 
       </ScrollView>
+      <MessageOverlay screen="super" />
     </View>
   );
 }
