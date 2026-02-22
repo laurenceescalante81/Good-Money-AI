@@ -79,7 +79,18 @@ constants/
 - Redeem Store: cashback, gift cards, double points boosters (800-5000pts)
 - 2x Weekend: automatic double points on weekends
 
+## Good Money Adviser Portal
+- Separate web app at `/adviser` (port 5000) for financial advisers and god mode admins
+- **Login**: Uses admin_users table with email/password, bcrypt hashed passwords
+- **Roles**: `adviser` (sees only their clients), `god`/`admin` (sees all advisers and clients)
+- **Database**: admin_users has `advisor_id` field linking to advisors table for scoped access
+- **Pages**: Dashboard (KPIs), Clients list (search/sort/filter), Client Profile (detail + edit), Reports (engagement/fact-find/points charts), Advisers management (god only), Settings (god only)
+- **Default login**: admin@goodmoney.com.au / admin123 (god mode)
+- **Creating adviser logins**: God mode can create admin_users with role='adviser' linked to an advisor_id
+- Served as self-contained HTML SPA from `server/templates/adviser.html`
+
 ## Recent Changes
+- Feb 2026: Built Good Money Adviser portal — separate web app for advisers with client profiles, reports, role-based access
 - Feb 2026: Added comprehensive rewards/gamification system with points, levels, missions, spin wheel, scratch cards, badges, and redeem store
 - Feb 2026: Added Basiq Open Banking integration with Banks tab, connect-bank flow, transaction import
 - Complete rebuild focusing on four Australian finance pillars
