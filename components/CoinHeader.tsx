@@ -18,7 +18,7 @@ export default function CoinHeader({ title, subtitle, rightElement, transparent 
   const { state } = useRewards();
 
   return (
-    <View style={[styles.container, { paddingTop: topInset + 8 }, transparent && styles.transparent]}>
+    <View style={[styles.container, { paddingTop: topInset + 14 }, transparent && styles.transparent]}>
       <Pressable onPress={() => router.push('/(tabs)/index')} style={styles.leftSection}>
         <Image source={require('@/assets/images/logo.jpeg')} style={styles.logo} />
         {title ? (
