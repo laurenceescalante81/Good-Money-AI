@@ -54,7 +54,7 @@ function SpinWheel() {
     <View style={s.spinSection}>
       <View style={s.spinHeader}>
         <View style={s.spinTitleRow}>
-          <Ionicons name="sync" size={16} color="#D4AF37" />
+          <Ionicons name="sync" size={16} color={Colors.light.super} />
           <Text style={s.spinLabel}>DAILY SPIN</Text>
         </View>
         <View style={s.spinResetBadge}>
@@ -82,7 +82,7 @@ function SpinWheel() {
           </View>
         </Animated.View>
         <View style={s.wheelPointer}>
-          <Ionicons name="caret-down" size={24} color="#D4AF37" />
+          <Ionicons name="caret-down" size={24} color={Colors.light.super} />
         </View>
       </View>
 
@@ -130,7 +130,7 @@ function ScratchCard() {
     <View style={s.scratchSection}>
       <View style={s.scratchHeaderRow}>
         <View style={s.scratchTitleRow}>
-          <Ionicons name="ticket" size={16} color="#D4AF37" />
+          <Ionicons name="ticket" size={16} color={Colors.light.tint} />
           <Text style={s.scratchLabel}>WEEKLY SCRATCH</Text>
         </View>
         <View style={s.scratchNewBadge}>
@@ -143,7 +143,7 @@ function ScratchCard() {
       <Pressable onPress={handleScratch} disabled={revealed || !canScratch}>
         <Animated.View style={[s.scratchCardBody, cardStyle]}>
           <LinearGradient
-            colors={revealed ? ['#1a2942', '#0f1c30'] : ['#2a3f5f', '#1a2942', '#2a3f5f']}
+            colors={revealed ? [Colors.light.tint, Colors.light.tintDark] : [Colors.light.navy, Colors.light.navyMid]}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={s.scratchCardGradient}
@@ -158,7 +158,7 @@ function ScratchCard() {
               </>
             ) : (
               <>
-                <Ionicons name="checkmark-circle" size={36} color="#4ade80" />
+                <Ionicons name="checkmark-circle" size={36} color="#fff" />
                 <Text style={s.scratchPrizeText}>+{prize} coins</Text>
                 <Text style={s.scratchWonText}>Bonus coins added!</Text>
               </>
@@ -180,7 +180,7 @@ function MissionItem({ mission }: { mission: Mission }) {
 
   return (
     <View style={[s.missionItem, mission.completed && s.missionCompleted]}>
-      <View style={[s.missionIcon, { backgroundColor: mission.iconBg + '20' }]}>
+      <View style={[s.missionIcon, { backgroundColor: mission.iconBg + '15' }]}>
         <Ionicons name={mission.icon as any} size={22} color={mission.iconBg} />
       </View>
       <View style={s.missionInfo}>
@@ -188,7 +188,7 @@ function MissionItem({ mission }: { mission: Mission }) {
         <Text style={s.missionDesc}>{mission.description}</Text>
         {!mission.completed && (
           <View style={s.missionExpiryRow}>
-            <Ionicons name="hourglass-outline" size={12} color="#F59E0B" />
+            <Ionicons name="hourglass-outline" size={12} color={Colors.light.amber} />
             <Text style={s.missionExpiry}>Expires in {expiryText}</Text>
           </View>
         )}
@@ -214,12 +214,12 @@ function MissionItem({ mission }: { mission: Mission }) {
 function BadgeItem({ badge }: { badge: { id: string; title: string; description: string; icon: string; color: string; unlocked: boolean } }) {
   return (
     <View style={[s.badgeItem, !badge.unlocked && s.badgeLocked]}>
-      <View style={[s.badgeIconWrap, { backgroundColor: badge.unlocked ? badge.color + '20' : '#1a2942' }]}>
-        <Ionicons name={badge.icon as any} size={24} color={badge.unlocked ? badge.color : Colors.light.gray500} />
+      <View style={[s.badgeIconWrap, { backgroundColor: badge.unlocked ? badge.color + '15' : Colors.light.gray100 }]}>
+        <Ionicons name={badge.icon as any} size={24} color={badge.unlocked ? badge.color : Colors.light.gray400} />
       </View>
       <Text style={[s.badgeName, !badge.unlocked && s.badgeNameLocked]}>{badge.title}</Text>
       <Text style={s.badgeDesc}>{badge.description}</Text>
-      {badge.unlocked && <Ionicons name="checkmark-circle" size={16} color="#4ade80" style={s.badgeCheck} />}
+      {badge.unlocked && <Ionicons name="checkmark-circle" size={16} color={Colors.light.income} style={s.badgeCheck} />}
     </View>
   );
 }
@@ -245,8 +245,6 @@ export default function RewardsScreen() {
 
   const completedMissions = missions.filter(m => m.completed).length;
   const unlockedBadges = badges.filter(b => b.unlocked).length;
-
-  const DAYS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
 
   const handleRedeem = (id: string, title: string, cost: number) => {
     if (state.points < cost) {
@@ -288,91 +286,90 @@ export default function RewardsScreen() {
     ]);
   };
 
-  const tabs: { key: TabKey; label: string }[] = [
-    { key: 'hub', label: 'Hub' },
-    { key: 'wallet', label: 'Wallet' },
-    { key: 'missions', label: 'Missions' },
-    { key: 'badges', label: 'Badges' },
-    { key: 'redeem', label: 'Redeem' },
+  const tabs: { key: TabKey; label: string; icon: string }[] = [
+    { key: 'hub', label: 'Hub', icon: 'home-outline' },
+    { key: 'wallet', label: 'Wallet', icon: 'wallet-outline' },
+    { key: 'missions', label: 'Missions', icon: 'flag-outline' },
+    { key: 'badges', label: 'Badges', icon: 'ribbon-outline' },
+    { key: 'redeem', label: 'Redeem', icon: 'gift-outline' },
   ];
 
   return (
     <View style={s.container}>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 120 }}>
-        <LinearGradient colors={['#0C1B2A', '#132D46', '#1B3A5C']} style={[s.heroGradient, { paddingTop: 0 }]}>
-          <CoinHeader title="Good Money" subtitle="REWARDS & MISSIONS" transparent />
+        <CoinHeader title="Rewards" subtitle="EARN & REDEEM" />
 
-          <View style={s.pointsCard}>
-            <LinearGradient colors={['#1a2942', '#0f1c30']} style={s.pointsCardInner}>
-              <View style={s.pointsTopRow}>
-                <View>
-                  <Text style={s.pointsLabel}>GOOD COINS</Text>
-                  <Text style={s.pointsBig}>{state.points.toLocaleString()}<Text style={s.pointsSuffix}> coins</Text></Text>
-                  <Text style={s.pointsCash}>{'\u2248'} ${coinValue} cash value</Text>
-                  {(state.tokenBalance ?? 0) > 0 && (
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 4 }}>
-                      <View style={{ width: 14, height: 14, borderRadius: 7, backgroundColor: '#D4AF37', alignItems: 'center', justifyContent: 'center' }}>
-                        <Text style={{ fontSize: 7, fontFamily: 'DMSans_700Bold' as const, color: '#0C1B2A' }}>pp</Text>
-                      </View>
-                      <Text style={{ fontSize: 12, fontFamily: 'DMSans_600SemiBold' as const, color: '#D4AF37' }}>{(state.tokenBalance ?? 0).toFixed(2)} ppAUD</Text>
+        <View style={s.heroCard}>
+          <LinearGradient colors={[Colors.light.navy, Colors.light.navyMid]} style={s.heroGradient}>
+            <View style={s.pointsTopRow}>
+              <View>
+                <Text style={s.pointsLabel}>GOOD COINS</Text>
+                <Text style={s.pointsBig}>{state.points.toLocaleString()}<Text style={s.pointsSuffix}> coins</Text></Text>
+                <Text style={s.pointsCash}>{'\u2248'} ${coinValue} cash value</Text>
+                {(state.tokenBalance ?? 0) > 0 && (
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 4 }}>
+                    <View style={{ width: 14, height: 14, borderRadius: 7, backgroundColor: '#D4AF37', alignItems: 'center', justifyContent: 'center' }}>
+                      <Text style={{ fontSize: 7, fontFamily: 'DMSans_700Bold' as const, color: '#0C1B2A' }}>pp</Text>
                     </View>
-                  )}
-                </View>
-                <View style={s.levelBadge}>
-                  <Text style={s.levelBadgeLabel}>LEVEL</Text>
-                  <Text style={s.levelBadgeNum}>{state.level}</Text>
-                  <Text style={s.levelBadgeName}>{levelName}</Text>
-                </View>
+                    <Text style={{ fontSize: 12, fontFamily: 'DMSans_600SemiBold' as const, color: '#D4AF37' }}>{(state.tokenBalance ?? 0).toFixed(2)} ppAUD</Text>
+                  </View>
+                )}
               </View>
-
-              {is2xWeekend && (
-                <View style={s.weekendBadge}>
-                  <Ionicons name="flash" size={12} color="#D4AF37" />
-                  <Text style={s.weekendBadgeText}>2x Weekend</Text>
-                </View>
-              )}
-
-              <View style={s.xpRow}>
-                <Text style={s.xpLabel}>Lv {state.level} {'\u2192'} Lv {state.level + 1}</Text>
-                <Text style={s.xpNums}>{state.xp.toLocaleString()} / {xpNeeded.toLocaleString()} XP</Text>
+              <View style={s.levelBadge}>
+                <Text style={s.levelBadgeLabel}>LEVEL</Text>
+                <Text style={s.levelBadgeNum}>{state.level}</Text>
+                <Text style={s.levelBadgeName}>{levelName}</Text>
               </View>
-              <View style={s.xpBarBg}>
-                <LinearGradient colors={['#6366F1', '#8B5CF6']} style={[s.xpBarFill, { width: `${xpPct}%` }]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} />
-              </View>
-              <Text style={s.xpRemaining}>{(xpNeeded - state.xp).toLocaleString()} XP to next level</Text>
+            </View>
 
-              <View style={s.statsRow}>
-                <View style={s.statItem}>
-                  <Text style={s.statLabel}>MISSIONS</Text>
-                  <Text style={s.statValue}>{completedMissions}/{missions.length}</Text>
-                </View>
-                <View style={s.statDivider} />
-                <View style={s.statItem}>
-                  <Text style={s.statLabel}>BADGES</Text>
-                  <Text style={s.statValue}>{unlockedBadges}/{badges.length}</Text>
-                </View>
+            {is2xWeekend && (
+              <View style={s.weekendBadge}>
+                <Ionicons name="flash" size={12} color="#D4AF37" />
+                <Text style={s.weekendBadgeText}>2x Weekend</Text>
               </View>
-            </LinearGradient>
-          </View>
+            )}
 
-          <View style={s.tabBar}>
-            {tabs.map(tab => (
-              <Pressable
-                key={tab.key}
-                onPress={() => { setActiveTab(tab.key); Haptics.selectionAsync(); }}
-                style={[s.tabItem, activeTab === tab.key && s.tabItemActive]}
-              >
-                <Text style={[s.tabText, activeTab === tab.key && s.tabTextActive]}>{tab.label}</Text>
-              </Pressable>
-            ))}
-          </View>
-        </LinearGradient>
+            <View style={s.xpRow}>
+              <Text style={s.xpLabel}>Lv {state.level} {'\u2192'} Lv {state.level + 1}</Text>
+              <Text style={s.xpNums}>{state.xp.toLocaleString()} / {xpNeeded.toLocaleString()} XP</Text>
+            </View>
+            <View style={s.xpBarBg}>
+              <LinearGradient colors={[Colors.light.tint, Colors.light.tintLight]} style={[s.xpBarFill, { width: `${xpPct}%` }]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} />
+            </View>
+            <Text style={s.xpRemaining}>{(xpNeeded - state.xp).toLocaleString()} XP to next level</Text>
+
+            <View style={s.statsRow}>
+              <View style={s.statItem}>
+                <Text style={s.statLabel}>MISSIONS</Text>
+                <Text style={s.statValue}>{completedMissions}/{missions.length}</Text>
+              </View>
+              <View style={s.statDivider} />
+              <View style={s.statItem}>
+                <Text style={s.statLabel}>BADGES</Text>
+                <Text style={s.statValue}>{unlockedBadges}/{badges.length}</Text>
+              </View>
+            </View>
+          </LinearGradient>
+        </View>
+
+        <View style={s.tabBar}>
+          {tabs.map(tab => (
+            <Pressable
+              key={tab.key}
+              onPress={() => { setActiveTab(tab.key); Haptics.selectionAsync(); }}
+              style={[s.tabItem, activeTab === tab.key && s.tabItemActive]}
+            >
+              <Ionicons name={tab.icon as any} size={16} color={activeTab === tab.key ? Colors.light.tint : Colors.light.gray400} />
+              <Text style={[s.tabText, activeTab === tab.key && s.tabTextActive]}>{tab.label}</Text>
+            </Pressable>
+          ))}
+        </View>
 
         <View style={s.body}>
           {activeTab === 'hub' && (
             <>
               <Pressable style={s.factFindCard} onPress={() => router.push('/(tabs)/fact-find' as any)}>
-                <LinearGradient colors={['#0D9488', '#0F766E']} style={s.factFindGradient}>
+                <LinearGradient colors={[Colors.light.tint, Colors.light.tintDark]} style={s.factFindGradient}>
                   <View style={s.factFindRow}>
                     <View style={{ flex: 1 }}>
                       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 4 }}>
@@ -442,7 +439,7 @@ export default function RewardsScreen() {
           {activeTab === 'wallet' && (
             <>
               <View style={s.walletCard}>
-                <LinearGradient colors={['#1a2942', '#0f1c30']} style={s.walletCardInner}>
+                <LinearGradient colors={[Colors.light.navy, Colors.light.navyMid]} style={s.walletCardInner}>
                   <View style={s.walletHeaderRow}>
                     <View style={s.walletLogoWrap}>
                       <Image source={require('@/assets/images/logo.jpeg')} style={s.walletLogo} />
@@ -488,7 +485,7 @@ export default function RewardsScreen() {
                     <TextInput
                       style={s.convertInput}
                       placeholder="Enter coins"
-                      placeholderTextColor={Colors.light.gray500}
+                      placeholderTextColor={Colors.light.gray400}
                       keyboardType="number-pad"
                       value={convertAmount}
                       onChangeText={setConvertAmount}
@@ -528,7 +525,7 @@ export default function RewardsScreen() {
               <View style={s.tokenInfoSection}>
                 <Text style={s.tokenInfoTitle}>About ppAUD</Text>
                 <View style={s.tokenInfoRow}>
-                  <View style={[s.tokenInfoIcon, { backgroundColor: '#D4AF3720' }]}>
+                  <View style={[s.tokenInfoIcon, { backgroundColor: '#D4AF3715' }]}>
                     <Ionicons name="shield-checkmark-outline" size={18} color="#D4AF37" />
                   </View>
                   <View style={s.tokenInfoContent}>
@@ -537,8 +534,8 @@ export default function RewardsScreen() {
                   </View>
                 </View>
                 <View style={s.tokenInfoRow}>
-                  <View style={[s.tokenInfoIcon, { backgroundColor: '#6366F120' }]}>
-                    <Ionicons name="swap-horizontal-outline" size={18} color="#6366F1" />
+                  <View style={[s.tokenInfoIcon, { backgroundColor: Colors.light.super + '15' }]}>
+                    <Ionicons name="swap-horizontal-outline" size={18} color={Colors.light.super} />
                   </View>
                   <View style={s.tokenInfoContent}>
                     <Text style={s.tokenInfoLabel}>Instant Conversion</Text>
@@ -546,8 +543,8 @@ export default function RewardsScreen() {
                   </View>
                 </View>
                 <View style={s.tokenInfoRow}>
-                  <View style={[s.tokenInfoIcon, { backgroundColor: '#10B98120' }]}>
-                    <Ionicons name="gift-outline" size={18} color="#10B981" />
+                  <View style={[s.tokenInfoIcon, { backgroundColor: Colors.light.income + '15' }]}>
+                    <Ionicons name="gift-outline" size={18} color={Colors.light.income} />
                   </View>
                   <View style={s.tokenInfoContent}>
                     <Text style={s.tokenInfoLabel}>Redeem for Rewards</Text>
@@ -562,7 +559,7 @@ export default function RewardsScreen() {
                   {(state.tokenTransactions ?? []).slice(0, 10).map((txn) => (
                     <View key={txn.id} style={s.txnRow}>
                       <View style={s.txnIconWrap}>
-                        <Ionicons name={txn.type === 'convert' ? 'swap-horizontal' : txn.type === 'reward' ? 'gift' : 'flash'} size={16} color="#D4AF37" />
+                        <Ionicons name={txn.type === 'convert' ? 'swap-horizontal' : txn.type === 'reward' ? 'gift' : 'flash'} size={16} color={Colors.light.tint} />
                       </View>
                       <View style={s.txnInfo}>
                         <Text style={s.txnDesc}>{txn.description}</Text>
@@ -589,7 +586,7 @@ export default function RewardsScreen() {
                     onPress={() => !r.redeemed && handleRedeem(r.id, r.title, r.pointsCost)}
                     style={({ pressed }) => [s.rewardCard, r.redeemed && s.rewardRedeemed, pressed && !r.redeemed && { opacity: 0.85 }]}
                   >
-                    <View style={[s.rewardIconWrap, { backgroundColor: r.redeemed ? Colors.light.gray200 : Colors.light.tint + '15' }]}>
+                    <View style={[s.rewardIconWrap, { backgroundColor: r.redeemed ? Colors.light.gray100 : Colors.light.tint + '12' }]}>
                       <Ionicons name={r.icon as any} size={28} color={r.redeemed ? Colors.light.gray400 : Colors.light.tint} />
                     </View>
                     <Text style={s.rewardTitle}>{r.title}</Text>
@@ -602,13 +599,13 @@ export default function RewardsScreen() {
 
               <Text style={[s.sectionTitle, { marginTop: 28 }]}>How to Earn Coins</Text>
               {[
-                { icon: 'flame-outline', label: 'Daily Check-in', pts: '+50/day', color: '#F59E0B' },
-                { icon: 'sync-outline', label: 'Daily Spin', pts: 'Up to +500', color: '#8B5CF6' },
-                { icon: 'ticket-outline', label: 'Weekly Scratch', pts: 'Up to +500', color: '#3B82F6' },
-                { icon: 'checkmark-circle-outline', label: 'Missions', pts: '+50 to +400', color: '#10B981' },
+                { icon: 'flame-outline', label: 'Daily Check-in', pts: '+50/day', color: Colors.light.amber },
+                { icon: 'sync-outline', label: 'Daily Spin', pts: 'Up to +500', color: Colors.light.super },
+                { icon: 'ticket-outline', label: 'Weekly Scratch', pts: 'Up to +500', color: Colors.light.mortgage },
+                { icon: 'checkmark-circle-outline', label: 'Missions', pts: '+50 to +400', color: Colors.light.income },
               ].map((item, i) => (
                 <View key={i} style={s.earnRow}>
-                  <View style={[s.earnIcon, { backgroundColor: item.color + '15' }]}>
+                  <View style={[s.earnIcon, { backgroundColor: item.color + '12' }]}>
                     <Ionicons name={item.icon as any} size={20} color={item.color} />
                   </View>
                   <Text style={s.earnLabel}>{item.label}</Text>
@@ -625,43 +622,40 @@ export default function RewardsScreen() {
 }
 
 const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0C1B2A' },
-  heroGradient: { paddingHorizontal: 20, paddingBottom: 0 },
-  headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
-  appName: { fontSize: 22, fontFamily: 'DMSans_700Bold', color: '#fff' },
-  greeting: { fontSize: 12, fontFamily: 'DMSans_500Medium', color: '#D4AF37', letterSpacing: 1, marginTop: 2 },
-  headerLogo: { width: 40, height: 40, borderRadius: 20 },
-  pointsCard: { marginBottom: 20 },
-  pointsCardInner: { borderRadius: 16, padding: 20, borderWidth: 1, borderColor: 'rgba(99,102,241,0.2)' },
+  container: { flex: 1, backgroundColor: Colors.light.background },
+
+  heroCard: { marginHorizontal: 20, marginBottom: 16, borderRadius: 20, overflow: 'hidden' },
+  heroGradient: { padding: 20, borderRadius: 20 },
   pointsTopRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 },
-  pointsLabel: { fontSize: 11, fontFamily: 'DMSans_600SemiBold', color: Colors.light.gray400, letterSpacing: 1 },
+  pointsLabel: { fontSize: 11, fontFamily: 'DMSans_600SemiBold', color: 'rgba(255,255,255,0.5)', letterSpacing: 1 },
   pointsBig: { fontSize: 36, fontFamily: 'DMSans_700Bold', color: '#fff', marginTop: 4 },
-  pointsSuffix: { fontSize: 18, color: Colors.light.gray400 },
-  pointsCash: { fontSize: 13, fontFamily: 'DMSans_400Regular', color: Colors.light.gray400, marginTop: 2 },
-  levelBadge: { backgroundColor: '#1a2942', borderWidth: 1, borderColor: '#6366F1', borderRadius: 12, padding: 10, alignItems: 'center', minWidth: 70 },
-  levelBadgeLabel: { fontSize: 9, fontFamily: 'DMSans_600SemiBold', color: Colors.light.gray400, letterSpacing: 1 },
-  levelBadgeNum: { fontSize: 24, fontFamily: 'DMSans_700Bold', color: '#6366F1', marginTop: 2 },
-  levelBadgeName: { fontSize: 10, fontFamily: 'DMSans_600SemiBold', color: '#6366F1', marginTop: 2 },
+  pointsSuffix: { fontSize: 18, color: 'rgba(255,255,255,0.5)' },
+  pointsCash: { fontSize: 13, fontFamily: 'DMSans_400Regular', color: 'rgba(255,255,255,0.5)', marginTop: 2 },
+  levelBadge: { backgroundColor: 'rgba(255,255,255,0.08)', borderWidth: 1, borderColor: 'rgba(13,148,136,0.4)', borderRadius: 12, padding: 10, alignItems: 'center', minWidth: 70 },
+  levelBadgeLabel: { fontSize: 9, fontFamily: 'DMSans_600SemiBold', color: 'rgba(255,255,255,0.5)', letterSpacing: 1 },
+  levelBadgeNum: { fontSize: 24, fontFamily: 'DMSans_700Bold', color: Colors.light.tintLight, marginTop: 2 },
+  levelBadgeName: { fontSize: 10, fontFamily: 'DMSans_600SemiBold', color: Colors.light.tintLight, marginTop: 2 },
   weekendBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#D4AF3720', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12, alignSelf: 'flex-start', marginBottom: 12 },
   weekendBadgeText: { fontSize: 11, fontFamily: 'DMSans_600SemiBold', color: '#D4AF37' },
   xpRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6, marginTop: 8 },
-  xpLabel: { fontSize: 12, fontFamily: 'DMSans_500Medium', color: Colors.light.gray400 },
-  xpNums: { fontSize: 12, fontFamily: 'DMSans_500Medium', color: Colors.light.gray400 },
-  xpBarBg: { height: 6, backgroundColor: '#1a2942', borderRadius: 3, overflow: 'hidden' },
+  xpLabel: { fontSize: 12, fontFamily: 'DMSans_500Medium', color: 'rgba(255,255,255,0.5)' },
+  xpNums: { fontSize: 12, fontFamily: 'DMSans_500Medium', color: 'rgba(255,255,255,0.5)' },
+  xpBarBg: { height: 6, backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: 3, overflow: 'hidden' },
   xpBarFill: { height: 6, borderRadius: 3 },
-  xpRemaining: { fontSize: 11, fontFamily: 'DMSans_400Regular', color: Colors.light.gray500, marginTop: 4 },
+  xpRemaining: { fontSize: 11, fontFamily: 'DMSans_400Regular', color: 'rgba(255,255,255,0.4)', marginTop: 4 },
   statsRow: { flexDirection: 'row', justifyContent: 'space-around', marginTop: 16, paddingTop: 16, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.06)' },
   statItem: { alignItems: 'center', flex: 1 },
-  statLabel: { fontSize: 10, fontFamily: 'DMSans_600SemiBold', color: Colors.light.gray500, letterSpacing: 1, marginBottom: 4 },
+  statLabel: { fontSize: 10, fontFamily: 'DMSans_600SemiBold', color: 'rgba(255,255,255,0.4)', letterSpacing: 1, marginBottom: 4 },
   statValue: { fontSize: 18, fontFamily: 'DMSans_700Bold', color: '#fff' },
-  statStreakRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   statDivider: { width: 1, height: 30, backgroundColor: 'rgba(255,255,255,0.08)' },
-  tabBar: { flexDirection: 'row', gap: 4, marginBottom: 0 },
-  tabItem: { paddingHorizontal: 16, paddingVertical: 10, borderRadius: 8 },
-  tabItemActive: { backgroundColor: 'rgba(255,255,255,0.1)' },
-  tabText: { fontSize: 14, fontFamily: 'DMSans_500Medium', color: Colors.light.gray400 },
-  tabTextActive: { color: '#fff' },
-  body: { paddingHorizontal: 20, paddingTop: 20 },
+
+  tabBar: { flexDirection: 'row', gap: 6, marginHorizontal: 20, marginBottom: 16 },
+  tabItem: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20, backgroundColor: Colors.light.card },
+  tabItemActive: { backgroundColor: Colors.light.tint + '15' },
+  tabText: { fontSize: 13, fontFamily: 'DMSans_500Medium', color: Colors.light.gray400 },
+  tabTextActive: { color: Colors.light.tint, fontFamily: 'DMSans_600SemiBold' },
+
+  body: { paddingHorizontal: 20 },
 
   factFindCard: { marginBottom: 16, borderRadius: 16, overflow: 'hidden' },
   factFindGradient: { padding: 18, borderRadius: 16 },
@@ -676,165 +670,144 @@ const s = StyleSheet.create({
   factFindCoinsRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 12, paddingTop: 12, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.1)' },
   factFindCoinsText: { fontSize: 12, fontFamily: 'DMSans_600SemiBold', color: 'rgba(255,255,255,0.8)', flex: 1 },
 
-  streakSection: { backgroundColor: '#132D46', borderRadius: 16, padding: 20, marginBottom: 16 },
-  streakHeaderRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
-  streakTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  streakLabel: { fontSize: 11, fontFamily: 'DMSans_600SemiBold', color: '#F59E0B', letterSpacing: 1 },
-  streakPtsBadge: { backgroundColor: '#0D948820', borderRadius: 10, paddingHorizontal: 12, paddingVertical: 6, alignItems: 'center' },
-  streakPtsText: { fontSize: 16, fontFamily: 'DMSans_700Bold', color: '#4ade80' },
-  streakPtsSub: { fontSize: 10, fontFamily: 'DMSans_400Regular', color: Colors.light.gray400 },
-  streakBig: { fontSize: 24, fontFamily: 'DMSans_700Bold', color: '#fff', marginBottom: 4 },
-  streakSub: { fontSize: 13, fontFamily: 'DMSans_400Regular', color: Colors.light.gray400, marginBottom: 20 },
-  weekRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 16 },
-  dayCol: { alignItems: 'center', gap: 6 },
-  dayCircle: { width: 38, height: 38, borderRadius: 19, backgroundColor: '#1a2942', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)' },
-  dayCircleChecked: { backgroundColor: '#F59E0B20', borderColor: '#F59E0B' },
-  dayCircleToday: { borderColor: '#8B5CF6', borderWidth: 2 },
-  dayEmpty: { width: 8, height: 8, borderRadius: 4, backgroundColor: 'rgba(255,255,255,0.1)' },
-  dayLabel: { fontSize: 12, fontFamily: 'DMSans_500Medium', color: Colors.light.gray500 },
-  dayLabelToday: { color: '#8B5CF6', fontFamily: 'DMSans_700Bold' },
-  milestoneBanner: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: '#D4AF3710', paddingHorizontal: 14, paddingVertical: 10, borderRadius: 10, borderWidth: 1, borderColor: '#D4AF3730' },
-  milestoneText: { fontSize: 12, fontFamily: 'DMSans_500Medium', color: '#D4AF37', flex: 1 },
-  milestoneDays: { fontSize: 12, fontFamily: 'DMSans_400Regular', color: Colors.light.gray400 },
-
-  promoCard: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: '#132D46', borderRadius: 16, padding: 18, marginBottom: 16, borderWidth: 1, borderColor: '#D4AF3730' },
+  promoCard: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: Colors.light.card, borderRadius: 16, padding: 18, marginBottom: 16, borderWidth: 1, borderColor: '#D4AF3730' },
   promoInfo: { flex: 1 },
   promoTitle: { fontSize: 13, fontFamily: 'DMSans_700Bold', color: '#D4AF37', letterSpacing: 0.5 },
-  promoDesc: { fontSize: 13, fontFamily: 'DMSans_400Regular', color: '#fff', marginTop: 2 },
-  promoExpiry: { fontSize: 11, fontFamily: 'DMSans_400Regular', color: Colors.light.gray400, marginTop: 2 },
+  promoDesc: { fontSize: 13, fontFamily: 'DMSans_400Regular', color: Colors.light.text, marginTop: 2 },
+  promoExpiry: { fontSize: 11, fontFamily: 'DMSans_400Regular', color: Colors.light.textMuted, marginTop: 2 },
   promo2x: { fontSize: 28, fontFamily: 'DMSans_700Bold', color: '#D4AF37' },
 
-  spinSection: { backgroundColor: '#132D46', borderRadius: 16, padding: 20, marginBottom: 16 },
+  spinSection: { backgroundColor: Colors.light.card, borderRadius: 16, padding: 20, marginBottom: 16 },
   spinHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 },
   spinTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  spinLabel: { fontSize: 11, fontFamily: 'DMSans_600SemiBold', color: '#D4AF37', letterSpacing: 1 },
+  spinLabel: { fontSize: 11, fontFamily: 'DMSans_600SemiBold', color: Colors.light.super, letterSpacing: 1 },
   spinResetBadge: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  spinResetLabel: { fontSize: 9, fontFamily: 'DMSans_600SemiBold', color: Colors.light.gray500, letterSpacing: 0.5 },
-  spinResetTime: { fontSize: 14, fontFamily: 'DMSans_700Bold', color: '#EF4444' },
-  spinTitle: { fontSize: 20, fontFamily: 'DMSans_700Bold', color: '#fff', marginBottom: 2 },
-  spinSub: { fontSize: 13, fontFamily: 'DMSans_400Regular', color: Colors.light.gray400, marginBottom: 20 },
+  spinResetLabel: { fontSize: 9, fontFamily: 'DMSans_600SemiBold', color: Colors.light.textMuted, letterSpacing: 0.5 },
+  spinResetTime: { fontSize: 14, fontFamily: 'DMSans_700Bold', color: Colors.light.expense },
+  spinTitle: { fontSize: 20, fontFamily: 'DMSans_700Bold', color: Colors.light.text, marginBottom: 2 },
+  spinSub: { fontSize: 13, fontFamily: 'DMSans_400Regular', color: Colors.light.textMuted, marginBottom: 20 },
   wheelContainer: { alignItems: 'center', justifyContent: 'center', height: 220, marginBottom: 16 },
-  wheel: { width: 200, height: 200, borderRadius: 100, backgroundColor: '#1a2942', alignItems: 'center', justifyContent: 'center', borderWidth: 3, borderColor: '#D4AF37' },
+  wheel: { width: 200, height: 200, borderRadius: 100, backgroundColor: Colors.light.gray100, alignItems: 'center', justifyContent: 'center', borderWidth: 3, borderColor: Colors.light.super },
   wheelSegment: { position: 'absolute', width: 200, height: 200, alignItems: 'center' },
   segmentInner: { width: 80, height: 40, borderRadius: 8, alignItems: 'center', justifyContent: 'center', marginTop: 8 },
   segmentText: { fontSize: 10, fontFamily: 'DMSans_700Bold', color: '#fff' },
-  wheelCenter: { position: 'absolute', width: 44, height: 44, borderRadius: 22, backgroundColor: '#1a2942', borderWidth: 2, borderColor: '#D4AF37', alignItems: 'center', justifyContent: 'center', zIndex: 10 },
+  wheelCenter: { position: 'absolute', width: 44, height: 44, borderRadius: 22, backgroundColor: Colors.light.navy, borderWidth: 2, borderColor: Colors.light.super, alignItems: 'center', justifyContent: 'center', zIndex: 10 },
   wheelPointer: { position: 'absolute', top: 0, zIndex: 20 },
   prizeResult: { alignItems: 'center', marginBottom: 12 },
-  prizeText: { fontSize: 22, fontFamily: 'DMSans_700Bold', color: '#4ade80' },
-  spinBtn: { backgroundColor: '#6366F1', borderRadius: 12, paddingVertical: 14, alignItems: 'center' },
-  spinBtnDisabled: { backgroundColor: '#374151', opacity: 0.6 },
+  prizeText: { fontSize: 22, fontFamily: 'DMSans_700Bold', color: Colors.light.income },
+  spinBtn: { backgroundColor: Colors.light.super, borderRadius: 12, paddingVertical: 14, alignItems: 'center' },
+  spinBtnDisabled: { backgroundColor: Colors.light.gray200, opacity: 0.6 },
   spinBtnText: { fontSize: 16, fontFamily: 'DMSans_700Bold', color: '#fff', letterSpacing: 1 },
 
-  scratchSection: { backgroundColor: '#132D46', borderRadius: 16, padding: 20, marginBottom: 16 },
+  scratchSection: { backgroundColor: Colors.light.card, borderRadius: 16, padding: 20, marginBottom: 16 },
   scratchHeaderRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 },
   scratchTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  scratchLabel: { fontSize: 11, fontFamily: 'DMSans_600SemiBold', color: '#D4AF37', letterSpacing: 1 },
-  scratchNewBadge: { backgroundColor: '#EF444420', paddingHorizontal: 10, paddingVertical: 3, borderRadius: 8 },
-  scratchNewText: { fontSize: 10, fontFamily: 'DMSans_700Bold', color: '#EF4444' },
-  scratchTitle: { fontSize: 20, fontFamily: 'DMSans_700Bold', color: '#fff', marginBottom: 2 },
-  scratchSub: { fontSize: 13, fontFamily: 'DMSans_400Regular', color: Colors.light.gray400, marginBottom: 16 },
+  scratchLabel: { fontSize: 11, fontFamily: 'DMSans_600SemiBold', color: Colors.light.tint, letterSpacing: 1 },
+  scratchNewBadge: { backgroundColor: Colors.light.expense + '15', paddingHorizontal: 10, paddingVertical: 3, borderRadius: 8 },
+  scratchNewText: { fontSize: 10, fontFamily: 'DMSans_700Bold', color: Colors.light.expense },
+  scratchTitle: { fontSize: 20, fontFamily: 'DMSans_700Bold', color: Colors.light.text, marginBottom: 2 },
+  scratchSub: { fontSize: 13, fontFamily: 'DMSans_400Regular', color: Colors.light.textMuted, marginBottom: 16 },
   scratchCardBody: { borderRadius: 12, overflow: 'hidden' },
-  scratchCardGradient: { padding: 32, alignItems: 'center', justifyContent: 'center', minHeight: 140, borderRadius: 12, borderWidth: 1, borderColor: 'rgba(99,102,241,0.15)' },
+  scratchCardGradient: { padding: 32, alignItems: 'center', justifyContent: 'center', minHeight: 140, borderRadius: 12 },
   scratchIconWrap: { width: 56, height: 56, borderRadius: 28, backgroundColor: '#D4AF3720', alignItems: 'center', justifyContent: 'center', marginBottom: 12 },
   scratchTapText: { fontSize: 16, fontFamily: 'DMSans_600SemiBold', color: '#fff' },
-  scratchTapSub: { fontSize: 12, fontFamily: 'DMSans_400Regular', color: Colors.light.gray500, marginTop: 4 },
-  scratchPrizeText: { fontSize: 32, fontFamily: 'DMSans_700Bold', color: '#4ade80', marginTop: 8 },
-  scratchWonText: { fontSize: 14, fontFamily: 'DMSans_400Regular', color: Colors.light.gray400, marginTop: 4 },
+  scratchTapSub: { fontSize: 12, fontFamily: 'DMSans_400Regular', color: 'rgba(255,255,255,0.6)', marginTop: 4 },
+  scratchPrizeText: { fontSize: 32, fontFamily: 'DMSans_700Bold', color: '#fff', marginTop: 8 },
+  scratchWonText: { fontSize: 14, fontFamily: 'DMSans_400Regular', color: 'rgba(255,255,255,0.8)', marginTop: 4 },
 
   sectionHeaderRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
-  sectionTitle: { fontSize: 18, fontFamily: 'DMSans_700Bold', color: '#fff' },
+  sectionTitle: { fontSize: 18, fontFamily: 'DMSans_700Bold', color: Colors.light.text },
 
-  missionItem: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#132D46', borderRadius: 14, padding: 16, marginBottom: 12, borderWidth: 1, borderColor: 'rgba(255,255,255,0.04)' },
+  missionItem: { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.light.card, borderRadius: 14, padding: 16, marginBottom: 12 },
   missionCompleted: { opacity: 0.5 },
   missionIcon: { width: 44, height: 44, borderRadius: 12, alignItems: 'center', justifyContent: 'center', marginRight: 14 },
   missionInfo: { flex: 1 },
-  missionTitle: { fontSize: 15, fontFamily: 'DMSans_700Bold', color: '#fff' },
+  missionTitle: { fontSize: 15, fontFamily: 'DMSans_700Bold', color: Colors.light.text },
   missionTitleDone: { textDecorationLine: 'line-through' as const, color: Colors.light.gray400 },
-  missionDesc: { fontSize: 12, fontFamily: 'DMSans_400Regular', color: Colors.light.gray400, marginTop: 2 },
+  missionDesc: { fontSize: 12, fontFamily: 'DMSans_400Regular', color: Colors.light.textMuted, marginTop: 2 },
   missionExpiryRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 6 },
-  missionExpiry: { fontSize: 11, fontFamily: 'DMSans_500Medium', color: '#F59E0B' },
+  missionExpiry: { fontSize: 11, fontFamily: 'DMSans_500Medium', color: Colors.light.amber },
   missionPtsCol: { alignItems: 'flex-end', marginLeft: 8 },
-  missionOldPts: { fontSize: 12, fontFamily: 'DMSans_400Regular', color: Colors.light.gray500, textDecorationLine: 'line-through' as const },
-  missionPts: { fontSize: 18, fontFamily: 'DMSans_700Bold', color: '#4ade80' },
-  missionPtsSuffix: { fontSize: 11, fontFamily: 'DMSans_400Regular', color: Colors.light.gray400 },
-  mission2xBadge: { backgroundColor: '#4ade8020', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6, marginBottom: 4 },
-  mission2xText: { fontSize: 9, fontFamily: 'DMSans_700Bold', color: '#4ade80', letterSpacing: 0.5 },
+  missionOldPts: { fontSize: 12, fontFamily: 'DMSans_400Regular', color: Colors.light.gray400, textDecorationLine: 'line-through' as const },
+  missionPts: { fontSize: 18, fontFamily: 'DMSans_700Bold', color: Colors.light.income },
+  missionPtsSuffix: { fontSize: 11, fontFamily: 'DMSans_400Regular', color: Colors.light.textMuted },
+  mission2xBadge: { backgroundColor: Colors.light.income + '15', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6, marginBottom: 4 },
+  mission2xText: { fontSize: 9, fontFamily: 'DMSans_700Bold', color: Colors.light.income, letterSpacing: 0.5 },
 
-  badgesSubtitle: { fontSize: 13, fontFamily: 'DMSans_400Regular', color: Colors.light.gray400, marginBottom: 16 },
+  badgesSubtitle: { fontSize: 13, fontFamily: 'DMSans_400Regular', color: Colors.light.textMuted, marginBottom: 16 },
   badgesGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
-  badgeItem: { width: (SCREEN_W - 64) / 3, backgroundColor: '#132D46', borderRadius: 14, padding: 14, alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.04)' },
+  badgeItem: { width: (SCREEN_W - 64) / 3, backgroundColor: Colors.light.card, borderRadius: 14, padding: 14, alignItems: 'center' },
   badgeLocked: { opacity: 0.4 },
   badgeIconWrap: { width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center', marginBottom: 8 },
-  badgeName: { fontSize: 12, fontFamily: 'DMSans_700Bold', color: '#fff', textAlign: 'center' },
-  badgeNameLocked: { color: Colors.light.gray500 },
-  badgeDesc: { fontSize: 10, fontFamily: 'DMSans_400Regular', color: Colors.light.gray500, textAlign: 'center', marginTop: 2 },
+  badgeName: { fontSize: 12, fontFamily: 'DMSans_700Bold', color: Colors.light.text, textAlign: 'center' },
+  badgeNameLocked: { color: Colors.light.gray400 },
+  badgeDesc: { fontSize: 10, fontFamily: 'DMSans_400Regular', color: Colors.light.textMuted, textAlign: 'center', marginTop: 2 },
   badgeCheck: { position: 'absolute', top: 8, right: 8 },
 
-  redeemBalance: { fontSize: 14, fontFamily: 'DMSans_500Medium', color: Colors.light.gray400, marginBottom: 16 },
+  redeemBalance: { fontSize: 14, fontFamily: 'DMSans_500Medium', color: Colors.light.textMuted, marginBottom: 16 },
   rewardsScroll: { marginBottom: 8 },
   rewardsScrollContent: { gap: 12 },
-  rewardCard: { width: 140, backgroundColor: '#132D46', borderRadius: 14, padding: 16, alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.04)' },
+  rewardCard: { width: 140, backgroundColor: Colors.light.card, borderRadius: 14, padding: 16, alignItems: 'center' },
   rewardRedeemed: { opacity: 0.4 },
   rewardIconWrap: { width: 56, height: 56, borderRadius: 28, alignItems: 'center', justifyContent: 'center', marginBottom: 10 },
-  rewardTitle: { fontSize: 13, fontFamily: 'DMSans_700Bold', color: '#fff', textAlign: 'center', marginBottom: 4 },
-  rewardCost: { fontSize: 13, fontFamily: 'DMSans_700Bold', color: '#D4AF37', textAlign: 'center' },
+  rewardTitle: { fontSize: 13, fontFamily: 'DMSans_700Bold', color: Colors.light.text, textAlign: 'center', marginBottom: 4 },
+  rewardCost: { fontSize: 13, fontFamily: 'DMSans_700Bold', color: Colors.light.tint, textAlign: 'center' },
 
-  earnRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#132D46', borderRadius: 12, padding: 14, marginBottom: 8 },
+  earnRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.light.card, borderRadius: 12, padding: 14, marginBottom: 8 },
   earnIcon: { width: 40, height: 40, borderRadius: 10, alignItems: 'center', justifyContent: 'center', marginRight: 12 },
-  earnLabel: { fontSize: 14, fontFamily: 'DMSans_600SemiBold', color: '#fff', flex: 1 },
-  earnPts: { fontSize: 14, fontFamily: 'DMSans_700Bold', color: '#4ade80' },
+  earnLabel: { fontSize: 14, fontFamily: 'DMSans_600SemiBold', color: Colors.light.text, flex: 1 },
+  earnPts: { fontSize: 14, fontFamily: 'DMSans_700Bold', color: Colors.light.income },
 
-  walletCard: { marginBottom: 20 },
-  walletCardInner: { borderRadius: 16, padding: 20, borderWidth: 1, borderColor: '#D4AF3730' },
+  walletCard: { marginBottom: 20, borderRadius: 20, overflow: 'hidden' },
+  walletCardInner: { borderRadius: 20, padding: 20 },
   walletHeaderRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 20 },
   walletLogoWrap: { marginRight: 12 },
   walletLogo: { width: 40, height: 40, borderRadius: 20 },
   walletTokenInfo: { flex: 1 },
   walletTokenName: { fontSize: 18, fontFamily: 'DMSans_700Bold', color: '#D4AF37' },
-  walletTokenSub: { fontSize: 11, fontFamily: 'DMSans_400Regular', color: Colors.light.gray400 },
-  walletPegBadge: { backgroundColor: '#10B98120', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 },
+  walletTokenSub: { fontSize: 11, fontFamily: 'DMSans_400Regular', color: 'rgba(255,255,255,0.5)' },
+  walletPegBadge: { backgroundColor: 'rgba(16,185,129,0.15)', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 },
   walletPegText: { fontSize: 11, fontFamily: 'DMSans_700Bold', color: '#4ade80' },
-  walletBalanceLabel: { fontSize: 11, fontFamily: 'DMSans_600SemiBold', color: Colors.light.gray500, letterSpacing: 1, marginBottom: 4 },
+  walletBalanceLabel: { fontSize: 11, fontFamily: 'DMSans_600SemiBold', color: 'rgba(255,255,255,0.4)', letterSpacing: 1, marginBottom: 4 },
   walletBalanceBig: { fontSize: 36, fontFamily: 'DMSans_700Bold', color: '#D4AF37' },
-  walletBalanceCurrency: { fontSize: 16, color: Colors.light.gray400 },
-  walletBalanceAud: { fontSize: 13, fontFamily: 'DMSans_400Regular', color: Colors.light.gray400, marginTop: 2, marginBottom: 16 },
+  walletBalanceCurrency: { fontSize: 16, color: 'rgba(255,255,255,0.4)' },
+  walletBalanceAud: { fontSize: 13, fontFamily: 'DMSans_400Regular', color: 'rgba(255,255,255,0.5)', marginTop: 2, marginBottom: 16 },
   walletStatsRow: { flexDirection: 'row', justifyContent: 'space-around', paddingTop: 16, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.06)' },
   walletStatItem: { alignItems: 'center', flex: 1 },
-  walletStatLabel: { fontSize: 10, fontFamily: 'DMSans_600SemiBold', color: Colors.light.gray500, letterSpacing: 0.5, marginBottom: 4 },
+  walletStatLabel: { fontSize: 10, fontFamily: 'DMSans_600SemiBold', color: 'rgba(255,255,255,0.4)', letterSpacing: 0.5, marginBottom: 4 },
   walletStatValue: { fontSize: 14, fontFamily: 'DMSans_700Bold', color: '#fff' },
   walletStatDivider: { width: 1, height: 30, backgroundColor: 'rgba(255,255,255,0.08)' },
 
-  convertSection: { backgroundColor: '#132D46', borderRadius: 16, padding: 20, marginBottom: 16 },
-  convertTitle: { fontSize: 16, fontFamily: 'DMSans_700Bold', color: '#fff', marginBottom: 4 },
-  convertDesc: { fontSize: 12, fontFamily: 'DMSans_400Regular', color: Colors.light.gray400, marginBottom: 16 },
+  convertSection: { backgroundColor: Colors.light.card, borderRadius: 16, padding: 20, marginBottom: 16 },
+  convertTitle: { fontSize: 16, fontFamily: 'DMSans_700Bold', color: Colors.light.text, marginBottom: 4 },
+  convertDesc: { fontSize: 12, fontFamily: 'DMSans_400Regular', color: Colors.light.textMuted, marginBottom: 16 },
   convertInputRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 12 },
-  convertInputWrap: { flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: '#1a2942', borderRadius: 10, borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)', paddingHorizontal: 12 },
-  convertInput: { flex: 1, height: 44, fontSize: 16, fontFamily: 'DMSans_600SemiBold', color: '#fff' },
-  convertInputSuffix: { fontSize: 13, fontFamily: 'DMSans_500Medium', color: Colors.light.gray500 },
+  convertInputWrap: { flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.light.gray50, borderRadius: 10, borderWidth: 1, borderColor: Colors.light.gray200, paddingHorizontal: 12 },
+  convertInput: { flex: 1, height: 44, fontSize: 16, fontFamily: 'DMSans_600SemiBold', color: Colors.light.text },
+  convertInputSuffix: { fontSize: 13, fontFamily: 'DMSans_500Medium', color: Colors.light.textMuted },
   convertOutputWrap: { flex: 1, backgroundColor: '#D4AF3710', borderRadius: 10, borderWidth: 1, borderColor: '#D4AF3730', height: 44, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12 },
   convertOutputValue: { fontSize: 16, fontFamily: 'DMSans_700Bold', color: '#D4AF37', flex: 1 },
   convertOutputSuffix: { fontSize: 13, fontFamily: 'DMSans_500Medium', color: '#D4AF37' },
   convertQuickRow: { flexDirection: 'row', gap: 8, marginBottom: 16 },
-  convertQuickBtn: { backgroundColor: '#1a2942', paddingHorizontal: 14, paddingVertical: 6, borderRadius: 8, borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)' },
-  convertQuickText: { fontSize: 12, fontFamily: 'DMSans_600SemiBold', color: Colors.light.gray400 },
-  convertBtn: { backgroundColor: '#D4AF37', borderRadius: 12, paddingVertical: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
-  convertBtnText: { fontSize: 15, fontFamily: 'DMSans_700Bold', color: '#0C1B2A' },
+  convertQuickBtn: { backgroundColor: Colors.light.gray100, paddingHorizontal: 14, paddingVertical: 6, borderRadius: 8 },
+  convertQuickText: { fontSize: 12, fontFamily: 'DMSans_600SemiBold', color: Colors.light.textSecondary },
+  convertBtn: { backgroundColor: Colors.light.tint, borderRadius: 12, paddingVertical: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
+  convertBtnText: { fontSize: 15, fontFamily: 'DMSans_700Bold', color: '#fff' },
 
-  tokenInfoSection: { backgroundColor: '#132D46', borderRadius: 16, padding: 20, marginBottom: 16 },
-  tokenInfoTitle: { fontSize: 16, fontFamily: 'DMSans_700Bold', color: '#fff', marginBottom: 16 },
+  tokenInfoSection: { backgroundColor: Colors.light.card, borderRadius: 16, padding: 20, marginBottom: 16 },
+  tokenInfoTitle: { fontSize: 16, fontFamily: 'DMSans_700Bold', color: Colors.light.text, marginBottom: 16 },
   tokenInfoRow: { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 16 },
   tokenInfoIcon: { width: 36, height: 36, borderRadius: 10, alignItems: 'center', justifyContent: 'center', marginRight: 12 },
   tokenInfoContent: { flex: 1 },
-  tokenInfoLabel: { fontSize: 14, fontFamily: 'DMSans_600SemiBold', color: '#fff', marginBottom: 2 },
-  tokenInfoDesc: { fontSize: 12, fontFamily: 'DMSans_400Regular', color: Colors.light.gray400 },
+  tokenInfoLabel: { fontSize: 14, fontFamily: 'DMSans_600SemiBold', color: Colors.light.text, marginBottom: 2 },
+  tokenInfoDesc: { fontSize: 12, fontFamily: 'DMSans_400Regular', color: Colors.light.textMuted },
 
-  txnSection: { backgroundColor: '#132D46', borderRadius: 16, padding: 20, marginBottom: 16 },
-  txnTitle: { fontSize: 16, fontFamily: 'DMSans_700Bold', color: '#fff', marginBottom: 16 },
-  txnRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.04)' },
-  txnIconWrap: { width: 32, height: 32, borderRadius: 16, backgroundColor: '#D4AF3715', alignItems: 'center', justifyContent: 'center', marginRight: 12 },
+  txnSection: { backgroundColor: Colors.light.card, borderRadius: 16, padding: 20, marginBottom: 16 },
+  txnTitle: { fontSize: 16, fontFamily: 'DMSans_700Bold', color: Colors.light.text, marginBottom: 16 },
+  txnRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: Colors.light.gray100 },
+  txnIconWrap: { width: 32, height: 32, borderRadius: 16, backgroundColor: Colors.light.tint + '12', alignItems: 'center', justifyContent: 'center', marginRight: 12 },
   txnInfo: { flex: 1 },
-  txnDesc: { fontSize: 13, fontFamily: 'DMSans_500Medium', color: '#fff' },
-  txnDate: { fontSize: 11, fontFamily: 'DMSans_400Regular', color: Colors.light.gray500, marginTop: 2 },
-  txnAmount: { fontSize: 15, fontFamily: 'DMSans_700Bold', color: '#D4AF37' },
+  txnDesc: { fontSize: 13, fontFamily: 'DMSans_500Medium', color: Colors.light.text },
+  txnDate: { fontSize: 11, fontFamily: 'DMSans_400Regular', color: Colors.light.textMuted, marginTop: 2 },
+  txnAmount: { fontSize: 15, fontFamily: 'DMSans_700Bold', color: Colors.light.tint },
 });
