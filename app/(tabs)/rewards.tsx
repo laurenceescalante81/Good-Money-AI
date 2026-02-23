@@ -13,7 +13,6 @@ const SECTIONS = [
   { route: '/(tabs)/mortgage', label: 'Mortgage', icon: 'home', color: '#3B82F6' },
   { route: '/(tabs)/super', label: 'Super', icon: 'trending-up', color: '#8B5CF6' },
   { route: '/(tabs)/budget', label: 'Budget', icon: 'wallet', color: '#10B981' },
-  { route: '/(tabs)/banks', label: 'Banks', icon: 'business', color: '#6366F1' },
   { route: '/(tabs)/index', label: 'Rewards', icon: 'star', color: '#F59E0B' },
   { route: '/(tabs)/insurance', label: 'Insurance', icon: 'shield-checkmark', color: '#EF4444' },
   { route: '/(tabs)/investor', label: 'Investor', icon: 'bar-chart', color: '#D97706' },

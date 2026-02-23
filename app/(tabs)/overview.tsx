@@ -240,7 +240,7 @@ export default function DashboardScreen() {
               value="Open Banking"
               subtitle="Connect your accounts"
               cta={ctaTexts.banks}
-              onPress={() => router.push("/(tabs)/banks")}
+              onPress={() => router.push("/(tabs)/budget")}
             />
           </View>
 

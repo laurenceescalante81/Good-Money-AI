@@ -9,7 +9,7 @@ import { getApiUrl, apiRequest } from "@/lib/query-client";
 import { useAccessibility } from '@/contexts/AccessibilityContext';
 
 function goBack() {
-  if (router.canGoBack()) { router.back(); } else { router.replace("/(tabs)/banks"); }
+  if (router.canGoBack()) { router.back(); } else { router.replace("/(tabs)/budget"); }
 }
 
 interface Institution {

@@ -9,7 +9,7 @@ import { useFinance } from "@/contexts/FinanceContext";
 import { useAccessibility } from '@/contexts/AccessibilityContext';
 
 function goBack() {
-  if (router.canGoBack()) { router.back(); } else { router.replace("/(tabs)/banks"); }
+  if (router.canGoBack()) { router.back(); } else { router.replace("/(tabs)/budget"); }
 }
 
 function fmt(n: number): string { return "$" + Math.abs(n).toLocaleString("en-AU", { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }

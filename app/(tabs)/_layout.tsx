@@ -23,7 +23,6 @@ const TAB_META: Record<string, { active: string; inactive: string; color: string
   mortgage: { active: "home", inactive: "home-outline", color: "#3B82F6" },
   super: { active: "trending-up", inactive: "trending-up-outline", color: "#8B5CF6" },
   budget: { active: "wallet", inactive: "wallet-outline", color: "#10B981" },
-  banks: { active: "business", inactive: "business-outline", color: "#6366F1" },
   rewards: { active: "apps", inactive: "apps-outline", color: "#0D9488" },
   insurance: { active: "shield-checkmark", inactive: "shield-checkmark-outline", color: "#EF4444" },
   investor: { active: "bar-chart", inactive: "bar-chart-outline", color: "#D97706" },
@@ -31,7 +30,7 @@ const TAB_META: Record<string, { active: string; inactive: string; color: string
   planning: { active: "analytics", inactive: "analytics-outline", color: "#14B8A6" },
 };
 
-const ROW_SIZE = 6;
+const ROW_SIZE = 5;
 
 function TwoRowTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   const colorScheme = useColorScheme();
@@ -132,10 +131,6 @@ function NativeTabLayout() {
         <Icon sf={{ default: "dollarsign.circle", selected: "dollarsign.circle.fill" }} />
         <Label>Budget</Label>
       </NativeTabs.Trigger>
-      <NativeTabs.Trigger name="banks">
-        <Icon sf={{ default: "building.columns", selected: "building.columns.fill" }} />
-        <Label>Banks</Label>
-      </NativeTabs.Trigger>
       <NativeTabs.Trigger name="rewards">
         <Icon sf={{ default: "square.grid.2x2", selected: "square.grid.2x2.fill" }} />
         <Label>Home</Label>
@@ -171,7 +166,6 @@ function ClassicTabLayout() {
       <Tabs.Screen name="mortgage" options={{ title: "Mortgage" }} />
       <Tabs.Screen name="super" options={{ title: "Super" }} />
       <Tabs.Screen name="budget" options={{ title: "Budget" }} />
-      <Tabs.Screen name="banks" options={{ title: "Banks" }} />
       <Tabs.Screen name="rewards" options={{ title: "Home" }} />
       <Tabs.Screen name="insurance" options={{ title: "Insurance" }} />
       <Tabs.Screen name="investor" options={{ title: "Investor" }} />
