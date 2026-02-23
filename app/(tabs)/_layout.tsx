@@ -1,6 +1,4 @@
-import { isLiquidGlassAvailable } from "expo-glass-effect";
 import { Tabs } from "expo-router";
-import { NativeTabs, Icon, Label } from "expo-router/unstable-native-tabs";
 import { BlurView } from "expo-blur";
 import {
   Platform,
@@ -9,32 +7,100 @@ import {
   View,
   TouchableOpacity,
   Text,
+  ScrollView,
+  Dimensions,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import React from "react";
+import React, { useState, useEffect } from "react";
 import Colors from "@/constants/colors";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import type { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import { useAccessibility } from "@/contexts/AccessibilityContext";
+import { useTheme } from "@/contexts/ThemeContext";
 
-const TAB_META: Record<string, { active: string; inactive: string; color: string }> = {
-  index: { active: "star", inactive: "star-outline", color: "#F59E0B" },
-  overview: { active: "pie-chart", inactive: "pie-chart-outline", color: "#0D9488" },
-  mortgage: { active: "home", inactive: "home-outline", color: "#3B82F6" },
-  super: { active: "trending-up", inactive: "trending-up-outline", color: "#8B5CF6" },
-  budget: { active: "wallet", inactive: "wallet-outline", color: "#10B981" },
-  rewards: { active: "apps", inactive: "apps-outline", color: "#0D9488" },
-  insurance: { active: "shield-checkmark", inactive: "shield-checkmark-outline", color: "#EF4444" },
-  investor: { active: "bar-chart", inactive: "bar-chart-outline", color: "#D97706" },
-  "fact-find": { active: "document-text", inactive: "document-text-outline", color: "#EC4899" },
-  planning: { active: "analytics", inactive: "analytics-outline", color: "#14B8A6" },
+const TAB_META: Record<string, { active: string; inactive: string; color: string; label: string }> = {
+  index: { active: "star", inactive: "star-outline", color: "#F59E0B", label: "Rewards" },
+  overview: { active: "pie-chart", inactive: "pie-chart-outline", color: "#0D9488", label: "Overview" },
+  mortgage: { active: "home", inactive: "home-outline", color: "#3B82F6", label: "Mortgage" },
+  super: { active: "trending-up", inactive: "trending-up-outline", color: "#8B5CF6", label: "Super" },
+  budget: { active: "wallet", inactive: "wallet-outline", color: "#10B981", label: "Budget" },
+  rewards: { active: "apps", inactive: "apps-outline", color: "#0D9488", label: "Home" },
+  insurance: { active: "shield-checkmark", inactive: "shield-checkmark-outline", color: "#EF4444", label: "Insurance" },
+  investor: { active: "bar-chart", inactive: "bar-chart-outline", color: "#D97706", label: "Investor" },
+  "fact-find": { active: "document-text", inactive: "document-text-outline", color: "#EC4899", label: "Fact Find" },
+  planning: { active: "analytics", inactive: "analytics-outline", color: "#14B8A6", label: "Planning" },
 };
 
 const ROW_SIZE = 5;
+const DESKTOP_BP = 768;
+const SIDEBAR_WIDTH = 220;
 
-function TwoRowTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
+function useScreenWidth() {
+  const [w, setW] = useState(() => Dimensions.get('window').width);
+  useEffect(() => {
+    const sub = Dimensions.addEventListener('change', ({ window }) => setW(window.width));
+    return () => sub?.remove();
+  }, []);
+  return w;
+}
+
+function DesktopSidebar({ state, descriptors, navigation }: BottomTabBarProps) {
+  const { fs, is } = useAccessibility();
+  const { isDark, colors: tc } = useTheme();
+  const insets = useSafeAreaInsets();
+  const topInset = Platform.OS === 'web' ? 67 : insets.top;
+
+  return (
+    <View style={[dStyles.sidebar, { backgroundColor: tc.card, borderRightColor: tc.border, paddingTop: topInset }]}>
+      <View style={dStyles.sidebarLogo}>
+        <View style={dStyles.logoCircle}>
+          <Text style={dStyles.logoText}>G</Text>
+        </View>
+        <Text style={[dStyles.logoName, { color: tc.text }]}>Good Money</Text>
+      </View>
+      <ScrollView style={dStyles.sidebarScroll} showsVerticalScrollIndicator={false}>
+        {state.routes.map((route, index) => {
+          const isFocused = state.index === index;
+          const meta = TAB_META[route.name] || { active: "ellipse", inactive: "ellipse-outline", color: "#999", label: route.name };
+
+          return (
+            <TouchableOpacity
+              key={route.key}
+              accessibilityRole="button"
+              accessibilityState={isFocused ? { selected: true } : {}}
+              onPress={() => {
+                const event = navigation.emit({ type: "tabPress", target: route.key, canPreventDefault: true });
+                if (!isFocused && !event.defaultPrevented) navigation.navigate(route.name, route.params);
+              }}
+              style={[dStyles.sidebarItem, isFocused && { backgroundColor: meta.color + '12' }]}
+              activeOpacity={0.7}
+            >
+              <Ionicons
+                name={(isFocused ? meta.active : meta.inactive) as any}
+                size={is(20)}
+                color={isFocused ? meta.color : tc.textMuted}
+              />
+              <Text
+                style={[
+                  dStyles.sidebarLabel,
+                  { fontSize: fs(14), color: isFocused ? meta.color : tc.textSecondary },
+                  isFocused && { fontFamily: 'DMSans_600SemiBold' },
+                ]}
+                numberOfLines={1}
+              >
+                {meta.label}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+      </ScrollView>
+    </View>
+  );
+}
+
+function MobileTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   const colorScheme = useColorScheme();
-  const isDark = colorScheme === "dark";
+  const { isDark, colors: tc } = useTheme();
   const isWeb = Platform.OS === "web";
   const isIOS = Platform.OS === "ios";
   const insets = useSafeAreaInsets();
@@ -48,10 +114,9 @@ function TwoRowTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   const row2 = state.routes.slice(ROW_SIZE);
 
   const renderTab = (route: any, index: number) => {
-    const { options } = descriptors[route.key];
     const isFocused = state.index === index;
-    const meta = TAB_META[route.name] || { active: "ellipse", inactive: "ellipse-outline", color: "#999" };
-    const label = options.title || route.name;
+    const meta = TAB_META[route.name] || { active: "ellipse", inactive: "ellipse-outline", color: "#999", label: route.name };
+    const label = meta.label;
 
     return (
       <TouchableOpacity
@@ -90,9 +155,9 @@ function TwoRowTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
       {isIOS ? (
         <BlurView intensity={100} tint={isDark ? "dark" : "light"} style={StyleSheet.absoluteFill} />
       ) : (
-        <View style={[StyleSheet.absoluteFill, { backgroundColor: isDark ? "#000" : "#fff" }]} />
+        <View style={[StyleSheet.absoluteFill, { backgroundColor: isDark ? tc.tabBar : "#fff" }]} />
       )}
-      <View style={[styles.topBorder, { borderTopColor: isDark ? "#333" : Colors.light.border }]} />
+      <View style={[styles.topBorder, { borderTopColor: isDark ? tc.tabBarBorder : Colors.light.border }]} />
 
       <View style={[styles.rowsWrap, { paddingBottom: bottomPad }]}>
         <View style={[styles.tabRow, { height: rowH }]}>
@@ -108,57 +173,20 @@ function TwoRowTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   );
 }
 
-function NativeTabLayout() {
-  return (
-    <NativeTabs>
-      <NativeTabs.Trigger name="index">
-        <Icon sf={{ default: "star", selected: "star.fill" }} />
-        <Label>Rewards</Label>
-      </NativeTabs.Trigger>
-      <NativeTabs.Trigger name="overview">
-        <Icon sf={{ default: "chart.pie", selected: "chart.pie.fill" }} />
-        <Label>Overview</Label>
-      </NativeTabs.Trigger>
-      <NativeTabs.Trigger name="mortgage">
-        <Icon sf={{ default: "house", selected: "house.fill" }} />
-        <Label>Mortgage</Label>
-      </NativeTabs.Trigger>
-      <NativeTabs.Trigger name="super">
-        <Icon sf={{ default: "chart.line.uptrend.xyaxis", selected: "chart.line.uptrend.xyaxis" }} />
-        <Label>Super</Label>
-      </NativeTabs.Trigger>
-      <NativeTabs.Trigger name="budget">
-        <Icon sf={{ default: "dollarsign.circle", selected: "dollarsign.circle.fill" }} />
-        <Label>Budget</Label>
-      </NativeTabs.Trigger>
-      <NativeTabs.Trigger name="rewards">
-        <Icon sf={{ default: "square.grid.2x2", selected: "square.grid.2x2.fill" }} />
-        <Label>Home</Label>
-      </NativeTabs.Trigger>
-      <NativeTabs.Trigger name="insurance">
-        <Icon sf={{ default: "shield", selected: "shield.fill" }} />
-        <Label>Insurance</Label>
-      </NativeTabs.Trigger>
-      <NativeTabs.Trigger name="investor">
-        <Icon sf={{ default: "chart.bar", selected: "chart.bar.fill" }} />
-        <Label>Investor</Label>
-      </NativeTabs.Trigger>
-      <NativeTabs.Trigger name="fact-find">
-        <Icon sf={{ default: "doc.text.magnifyingglass", selected: "doc.text.magnifyingglass" }} />
-        <Label>Fact Find</Label>
-      </NativeTabs.Trigger>
-      <NativeTabs.Trigger name="planning">
-        <Icon sf={{ default: "chart.bar.xaxis", selected: "chart.bar.xaxis" }} />
-        <Label>Planning</Label>
-      </NativeTabs.Trigger>
-    </NativeTabs>
-  );
+function ResponsiveTabBar(props: BottomTabBarProps) {
+  const screenW = useScreenWidth();
+  const isDesktop = screenW >= DESKTOP_BP;
+
+  if (isDesktop) {
+    return <DesktopSidebar {...props} />;
+  }
+  return <MobileTabBar {...props} />;
 }
 
 function ClassicTabLayout() {
   return (
     <Tabs
-      tabBar={(props) => <TwoRowTabBar {...props} />}
+      tabBar={(props) => <ResponsiveTabBar {...props} />}
       screenOptions={{ headerShown: false }}
     >
       <Tabs.Screen name="index" options={{ title: "Rewards" }} />
@@ -178,6 +206,62 @@ function ClassicTabLayout() {
 export default function TabLayout() {
   return <ClassicTabLayout />;
 }
+
+const dStyles = StyleSheet.create({
+  sidebar: {
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    bottom: 0,
+    width: SIDEBAR_WIDTH,
+    borderRightWidth: 1,
+    zIndex: 10,
+  },
+  sidebarLogo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingHorizontal: 20,
+    paddingBottom: 24,
+    paddingTop: 8,
+  },
+  logoCircle: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#D4AF37',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: '#E8C84A',
+  },
+  logoText: {
+    fontFamily: 'DMSans_700Bold',
+    fontSize: 16,
+    color: '#fff',
+  },
+  logoName: {
+    fontFamily: 'DMSans_700Bold',
+    fontSize: 17,
+  },
+  sidebarScroll: {
+    flex: 1,
+    paddingHorizontal: 10,
+  },
+  sidebarItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    borderRadius: 12,
+    marginBottom: 2,
+  },
+  sidebarLabel: {
+    fontFamily: 'DMSans_500Medium',
+    fontSize: 14,
+  },
+});
 
 const styles = StyleSheet.create({
   barContainer: {
