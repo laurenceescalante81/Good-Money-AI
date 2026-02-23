@@ -1,16 +1,18 @@
-import React, { useState, useMemo } from "react";
-import { StyleSheet, Text, View, FlatList, Pressable, Platform, Alert, Modal, TextInput } from "react-native";
+import React, { useState, useMemo, useCallback } from "react";
+import { StyleSheet, Text, View, FlatList, Pressable, Platform, Alert, Modal, TextInput, ActivityIndicator, Linking, RefreshControl } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import * as Haptics from "expo-haptics";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import Colors from "@/constants/colors";
 import { useAccessibility } from "@/contexts/AccessibilityContext";
 import { useFinance, Transaction } from "@/contexts/FinanceContext";
 import { useRewards } from "@/contexts/RewardsContext";
 import { MessageOverlay } from "@/contexts/AppMessagesContext";
 import CoinHeader from '@/components/CoinHeader';
+import { getApiUrl } from "@/lib/query-client";
 
 const CATS: Record<string, { icon: string; color: string }> = {
   "Groceries": { icon: "cart-outline", color: "#F59E0B" },
@@ -29,9 +31,30 @@ const CATS: Record<string, { icon: string; color: string }> = {
   "Other": { icon: "ellipsis-horizontal-circle-outline", color: "#6B7280" },
 };
 
-function fmt(n: number): string { return "$" + n.toLocaleString("en-AU", { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+function fmt(n: number): string { return "$" + Math.abs(n).toLocaleString("en-AU", { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
 
 type Filter = "all" | "income" | "expense";
+
+interface BankAccount {
+  id: string;
+  name: string;
+  accountNo: string;
+  balance: number | null;
+  availableFunds: number | null;
+  currency: string;
+  class: { type: string; product: string };
+  institution: string;
+  status: string;
+  lastUpdated: string;
+}
+
+interface BankConnection {
+  id: string;
+  status: string;
+  institution: { id: string; type?: string };
+  lastUsed: string;
+  createdDate: string;
+}
 
 function TxItem({ item, onDelete }: { item: Transaction; onDelete: (id: string) => void }) {
   const { fs, is } = useAccessibility();
@@ -61,10 +84,66 @@ function TxItem({ item, onDelete }: { item: Transaction; onDelete: (id: string) 
   );
 }
 
+function BankAccountCard({ account }: { account: BankAccount }) {
+  const { fs, is } = useAccessibility();
+  const isCredit = account.class?.type === "credit-card";
+  const isLoan = account.class?.type === "loan" || account.class?.type === "mortgage";
+  const balance = account.balance || 0;
+
+  const typeIcons: Record<string, string> = {
+    "transaction": "card-outline",
+    "savings": "wallet-outline",
+    "credit-card": "card-outline",
+    "loan": "home-outline",
+    "mortgage": "home-outline",
+    "term-deposit": "time-outline",
+    "investment": "trending-up-outline",
+  };
+
+  const typeColors: Record<string, string> = {
+    "transaction": Colors.light.mortgage,
+    "savings": Colors.light.budget,
+    "credit-card": Colors.light.insurance,
+    "loan": Colors.light.super,
+    "mortgage": Colors.light.super,
+    "term-deposit": Colors.light.tint,
+    "investment": Colors.light.super,
+  };
+
+  const icon = typeIcons[account.class?.type] || "card-outline";
+  const color = typeColors[account.class?.type] || Colors.light.tint;
+
+  return (
+    <View style={styles.bankAccountCard}>
+      <View style={styles.bankAccountRow}>
+        <View style={[styles.bankAccountIcon, { backgroundColor: color + "15" }]}>
+          <Ionicons name={icon as any} size={is(20)} color={color} />
+        </View>
+        <View style={styles.bankAccountInfo}>
+          <Text style={[styles.bankAccountName, { fontSize: fs(14) }]} numberOfLines={1}>{account.name}</Text>
+          <Text style={[styles.bankAccountType, { fontSize: fs(12) }]}>
+            {account.class?.product || account.class?.type || "Account"}
+            {account.accountNo ? ` ···${account.accountNo.slice(-4)}` : ""}
+          </Text>
+        </View>
+        <View style={{ alignItems: "flex-end" as const }}>
+          <Text style={[styles.bankAccountBalance, { fontSize: fs(16) }, (isCredit || isLoan) && balance < 0 && { color: Colors.light.expense }]}>
+            {balance < 0 ? "-" : ""}{fmt(balance)}
+          </Text>
+          {account.availableFunds != null && (
+            <Text style={[styles.bankAccountAvail, { fontSize: fs(11) }]}>{fmt(account.availableFunds)} avail</Text>
+          )}
+        </View>
+      </View>
+    </View>
+  );
+}
+
 export default function BudgetScreen() {
   const { fs, is } = useAccessibility();
   const insets = useSafeAreaInsets();
   const topInset = Platform.OS === "web" ? 67 : insets.top;
+  const queryClient = useQueryClient();
   const { transactions, deleteTransaction, getTotalIncome, getTotalExpenses, getMonthlyTransactions, goals, updateGoalAmount, deleteGoal } = useFinance();
   const { state: rewardsState, missions, completeMission } = useRewards();
   const budgetMission = missions.find(m => m.id === 'add_transaction' && !m.completed);
@@ -100,6 +179,211 @@ export default function BudgetScreen() {
     setGoalModalVisible(false);
   };
 
+  const statusQuery = useQuery<{ configured: boolean }>({
+    queryKey: ["/api/basiq/status"],
+    staleTime: 30000,
+  });
+
+  const connectionsQuery = useQuery<{ connections: BankConnection[] }>({
+    queryKey: ["/api/basiq/connections"],
+    enabled: !!statusQuery.data?.configured,
+    staleTime: 15000,
+  });
+
+  const accountsQuery = useQuery<{ accounts: BankAccount[] }>({
+    queryKey: ["/api/basiq/accounts"],
+    enabled: !!statusQuery.data?.configured && (connectionsQuery.data?.connections?.length ?? 0) > 0,
+    staleTime: 15000,
+  });
+
+  const disconnectMutation = useMutation({
+    mutationFn: async (connectionId: string) => {
+      const url = new URL(`/api/basiq/connections/${connectionId}`, getApiUrl());
+      const res = await fetch(url.toString(), { method: "DELETE" });
+      if (!res.ok) throw new Error("Failed to disconnect");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/basiq/connections"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/basiq/accounts"] });
+    },
+  });
+
+  const isBankConfigured = statusQuery.data?.configured;
+  const connections = connectionsQuery.data?.connections || [];
+  const bankAccounts = accountsQuery.data?.accounts || [];
+  const isBankLoading = statusQuery.isLoading || (isBankConfigured && connectionsQuery.isLoading);
+
+  const totalBankBalance = bankAccounts.reduce((sum, a) => {
+    const t = a.class?.type;
+    if (t === "credit-card" || t === "loan" || t === "mortgage") return sum;
+    return sum + (a.balance || 0);
+  }, 0);
+
+  const totalBankDebt = bankAccounts.reduce((sum, a) => {
+    const t = a.class?.type;
+    if (t === "credit-card" || t === "loan" || t === "mortgage") return sum + Math.abs(a.balance || 0);
+    return sum;
+  }, 0);
+
+  const groupedByType: Record<string, BankAccount[]> = {};
+  bankAccounts.forEach(a => {
+    const type = a.class?.type || "other";
+    if (!groupedByType[type]) groupedByType[type] = [];
+    groupedByType[type].push(a);
+  });
+
+  const typeLabels: Record<string, string> = {
+    transaction: "Transaction Accounts",
+    savings: "Savings Accounts",
+    "credit-card": "Credit Cards",
+    loan: "Loans",
+    mortgage: "Mortgages",
+    "term-deposit": "Term Deposits",
+    investment: "Investment Accounts",
+  };
+
+  const [refreshing, setRefreshing] = useState(false);
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: ["/api/basiq/connections"] }),
+      queryClient.invalidateQueries({ queryKey: ["/api/basiq/accounts"] }),
+    ]);
+    setRefreshing(false);
+  }, [queryClient]);
+
+  const renderBanksSection = () => (
+    <View style={styles.banksSection}>
+      <View style={styles.banksSectionHeader}>
+        <View style={styles.banksTitleRow}>
+          <Ionicons name="business-outline" size={is(20)} color={Colors.light.tint} />
+          <Text style={[styles.banksSectionTitle, { fontSize: fs(16) }]}>Connected Banks</Text>
+        </View>
+        {isBankConfigured && (
+          <Pressable onPress={() => router.push("/connect-bank")} hitSlop={12}>
+            <Ionicons name="add-circle" size={is(24)} color={Colors.light.tint} />
+          </Pressable>
+        )}
+      </View>
+
+      {isBankLoading && (
+        <View style={styles.bankLoadingState}>
+          <ActivityIndicator size="small" color={Colors.light.tint} />
+          <Text style={[styles.bankLoadingText, { fontSize: fs(13) }]}>Connecting to Basiq...</Text>
+        </View>
+      )}
+
+      {!isBankLoading && !isBankConfigured && (
+        <View style={styles.bankSetupState}>
+          <View style={[styles.bankSetupIcon, { backgroundColor: Colors.light.tint + "15" }]}>
+            <Ionicons name="business-outline" size={is(32)} color={Colors.light.tint} />
+          </View>
+          <Text style={[styles.bankSetupTitle, { fontSize: fs(16) }]}>Connect Your Banks</Text>
+          <Text style={[styles.bankSetupText, { fontSize: fs(13) }]}>
+            Link your Australian bank accounts through Basiq's secure Open Banking platform
+          </Text>
+          <View style={styles.bankSetupSteps}>
+            <View style={styles.bankStepRow}>
+              <View style={styles.bankStepNum}><Text style={[styles.bankStepNumText, { fontSize: fs(11) }]}>1</Text></View>
+              <Text style={[styles.bankStepText, { fontSize: fs(13) }]}>Get your API key from basiq.io</Text>
+            </View>
+            <View style={styles.bankStepRow}>
+              <View style={styles.bankStepNum}><Text style={[styles.bankStepNumText, { fontSize: fs(11) }]}>2</Text></View>
+              <Text style={[styles.bankStepText, { fontSize: fs(13) }]}>Add it as BASIQ_API_KEY in your app secrets</Text>
+            </View>
+            <View style={styles.bankStepRow}>
+              <View style={styles.bankStepNum}><Text style={[styles.bankStepNumText, { fontSize: fs(11) }]}>3</Text></View>
+              <Text style={[styles.bankStepText, { fontSize: fs(13) }]}>Connect your bank accounts securely</Text>
+            </View>
+          </View>
+          <Pressable style={({ pressed }) => [styles.bankSetupLink, pressed && { opacity: 0.8 }]} onPress={() => Linking.openURL("https://basiq.io")}>
+            <Ionicons name="open-outline" size={is(16)} color={Colors.light.white} />
+            <Text style={[styles.bankSetupLinkText, { fontSize: fs(14) }]}>Visit basiq.io</Text>
+          </Pressable>
+        </View>
+      )}
+
+      {!isBankLoading && isBankConfigured && bankAccounts.length > 0 && (
+        <View>
+          <View style={styles.bankSummaryRow}>
+            <View style={[styles.bankSummaryCard, { backgroundColor: Colors.light.budget + "10" }]}>
+              <Text style={[styles.bankSummaryLabel, { fontSize: fs(12) }]}>Total Balance</Text>
+              <Text style={[styles.bankSummaryVal, { fontSize: fs(20), color: Colors.light.budget }]}>{fmt(totalBankBalance)}</Text>
+            </View>
+            {totalBankDebt > 0 && (
+              <View style={[styles.bankSummaryCard, { backgroundColor: Colors.light.expense + "10" }]}>
+                <Text style={[styles.bankSummaryLabel, { fontSize: fs(12) }]}>Total Debt</Text>
+                <Text style={[styles.bankSummaryVal, { fontSize: fs(20), color: Colors.light.expense }]}>{fmt(totalBankDebt)}</Text>
+              </View>
+            )}
+          </View>
+
+          {Object.entries(groupedByType).map(([type, accs]) => (
+            <View key={type} style={styles.bankAccountGroup}>
+              <Text style={[styles.bankGroupTitle, { fontSize: fs(12) }]}>{typeLabels[type] || type}</Text>
+              {accs.map(a => <BankAccountCard key={a.id} account={a} />)}
+            </View>
+          ))}
+        </View>
+      )}
+
+      {!isBankLoading && isBankConfigured && connections.length === 0 && (
+        <View style={styles.bankEmptyConnections}>
+          <Ionicons name="link-outline" size={is(32)} color={Colors.light.gray300} />
+          <Text style={[styles.bankEmptyText, { fontSize: fs(14) }]}>No banks connected</Text>
+          <Text style={[styles.bankEmptySubtext, { fontSize: fs(12) }]}>Connect your bank to see live balances</Text>
+          <Pressable
+            style={({ pressed }) => [styles.bankConnectBtn, pressed && { opacity: 0.9 }]}
+            onPress={() => router.push("/connect-bank")}
+          >
+            <Ionicons name="add" size={is(18)} color={Colors.light.white} />
+            <Text style={[styles.bankConnectBtnText, { fontSize: fs(14) }]}>Connect a Bank</Text>
+          </Pressable>
+        </View>
+      )}
+
+      {!isBankLoading && isBankConfigured && connections.length > 0 && (
+        <View style={styles.bankConnectionsSection}>
+          <Text style={[styles.bankConnectionsTitle, { fontSize: fs(13) }]}>Connections</Text>
+          {connections.map(c => (
+            <View key={c.id} style={styles.bankConnectionCard}>
+              <View style={[styles.bankConnectionIcon, { backgroundColor: Colors.light.tint + "15" }]}>
+                <Ionicons name="business" size={is(18)} color={Colors.light.tint} />
+              </View>
+              <View style={styles.bankConnectionInfo}>
+                <Text style={[styles.bankConnectionName, { fontSize: fs(13) }]}>Bank Connection</Text>
+                <Text style={[styles.bankConnectionStatus, { fontSize: fs(11) }, c.status === "active" && { color: Colors.light.income }]}>
+                  {c.status === "active" ? "Connected" : c.status}
+                </Text>
+              </View>
+              <Pressable
+                onPress={() => Alert.alert("Disconnect", "Remove this bank connection?", [
+                  { text: "Cancel", style: "cancel" },
+                  { text: "Disconnect", style: "destructive", onPress: () => disconnectMutation.mutate(c.id) },
+                ])}
+                hitSlop={12}
+              >
+                <Ionicons name="close-circle" size={is(22)} color={Colors.light.expense} />
+              </Pressable>
+            </View>
+          ))}
+        </View>
+      )}
+
+      {!isBankLoading && isBankConfigured && (
+        <Pressable
+          onPress={() => router.push("/bank-transactions")}
+          style={({ pressed }) => [styles.bankImportBtn, pressed && { opacity: 0.9 }]}
+        >
+          <Ionicons name="download-outline" size={is(18)} color={Colors.light.tint} />
+          <Text style={[styles.bankImportBtnText, { fontSize: fs(13) }]}>View Bank Transactions</Text>
+          <Ionicons name="chevron-forward" size={is(16)} color={Colors.light.textMuted} />
+        </Pressable>
+      )}
+    </View>
+  );
+
   return (
     <View style={styles.container}>
       <FlatList
@@ -107,6 +391,7 @@ export default function BudgetScreen() {
         keyExtractor={item => item.id}
         contentContainerStyle={{ paddingBottom: 100 }}
         showsVerticalScrollIndicator={false}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.light.tint} />}
         ListHeaderComponent={
           <View>
             <CoinHeader
@@ -309,6 +594,7 @@ export default function BudgetScreen() {
             <Text style={[styles.emptyTxSub, { fontSize: fs(12) }]}>Add your income and expenses to start tracking</Text>
           </View>
         }
+        ListFooterComponent={renderBanksSection}
         renderItem={({ item }) => <TxItem item={item} onDelete={deleteTransaction} />}
         ItemSeparatorComponent={() => <View style={styles.separator} />}
       />
@@ -421,4 +707,50 @@ const styles = StyleSheet.create({
   missionPromptTitle: { fontFamily: "DMSans_600SemiBold", fontSize: 12, color: Colors.light.text },
   missionPromptDesc: { fontFamily: "DMSans_400Regular", fontSize: 10, color: Colors.light.textMuted, marginTop: 1 },
   missionPromptPts: { fontFamily: "DMSans_700Bold", fontSize: 13, color: "#4ade80" },
+
+  banksSection: { marginTop: 24, paddingHorizontal: 20, paddingTop: 20, borderTopWidth: 1, borderTopColor: Colors.light.gray100 },
+  banksSectionHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 16 },
+  banksTitleRow: { flexDirection: "row", alignItems: "center", gap: 8 },
+  banksSectionTitle: { fontFamily: "DMSans_700Bold", fontSize: 16, color: Colors.light.text },
+  bankLoadingState: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 10, paddingVertical: 30 },
+  bankLoadingText: { fontFamily: "DMSans_500Medium", fontSize: 13, color: Colors.light.textMuted },
+  bankSetupState: { alignItems: "center", paddingVertical: 10 },
+  bankSetupIcon: { width: 70, height: 70, borderRadius: 20, alignItems: "center", justifyContent: "center", marginBottom: 14 },
+  bankSetupTitle: { fontFamily: "DMSans_700Bold", fontSize: 16, color: Colors.light.text, marginBottom: 6 },
+  bankSetupText: { fontFamily: "DMSans_400Regular", fontSize: 13, color: Colors.light.textSecondary, textAlign: "center", lineHeight: 20, marginBottom: 16, paddingHorizontal: 10 },
+  bankSetupSteps: { width: "100%", gap: 10, marginBottom: 18 },
+  bankStepRow: { flexDirection: "row", alignItems: "center", gap: 10 },
+  bankStepNum: { width: 24, height: 24, borderRadius: 12, backgroundColor: Colors.light.tint, alignItems: "center", justifyContent: "center" },
+  bankStepNumText: { fontFamily: "DMSans_700Bold", fontSize: 11, color: Colors.light.white },
+  bankStepText: { fontFamily: "DMSans_500Medium", fontSize: 13, color: Colors.light.text, flex: 1 },
+  bankSetupLink: { flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: Colors.light.tint, paddingVertical: 12, paddingHorizontal: 22, borderRadius: 12 },
+  bankSetupLinkText: { fontFamily: "DMSans_600SemiBold", fontSize: 14, color: Colors.light.white },
+  bankSummaryRow: { flexDirection: "row", gap: 12, marginBottom: 16 },
+  bankSummaryCard: { flex: 1, borderRadius: 14, padding: 14 },
+  bankSummaryLabel: { fontFamily: "DMSans_500Medium", fontSize: 12, color: Colors.light.textSecondary },
+  bankSummaryVal: { fontFamily: "DMSans_700Bold", fontSize: 20, marginTop: 4 },
+  bankAccountGroup: { marginBottom: 16 },
+  bankGroupTitle: { fontFamily: "DMSans_700Bold", fontSize: 12, color: Colors.light.textMuted, marginBottom: 8, textTransform: "uppercase" as const, letterSpacing: 0.5 },
+  bankAccountCard: { backgroundColor: Colors.light.card, borderRadius: 14, padding: 14, marginBottom: 8 },
+  bankAccountRow: { flexDirection: "row", alignItems: "center", gap: 12 },
+  bankAccountIcon: { width: 40, height: 40, borderRadius: 12, alignItems: "center", justifyContent: "center" },
+  bankAccountInfo: { flex: 1 },
+  bankAccountName: { fontFamily: "DMSans_600SemiBold", fontSize: 14, color: Colors.light.text },
+  bankAccountType: { fontFamily: "DMSans_400Regular", fontSize: 12, color: Colors.light.textMuted, marginTop: 2 },
+  bankAccountBalance: { fontFamily: "DMSans_700Bold", fontSize: 16, color: Colors.light.text },
+  bankAccountAvail: { fontFamily: "DMSans_400Regular", fontSize: 11, color: Colors.light.textMuted, marginTop: 2 },
+  bankEmptyConnections: { alignItems: "center", paddingVertical: 30 },
+  bankEmptyText: { fontFamily: "DMSans_600SemiBold", fontSize: 14, color: Colors.light.textSecondary, marginTop: 12 },
+  bankEmptySubtext: { fontFamily: "DMSans_400Regular", fontSize: 12, color: Colors.light.textMuted, marginTop: 4, textAlign: "center", marginBottom: 16 },
+  bankConnectBtn: { flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: Colors.light.tint, paddingVertical: 12, paddingHorizontal: 22, borderRadius: 12 },
+  bankConnectBtnText: { fontFamily: "DMSans_600SemiBold", fontSize: 14, color: Colors.light.white },
+  bankConnectionsSection: { marginTop: 12 },
+  bankConnectionsTitle: { fontFamily: "DMSans_700Bold", fontSize: 13, color: Colors.light.textMuted, marginBottom: 8, textTransform: "uppercase" as const, letterSpacing: 0.5 },
+  bankConnectionCard: { flexDirection: "row", alignItems: "center", gap: 10, backgroundColor: Colors.light.card, borderRadius: 14, padding: 12, marginBottom: 8 },
+  bankConnectionIcon: { width: 36, height: 36, borderRadius: 10, alignItems: "center", justifyContent: "center" },
+  bankConnectionInfo: { flex: 1 },
+  bankConnectionName: { fontFamily: "DMSans_600SemiBold", fontSize: 13, color: Colors.light.text },
+  bankConnectionStatus: { fontFamily: "DMSans_400Regular", fontSize: 11, color: Colors.light.textMuted, marginTop: 2 },
+  bankImportBtn: { flexDirection: "row", alignItems: "center", gap: 8, backgroundColor: Colors.light.card, borderRadius: 14, padding: 14, marginTop: 12 },
+  bankImportBtnText: { fontFamily: "DMSans_600SemiBold", fontSize: 13, color: Colors.light.tint, flex: 1 },
 });
