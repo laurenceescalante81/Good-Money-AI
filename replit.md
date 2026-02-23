@@ -116,6 +116,14 @@ constants/
 - **Adviser Portal Pages**: Campaigns list (filterable by status), Campaign Detail (variant editor, settings, performance chart), Campaign Analytics dashboard (KPIs, comparison table, A/B charts, hourly distribution), CTA Optimizer (ranking table, score visualization, formula display)
 - **API Endpoints**: GET/POST /api/admin/campaigns, GET/PUT/DELETE /api/admin/campaigns/:id, PUT /api/admin/campaigns/:id/status, POST /api/admin/campaigns/:id/duplicate, GET/POST /api/admin/campaigns/:id/variants, PUT/DELETE /api/admin/campaigns/variants/:vid, POST /api/admin/campaigns/:id/events (no auth), GET /api/admin/campaigns/:id/analytics, GET /api/admin/cta-optimizer, POST /api/admin/cta-optimizer/apply-ranking, GET /api/admin/marketing/overview
 
+## Accessibility System
+- **AccessibilityContext**: Manages display size preference with AsyncStorage persistence
+- **Display Sizes**: `default` (1.15x font, 1.05x icons), `large` (1.35x font, 1.2x icons), `extra-large` (1.55x font, 1.35x icons)
+- **Settings**: Display Size picker in Settings modal with live preview ("Aa" samples)
+- **Usage**: `const { fs, is } = useAccessibility()` — `fs(baseFontSize)` scales fonts, `is(baseIconSize)` scales icons
+- **Coverage**: Applied to CoinHeader, tab bar, all 11 tab screens, and all 7 modal screens
+- **Default baseline**: Already 15% larger than original sizes for better readability out of the box
+
 ## Recent Changes
 - Feb 2026: Added complete app marketing platform with campaign management, A/B testing, performance analytics, and dynamic CTA optimization engine
 - Feb 2026: Added content analytics, testing & optimization system with event tracking, reports dashboard, and per-element recommendation controls
