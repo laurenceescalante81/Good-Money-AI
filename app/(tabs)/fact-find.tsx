@@ -17,7 +17,7 @@ type SubTab = 'personal' | 'financial' | 'planning';
 const SUB_TAB_SECTIONS: Record<SubTab, string[]> = {
   personal: ['personal_basics', 'contact_details', 'address', 'dependents', 'employment'],
   financial: ['other_income', 'bank_account', 'tax_details', 'assets', 'liabilities', 'mortgage_details', 'super_details', 'insurance_details'],
-  planning: ['risk_profile', 'retirement', 'estate_planning', 'health', 'centrelink'],
+  planning: ['financial_goals', 'risk_profile', 'retirement', 'estate_planning', 'health', 'centrelink'],
 };
 
 const GENDER_OPTIONS = [
@@ -208,6 +208,26 @@ export default function FactFindTabScreen() {
   const [benefitType, setBenefitType] = useState(personalDetails.centrelink.benefitType);
   const [healthCareCard, setHealthCareCard] = useState(personalDetails.centrelink.healthCareCard);
   const [dvaBenefits, setDvaBenefits] = useState(personalDetails.centrelink.dvaBenefits);
+
+  const [goal1Desc, setGoal1Desc] = useState(personalDetails.financialGoals[0]?.description || '');
+  const [goal1Date, setGoal1Date] = useState(personalDetails.financialGoals[0]?.targetDate || '');
+  const [goal1Amount, setGoal1Amount] = useState(personalDetails.financialGoals[0]?.amount || '');
+  const [goal2Desc, setGoal2Desc] = useState(personalDetails.financialGoals[1]?.description || '');
+  const [goal2Date, setGoal2Date] = useState(personalDetails.financialGoals[1]?.targetDate || '');
+  const [goal2Amount, setGoal2Amount] = useState(personalDetails.financialGoals[1]?.amount || '');
+  const [goal3Desc, setGoal3Desc] = useState(personalDetails.financialGoals[2]?.description || '');
+  const [goal3Date, setGoal3Date] = useState(personalDetails.financialGoals[2]?.targetDate || '');
+  const [goal3Amount, setGoal3Amount] = useState(personalDetails.financialGoals[2]?.amount || '');
+
+  const getGoalsUpdater = useCallback((index: number, field: 'description' | 'targetDate' | 'amount', value: string) => {
+    const goals = [
+      { description: goal1Desc.trim(), targetDate: goal1Date.trim(), amount: goal1Amount.trim() },
+      { description: goal2Desc.trim(), targetDate: goal2Date.trim(), amount: goal2Amount.trim() },
+      { description: goal3Desc.trim(), targetDate: goal3Date.trim(), amount: goal3Amount.trim() },
+    ];
+    goals[index] = { ...goals[index], [field]: value.trim() };
+    return { financialGoals: goals };
+  }, [goal1Desc, goal1Date, goal1Amount, goal2Desc, goal2Date, goal2Amount, goal3Desc, goal3Date, goal3Amount]);
 
   const progress = getFactFindProgress();
   const isFieldComplete = (fieldId: string) => state.completedFactFindIds.includes(fieldId);
@@ -609,6 +629,29 @@ export default function FactFindTabScreen() {
             </View>
           </View>
         );
+      case 'financial_goals':
+        return (
+          <View>
+            <View style={styles.goalBlock}>
+              <Text style={styles.goalBlockTitle}>Goal 1</Text>
+              {renderTextInput('ff_goal1_desc', 'What is this goal?', goal1Desc, setGoal1Desc, getGoalsUpdater(0, 'description', goal1Desc), { placeholder: 'e.g. Save for a house deposit' })}
+              {renderTextInput('ff_goal1_date', 'Target Date', goal1Date, setGoal1Date, getGoalsUpdater(0, 'targetDate', goal1Date), { placeholder: 'e.g. Dec 2028' })}
+              {renderTextInput('ff_goal1_amount', 'Amount Required', goal1Amount, setGoal1Amount, getGoalsUpdater(0, 'amount', goal1Amount), { isCurrency: true, placeholder: 'e.g. 100,000' })}
+            </View>
+            <View style={styles.goalBlock}>
+              <Text style={styles.goalBlockTitle}>Goal 2</Text>
+              {renderTextInput('ff_goal2_desc', 'What is this goal?', goal2Desc, setGoal2Desc, getGoalsUpdater(1, 'description', goal2Desc), { placeholder: 'e.g. Pay off car loan' })}
+              {renderTextInput('ff_goal2_date', 'Target Date', goal2Date, setGoal2Date, getGoalsUpdater(1, 'targetDate', goal2Date), { placeholder: 'e.g. Jun 2027' })}
+              {renderTextInput('ff_goal2_amount', 'Amount Required', goal2Amount, setGoal2Amount, getGoalsUpdater(1, 'amount', goal2Amount), { isCurrency: true, placeholder: 'e.g. 25,000' })}
+            </View>
+            <View style={styles.goalBlock}>
+              <Text style={styles.goalBlockTitle}>Goal 3</Text>
+              {renderTextInput('ff_goal3_desc', 'What is this goal?', goal3Desc, setGoal3Desc, getGoalsUpdater(2, 'description', goal3Desc), { placeholder: 'e.g. Build emergency fund' })}
+              {renderTextInput('ff_goal3_date', 'Target Date', goal3Date, setGoal3Date, getGoalsUpdater(2, 'targetDate', goal3Date), { placeholder: 'e.g. Mar 2026' })}
+              {renderTextInput('ff_goal3_amount', 'Amount Required', goal3Amount, setGoal3Amount, getGoalsUpdater(2, 'amount', goal3Amount), { isCurrency: true, placeholder: 'e.g. 15,000' })}
+            </View>
+          </View>
+        );
       case 'risk_profile':
         return (
           <View>
@@ -819,6 +862,8 @@ const styles = StyleSheet.create({
   sectionContent: { padding: 16, paddingTop: 0, borderTopWidth: 1, borderTopColor: Colors.light.border },
   sectionCompleteBanner: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: '#FEF3C7', padding: 12, borderRadius: 10, marginBottom: 12, marginTop: 12 },
   sectionCompleteText: { fontFamily: 'DMSans_600SemiBold', fontSize: 13, color: '#92400E' },
+  goalBlock: { marginTop: 16, backgroundColor: 'rgba(255,255,255,0.03)', borderRadius: 12, paddingHorizontal: 12, paddingBottom: 8, borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)' },
+  goalBlockTitle: { fontFamily: 'DMSans_700Bold', fontSize: 14, color: Colors.light.tint, marginTop: 12, marginBottom: 2 },
   fieldRow: { marginTop: 16 },
   fieldHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
   fieldLabelRow: { flexDirection: 'row', alignItems: 'center', flex: 1 },
