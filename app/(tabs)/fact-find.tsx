@@ -711,7 +711,7 @@ export default function FactFindTabScreen() {
     <View style={styles.container}>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: bottomInset + 120 }} keyboardShouldPersistTaps="handled">
         <LinearGradient colors={['#0C1B2A', '#132D46', '#1B3A5C']} style={[styles.heroGradient, { paddingTop: 0 }]}>
-          <CoinHeader title="Fact Find" subtitle="FINANCIAL FACT FIND" transparent />
+          <CoinHeader title="Fact Find" subtitle="FINANCIAL FACT FIND" transparent darkMode />
 
           <View style={styles.progressCard}>
             <LinearGradient colors={['#1a2942', '#0f1c30']} style={styles.progressCardInner}>

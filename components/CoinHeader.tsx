@@ -5,38 +5,43 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRewards } from '@/contexts/RewardsContext';
 import { useAccessibility } from '@/contexts/AccessibilityContext';
 import { router } from 'expo-router';
+import Colors from '@/constants/colors';
 
 interface CoinHeaderProps {
   title?: string;
   subtitle?: string;
   rightElement?: React.ReactNode;
   transparent?: boolean;
+  darkMode?: boolean;
 }
 
-export default function CoinHeader({ title, subtitle, rightElement, transparent }: CoinHeaderProps) {
+export default function CoinHeader({ title, subtitle, rightElement, transparent, darkMode }: CoinHeaderProps) {
   const insets = useSafeAreaInsets();
   const topInset = Platform.OS === 'web' ? 67 : Math.max(insets.top, 50);
   const { state } = useRewards();
   const { fs, is } = useAccessibility();
 
+  const textColor = darkMode ? '#fff' : Colors.light.text;
+  const subtitleColor = darkMode ? 'rgba(255,255,255,0.5)' : Colors.light.textMuted;
+
   return (
-    <View style={[styles.container, { paddingTop: topInset + 20 }, transparent && styles.transparent]}>
+    <View style={[styles.container, { paddingTop: topInset + 8 }, transparent && styles.transparent]}>
       <Pressable onPress={() => router.push('/(tabs)/index')} style={styles.leftSection}>
         <Image source={require('@/assets/images/logo.jpeg')} style={[styles.logo, { width: is(34), height: is(34) }]} />
         {title ? (
           <View style={styles.titleWrap}>
-            <Text style={[styles.title, { fontSize: fs(17) }]} numberOfLines={1}>{title}</Text>
-            {subtitle && <Text style={[styles.subtitle, { fontSize: fs(11) }]} numberOfLines={1}>{subtitle}</Text>}
+            <Text style={[styles.title, { fontSize: fs(17), color: textColor }]} numberOfLines={1}>{title}</Text>
+            {subtitle && <Text style={[styles.subtitle, { fontSize: fs(11), color: subtitleColor }]} numberOfLines={1}>{subtitle}</Text>}
           </View>
         ) : (
-          <Text style={[styles.brandName, { fontSize: fs(18) }]}>Good Money</Text>
+          <Text style={[styles.brandName, { fontSize: fs(18), color: textColor }]}>Good Money</Text>
         )}
       </Pressable>
 
       <View style={styles.rightSection}>
         <Pressable onPress={() => router.push('/(tabs)/index')} style={styles.coinPill}>
           <View style={[styles.coinIcon, { width: is(20), height: is(20), borderRadius: is(10) }]}>
-            <Ionicons name="star" size={is(12)} color="#0C1B2A" />
+            <Ionicons name="star" size={is(12)} color="#fff" />
           </View>
           <Text style={[styles.coinCount, { fontSize: fs(13) }]}>{state.points.toLocaleString()}</Text>
         </Pressable>
@@ -53,7 +58,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingBottom: 10,
-    backgroundColor: '#0C1B2A',
+    backgroundColor: Colors.light.background,
   },
   transparent: {
     backgroundColor: 'transparent',
@@ -72,7 +77,7 @@ const styles = StyleSheet.create({
   brandName: {
     fontFamily: 'DMSans_700Bold',
     fontSize: 18,
-    color: '#fff',
+    color: Colors.light.text,
   },
   titleWrap: {
     flex: 1,
@@ -80,12 +85,12 @@ const styles = StyleSheet.create({
   title: {
     fontFamily: 'DMSans_700Bold',
     fontSize: 17,
-    color: '#fff',
+    color: Colors.light.text,
   },
   subtitle: {
     fontFamily: 'DMSans_400Regular',
     fontSize: 11,
-    color: 'rgba(255,255,255,0.5)',
+    color: Colors.light.textMuted,
     marginTop: 1,
   },
   rightSection: {
@@ -96,26 +101,24 @@ const styles = StyleSheet.create({
   coinPill: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(212,175,55,0.15)',
+    backgroundColor: '#D4AF37',
     borderRadius: 20,
     paddingLeft: 4,
     paddingRight: 10,
     paddingVertical: 5,
     gap: 5,
-    borderWidth: 1,
-    borderColor: 'rgba(212,175,55,0.25)',
   },
   coinIcon: {
     width: 20,
     height: 20,
     borderRadius: 10,
-    backgroundColor: '#D4AF37',
+    backgroundColor: '#B8941E',
     alignItems: 'center',
     justifyContent: 'center',
   },
   coinCount: {
     fontFamily: 'DMSans_700Bold',
     fontSize: 13,
-    color: '#D4AF37',
+    color: '#fff',
   },
 });
