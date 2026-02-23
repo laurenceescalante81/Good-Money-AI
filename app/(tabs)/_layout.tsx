@@ -9,6 +9,7 @@ import {
   Text,
   ScrollView,
   Dimensions,
+  Image,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useState, useEffect } from "react";
@@ -53,9 +54,7 @@ function DesktopSidebar({ state, descriptors, navigation }: BottomTabBarProps) {
   return (
     <View style={[dStyles.sidebar, { backgroundColor: tc.card, borderRightColor: tc.border, paddingTop: topInset }]}>
       <View style={dStyles.sidebarLogo}>
-        <View style={dStyles.logoCircle}>
-          <Text style={dStyles.logoText}>G</Text>
-        </View>
+        <Image source={require('@/assets/images/logo.jpeg')} style={{ width: 36, height: 36, borderRadius: 8 }} />
         <Text style={[dStyles.logoName, { color: tc.text }]}>Good Money</Text>
       </View>
       <ScrollView style={dStyles.sidebarScroll} showsVerticalScrollIndicator={false}>

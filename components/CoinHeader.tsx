@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, Platform, Pressable } from 'react-native';
+import { View, Text, StyleSheet, Platform, Pressable, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRewards } from '@/contexts/RewardsContext';
@@ -33,9 +33,7 @@ export default function CoinHeader({ title, subtitle, rightElement, transparent,
   return (
     <View style={[styles.container, { paddingTop: topInset + 8, backgroundColor: bgColor }, transparent && styles.transparent]}>
       <Pressable onPress={() => router.push('/(tabs)/rewards')} style={styles.leftSection}>
-        <View style={[styles.goldCoin, { width: is(34), height: is(34), borderRadius: is(17) }]}>
-          <Text style={[styles.goldCoinText, { fontSize: fs(16) }]}>G</Text>
-        </View>
+        <Image source={require('@/assets/images/logo.jpeg')} style={{ width: is(34), height: is(34), borderRadius: is(6) }} />
         {title ? (
           <View style={styles.titleWrap}>
             <Text style={[styles.title, { fontSize: fs(17), color: textColor }]} numberOfLines={1}>{title}</Text>
