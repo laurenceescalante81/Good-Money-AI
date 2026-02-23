@@ -170,15 +170,42 @@ tbody tr.clickable:hover td{background:var(--teal-glow)}
 .finance-item .fi-val{font-size:16px;font-weight:700;color:#fff;margin-top:2px}
 
 @media(max-width:768px){
-  .sidebar{width:64px}
-  .sidebar .logo-area .logo-info,.nav-item span,.nav-label,.sidebar .user-area .user-name,.sidebar .user-area .user-role{display:none}
-  .sidebar .logo-area{justify-content:center;padding:16px 8px}
-  .nav-item{justify-content:center;padding:12px 8px}
-  .nav-item ion-icon{margin:0}
-  .main{margin-left:64px;padding:16px}
+  .sidebar{display:none!important}
+  .main{margin-left:0!important;padding:16px;padding-top:60px}
   .stat-grid{grid-template-columns:1fr 1fr}
   .welcome-banner{padding:20px}
 }
+
+.mobile-topbar{display:none;position:fixed;top:0;left:0;right:0;height:52px;background:var(--navy-light);border-bottom:1px solid var(--card-border);z-index:200;align-items:center;justify-content:space-between;padding:0 16px}
+.mobile-topbar .mtb-left{display:flex;align-items:center;gap:10px}
+.mobile-topbar .mtb-logo{width:32px;height:32px;background:var(--teal);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;color:#fff}
+.mobile-topbar .mtb-title{font-size:15px;font-weight:700;color:#fff}
+.mobile-topbar .mtb-btn{width:38px;height:38px;border-radius:10px;background:rgba(255,255,255,0.06);border:1px solid var(--card-border);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-secondary);font-size:20px}
+.mobile-topbar .mtb-btn:active{background:var(--teal-glow);color:var(--teal-light)}
+@media(max-width:768px){.mobile-topbar{display:flex}}
+
+.mobile-home-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:linear-gradient(160deg,#0C1B2A 0%,#132D46 40%,#1B3A5C 100%);z-index:500;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.mobile-home-overlay.show{display:flex;flex-direction:column}
+.mho-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;padding-top:max(env(safe-area-inset-top),16px)}
+.mho-header .mho-title{font-size:18px;font-weight:700;color:#fff}
+.mho-header .mho-close{width:36px;height:36px;border-radius:10px;background:rgba(255,255,255,0.08);border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-secondary);font-size:22px}
+.mho-header .mho-close:active{background:var(--teal-glow);color:var(--teal-light)}
+.mho-user{padding:0 20px 20px;display:flex;align-items:center;gap:12px}
+.mho-user .mho-avatar{width:44px;height:44px;border-radius:50%;background:var(--teal);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:#fff}
+.mho-user .mho-user-info{flex:1}
+.mho-user .mho-user-name{font-size:15px;font-weight:600;color:#fff}
+.mho-user .mho-user-role{font-size:11px;color:var(--teal-light);text-transform:uppercase;font-weight:600}
+.mho-section{padding:0 20px 8px}
+.mho-section-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--text-muted);margin-bottom:12px}
+.mho-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:24px}
+.mho-item{display:flex;flex-direction:column;align-items:center;gap:8px;padding:16px 8px;border-radius:16px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);cursor:pointer;-webkit-tap-highlight-color:transparent;transition:all .15s}
+.mho-item:active{background:var(--teal-glow);border-color:var(--teal);transform:scale(0.96)}
+.mho-item.active{background:var(--teal-glow);border-color:var(--teal)}
+.mho-item .mho-icon{width:48px;height:48px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:22px;color:#fff}
+.mho-item .mho-label{font-size:11px;font-weight:600;color:var(--text-secondary);text-align:center;line-height:1.3}
+.mho-item.active .mho-label{color:var(--teal-light)}
+.mho-logout{margin:8px 20px 20px;padding:14px;border-radius:14px;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.15);display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;color:#F87171;font-size:14px;font-weight:600}
+.mho-logout:active{background:rgba(239,68,68,0.15)}
 </style>
 </head>
 <body>
@@ -220,6 +247,30 @@ tbody tr.clickable:hover td{background:var(--teal-glow)}
     </div>
   </div>
   <div class="main" id="main-content"></div>
+</div>
+
+<div class="mobile-topbar" id="mobile-topbar">
+  <div class="mtb-left">
+    <div class="mtb-logo"><ion-icon name="cash-outline"></ion-icon></div>
+    <span class="mtb-title" id="mtb-page-title">Dashboard</span>
+  </div>
+  <div class="mtb-btn" onclick="toggleMobileHome()"><ion-icon name="apps-outline"></ion-icon></div>
+</div>
+
+<div class="mobile-home-overlay" id="mobile-home-overlay">
+  <div class="mho-header">
+    <span class="mho-title">Good Money Adviser</span>
+    <div class="mho-close" onclick="toggleMobileHome()"><ion-icon name="close-outline"></ion-icon></div>
+  </div>
+  <div class="mho-user">
+    <div class="mho-avatar" id="mho-avatar">A</div>
+    <div class="mho-user-info">
+      <div class="mho-user-name" id="mho-user-name">Admin</div>
+      <div class="mho-user-role" id="mho-user-role">God Mode</div>
+    </div>
+  </div>
+  <div id="mho-nav-content"></div>
+  <div class="mho-logout" onclick="doLogout()"><ion-icon name="log-out-outline"></ion-icon> Sign Out</div>
 </div>
 
 <div class="modal-overlay" id="modal-overlay">
@@ -338,15 +389,85 @@ function buildNav() {
     html += navItem('settings', 'settings-outline', 'Settings');
   }
   document.getElementById('sidebar-nav').innerHTML = html;
+  buildMobileHome();
 }
 
 function navItem(page, icon, label) {
   return `<div class="nav-item${currentPage === page ? ' active' : ''}" data-page="${page}" onclick="navigate('${page}')"><ion-icon name="${icon}"></ion-icon><span>${label}</span></div>`;
 }
 
+const PAGE_LABELS = {
+  dashboard:'Dashboard', clients:'Clients', reports:'Reports', 'content-reports':'Content Reports',
+  optimization:'Optimization', campaigns:'Campaigns', 'campaign-analytics':'Campaign Analytics',
+  'cta-optimizer':'CTA Optimizer', advisers:'Advisers', quests:'Quests', ctas:'CTAs',
+  messages:'Messages', settings:'Settings'
+};
+
+const MOBILE_NAV_COLORS = {
+  dashboard:'#0D9488', clients:'#3B82F6', reports:'#8B5CF6', 'content-reports':'#14B8A6',
+  optimization:'#F59E0B', campaigns:'#EF4444', 'campaign-analytics':'#EC4899',
+  'cta-optimizer':'#D97706', advisers:'#10B981', quests:'#F59E0B', ctas:'#3B82F6',
+  messages:'#8B5CF6', settings:'#64748B'
+};
+
+function buildMobileHome() {
+  const items = [
+    { page:'dashboard', icon:'grid-outline', label:'Dashboard' },
+    { page:'clients', icon:'people-outline', label: isGod() ? 'All Clients' : 'My Clients' },
+    { page:'reports', icon:'bar-chart-outline', label:'Reports' },
+    { page:'content-reports', icon:'analytics-outline', label:'Content Reports' },
+    { page:'optimization', icon:'flash-outline', label:'Optimization' },
+  ];
+  const marketing = [
+    { page:'campaigns', icon:'rocket-outline', label:'Campaigns' },
+    { page:'campaign-analytics', icon:'stats-chart-outline', label:'Analytics' },
+    { page:'cta-optimizer', icon:'color-wand-outline', label:'CTA Optimizer' },
+  ];
+  const admin = [
+    { page:'advisers', icon:'person-outline', label:'Advisers' },
+    { page:'quests', icon:'trophy-outline', label:'Quests' },
+    { page:'ctas', icon:'megaphone-outline', label:'CTAs' },
+    { page:'messages', icon:'chatbubbles-outline', label:'Messages' },
+    { page:'settings', icon:'settings-outline', label:'Settings' },
+  ];
+
+  function grid(arr) {
+    return arr.map(i => `<div class="mho-item${currentPage===i.page?' active':''}" data-mho-page="${i.page}" onclick="mobileNavigate('${i.page}')">
+      <div class="mho-icon" style="background:${MOBILE_NAV_COLORS[i.page]||'#0D9488'}"><ion-icon name="${i.icon}"></ion-icon></div>
+      <span class="mho-label">${i.label}</span>
+    </div>`).join('');
+  }
+
+  let html = '<div class="mho-section"><div class="mho-section-label">Main</div><div class="mho-grid">' + grid(items) + '</div></div>';
+  if (isGod()) {
+    html += '<div class="mho-section"><div class="mho-section-label">Marketing</div><div class="mho-grid">' + grid(marketing) + '</div></div>';
+    html += '<div class="mho-section"><div class="mho-section-label">Administration</div><div class="mho-grid">' + grid(admin) + '</div></div>';
+  }
+  document.getElementById('mho-nav-content').innerHTML = html;
+
+  if (currentUser) {
+    const initials = (currentUser.name || 'A').split(' ').map(w => w[0]).join('').toUpperCase().slice(0,2);
+    document.getElementById('mho-avatar').textContent = initials;
+    document.getElementById('mho-user-name').textContent = currentUser.name;
+    document.getElementById('mho-user-role').textContent = isGod() ? 'God Mode' : 'Adviser';
+  }
+}
+
+function toggleMobileHome() {
+  document.getElementById('mobile-home-overlay').classList.toggle('show');
+}
+
+function mobileNavigate(page) {
+  document.getElementById('mobile-home-overlay').classList.remove('show');
+  navigate(page);
+}
+
 function navigate(page) {
   currentPage = page;
   document.querySelectorAll('.nav-item').forEach(n => n.classList.toggle('active', n.dataset.page === page));
+  document.querySelectorAll('.mho-item').forEach(n => n.classList.toggle('active', n.dataset.mhoPage === page));
+  const titleEl = document.getElementById('mtb-page-title');
+  if (titleEl) titleEl.textContent = PAGE_LABELS[page] || page;
   const renderers = { dashboard: renderDashboard, clients: renderClients, reports: renderReports, advisers: renderAdvisers, quests: renderQuests, ctas: renderCTAs, messages: renderMessages, 'content-reports': renderContentReports, optimization: renderOptimization, campaigns: renderCampaigns, 'campaign-analytics': renderCampaignAnalytics, 'cta-optimizer': renderCTAOptimizer, settings: renderSettings };
   if (renderers[page]) renderers[page]();
 }
