@@ -10,6 +10,7 @@ import { FinanceProvider } from "@/contexts/FinanceContext";
 import { RewardsProvider } from "@/contexts/RewardsContext";
 import { AppMessagesProvider } from "@/contexts/AppMessagesContext";
 import { AccessibilityProvider } from "@/contexts/AccessibilityContext";
+import { ThemeProvider } from "@/contexts/ThemeContext";
 import { useFonts, DMSans_400Regular, DMSans_500Medium, DMSans_600SemiBold, DMSans_700Bold } from "@expo-google-fonts/dm-sans";
 
 SplashScreen.preventAutoHideAsync();
@@ -28,6 +29,7 @@ function RootLayoutNav() {
       <Stack.Screen name="bank-transactions" options={{ headerShown: false, presentation: "modal" }} />
       <Stack.Screen name="fact-find" options={{ headerShown: false, presentation: "modal" }} />
       <Stack.Screen name="switch-request" options={{ headerShown: false, presentation: "modal" }} />
+      <Stack.Screen name="coin-balance" options={{ headerShown: false, presentation: "modal" }} />
     </Stack>
   );
 }
@@ -51,15 +53,17 @@ export default function RootLayout() {
       <QueryClientProvider client={queryClient}>
         <GestureHandlerRootView>
           <KeyboardProvider>
-            <AccessibilityProvider>
-              <FinanceProvider>
-                <RewardsProvider>
-                  <AppMessagesProvider>
-                    <RootLayoutNav />
-                  </AppMessagesProvider>
-                </RewardsProvider>
-              </FinanceProvider>
-            </AccessibilityProvider>
+            <ThemeProvider>
+              <AccessibilityProvider>
+                <FinanceProvider>
+                  <RewardsProvider>
+                    <AppMessagesProvider>
+                      <RootLayoutNav />
+                    </AppMessagesProvider>
+                  </RewardsProvider>
+                </FinanceProvider>
+              </AccessibilityProvider>
+            </ThemeProvider>
           </KeyboardProvider>
         </GestureHandlerRootView>
       </QueryClientProvider>

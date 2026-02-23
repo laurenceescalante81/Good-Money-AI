@@ -1,9 +1,10 @@
 import React from 'react';
-import { View, Text, StyleSheet, Image, Platform, Pressable } from 'react-native';
+import { View, Text, StyleSheet, Platform, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRewards } from '@/contexts/RewardsContext';
 import { useAccessibility } from '@/contexts/AccessibilityContext';
+import { useTheme } from '@/contexts/ThemeContext';
 import { router } from 'expo-router';
 import Colors from '@/constants/colors';
 
@@ -20,14 +21,21 @@ export default function CoinHeader({ title, subtitle, rightElement, transparent,
   const topInset = Platform.OS === 'web' ? 67 : Math.max(insets.top, 50);
   const { state } = useRewards();
   const { fs, is } = useAccessibility();
+  const { isDark, colors: tc } = useTheme();
 
-  const textColor = darkMode ? '#fff' : Colors.light.text;
-  const subtitleColor = darkMode ? 'rgba(255,255,255,0.5)' : Colors.light.textMuted;
+  const forceDark = darkMode || isDark;
+  const textColor = forceDark ? '#fff' : tc.text;
+  const subtitleColor = forceDark ? 'rgba(255,255,255,0.5)' : tc.textMuted;
+  const bgColor = transparent ? 'transparent' : (isDark ? tc.headerBg : Colors.light.background);
+  const settingsBg = forceDark ? 'rgba(255,255,255,0.1)' : tc.gray100;
+  const settingsColor = forceDark ? 'rgba(255,255,255,0.6)' : tc.textSecondary;
 
   return (
-    <View style={[styles.container, { paddingTop: topInset + 8 }, transparent && styles.transparent]}>
-      <Pressable onPress={() => router.push('/(tabs)/index')} style={styles.leftSection}>
-        <Image source={require('@/assets/images/logo.jpeg')} style={[styles.logo, { width: is(34), height: is(34) }]} />
+    <View style={[styles.container, { paddingTop: topInset + 8, backgroundColor: bgColor }, transparent && styles.transparent]}>
+      <Pressable onPress={() => router.push('/(tabs)/rewards')} style={styles.leftSection}>
+        <View style={[styles.goldCoin, { width: is(34), height: is(34), borderRadius: is(17) }]}>
+          <Text style={[styles.goldCoinText, { fontSize: fs(16) }]}>G</Text>
+        </View>
         {title ? (
           <View style={styles.titleWrap}>
             <Text style={[styles.title, { fontSize: fs(17), color: textColor }]} numberOfLines={1}>{title}</Text>
@@ -39,11 +47,14 @@ export default function CoinHeader({ title, subtitle, rightElement, transparent,
       </Pressable>
 
       <View style={styles.rightSection}>
-        <Pressable onPress={() => router.push('/(tabs)/index')} style={styles.coinPill}>
+        <Pressable onPress={() => router.push('/coin-balance')} style={styles.coinPill}>
           <View style={[styles.coinIcon, { width: is(20), height: is(20), borderRadius: is(10) }]}>
-            <Ionicons name="star" size={is(12)} color="#fff" />
+            <Text style={[styles.coinIconText, { fontSize: fs(10) }]}>G</Text>
           </View>
           <Text style={[styles.coinCount, { fontSize: fs(13) }]}>{state.points.toLocaleString()}</Text>
+        </Pressable>
+        <Pressable onPress={() => router.push('/settings')} hitSlop={12} style={[styles.settingsBtn, { backgroundColor: settingsBg, width: is(34), height: is(34), borderRadius: is(12) }]}>
+          <Ionicons name="settings-outline" size={is(18)} color={settingsColor} />
         </Pressable>
         {rightElement}
       </View>
@@ -69,10 +80,26 @@ const styles = StyleSheet.create({
     gap: 10,
     flex: 1,
   },
-  logo: {
+  goldCoin: {
     width: 34,
     height: 34,
-    borderRadius: 10,
+    borderRadius: 17,
+    backgroundColor: '#D4AF37',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#B8941E',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.4,
+    shadowRadius: 4,
+    elevation: 4,
+    borderWidth: 2,
+    borderColor: '#E8C84A',
+  },
+  goldCoinText: {
+    fontFamily: 'DMSans_700Bold',
+    fontSize: 16,
+    color: '#fff',
+    marginTop: -1,
   },
   brandName: {
     fontFamily: 'DMSans_700Bold',
@@ -116,9 +143,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  coinIconText: {
+    fontFamily: 'DMSans_700Bold',
+    fontSize: 10,
+    color: '#fff',
+  },
   coinCount: {
     fontFamily: 'DMSans_700Bold',
     fontSize: 13,
     color: '#fff',
+  },
+  settingsBtn: {
+    width: 34,
+    height: 34,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });

@@ -170,13 +170,6 @@ export default function DashboardScreen() {
         <CoinHeader
           title="Overview"
           subtitle={new Date().toLocaleDateString("en-AU", { month: "long", year: "numeric" })}
-          rightElement={
-            <Pressable onPress={() => router.push("/settings")} hitSlop={12}>
-              <View style={styles.settingsBtn}>
-                <Feather name="settings" size={is(20)} color={Colors.light.textSecondary} />
-              </View>
-            </Pressable>
-          }
         />
 
         <View style={styles.body}>
