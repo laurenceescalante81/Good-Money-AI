@@ -123,7 +123,16 @@ constants/
 - **Coverage**: Applied to CoinHeader, tab bar, all 10 tab screens, and all 7 modal screens
 - **Default baseline**: Already 15% larger than original sizes for better readability out of the box
 
+## Responsive Layout System
+- **useResponsive hook** (`hooks/useResponsive.ts`): Provides breakpoint detection (mobile <768px, tablet 768-1024px, desktop >=1024px), contentWidth, chartWidth, sidePadding, and column counts
+- **Desktop sidebar**: On screens >=768px wide, bottom tab bar is replaced with a 220px left sidebar showing Good Money logo and all navigation items vertically
+- **Content constraints**: Desktop max-width 960px centered, tablet 720px, mobile full width
+- **Chart sizing**: Charts scale from ~500px mobile to ~880px desktop
+- **Planning screen**: Side-by-side layout for income/expense chart and wealth breakdown on desktop; larger charts with more grid lines
+- **All tab screens**: Wrapped in responsive container with adaptive padding (20px mobile, 24px tablet, 40px desktop)
+
 ## Recent Changes
+- Feb 2026: Added responsive desktop/tablet layout with sidebar navigation, content constraints, and adaptive chart sizing
 - Feb 2026: Added complete app marketing platform with campaign management, A/B testing, performance analytics, and dynamic CTA optimization engine
 - Feb 2026: Added content analytics, testing & optimization system with event tracking, reports dashboard, and per-element recommendation controls
 - Feb 2026: Added customizable tooltips, marketing popups, and FTUE system with back office management
