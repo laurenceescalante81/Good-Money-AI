@@ -31,6 +31,7 @@ function RootLayoutNav() {
       <Stack.Screen name="fact-find" options={{ headerShown: false, presentation: "modal" }} />
       <Stack.Screen name="switch-request" options={{ headerShown: false, presentation: "modal" }} />
       <Stack.Screen name="coin-balance" options={{ headerShown: false, presentation: "modal" }} />
+      <Stack.Screen name="fsv-missions" options={{ headerShown: false, presentation: "modal" }} />
     </Stack>
   );
 }

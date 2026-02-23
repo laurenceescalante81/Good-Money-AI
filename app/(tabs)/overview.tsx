@@ -9,6 +9,7 @@ import Colors from "@/constants/colors";
 import { useAccessibility } from "@/contexts/AccessibilityContext";
 import { useFinance } from "@/contexts/FinanceContext";
 import { useRewards } from "@/contexts/RewardsContext";
+import { useFSV } from "@/contexts/FSVContext";
 import { MessageOverlay } from "@/contexts/AppMessagesContext";
 import CoinHeader from '@/components/CoinHeader';
 import { useResponsive } from '@/hooks/useResponsive';
@@ -84,6 +85,11 @@ export default function DashboardScreen() {
   } = useFinance();
 
   const { state: rewardsState, missions, badges, xpForLevel, is2xWeekend } = useRewards();
+  const { fsvScore, onboardingProgress, checkAndCompleteQuests } = useFSV();
+
+  useEffect(() => {
+    checkAndCompleteQuests();
+  }, []);
 
   const [ctaTexts, setCtaTexts] = useState<Record<string, string>>(DEFAULT_CTAS);
 
@@ -192,6 +198,32 @@ export default function DashboardScreen() {
         />
 
         <View style={[styles.body, { alignSelf: 'center', width: '100%', maxWidth: contentWidth, paddingHorizontal: sidePadding }]}>
+          <Pressable onPress={() => router.push('/fsv-missions')} style={({ pressed }) => [styles.fsvBar, pressed && { opacity: 0.9 }]}>
+            <View style={styles.fsvLeft}>
+              <LinearGradient colors={['#0D9488', '#065F46']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.fsvBadge}>
+                <Text style={[styles.fsvBadgeText, { fontSize: fs(11) }]}>FSV</Text>
+              </LinearGradient>
+              <Text style={[styles.fsvScoreText, { fontSize: fs(22) }]}>{Math.round(fsvScore)}</Text>
+              <Text style={[styles.fsvMaxText, { fontSize: fs(13) }]}>/ 100</Text>
+            </View>
+            <View style={styles.fsvRight}>
+              <View style={styles.fsvBarTrack}>
+                <LinearGradient
+                  colors={fsvScore < 30 ? ['#EF4444', '#F97316'] : fsvScore < 60 ? ['#F59E0B', '#EAB308'] : ['#10B981', '#059669']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={[styles.fsvBarFill, { width: `${Math.max(fsvScore, 2)}%` as any }]}
+                />
+              </View>
+              <View style={styles.fsvMeta}>
+                <Text style={[styles.fsvLabel, { fontSize: fs(10) }]}>
+                  {fsvScore === 0 ? 'Start your financial journey' : fsvScore < 30 ? 'Building foundations' : fsvScore < 60 ? 'Getting stronger' : fsvScore < 80 ? 'Well structured' : 'Financially unshakeable'}
+                </Text>
+                <Ionicons name="chevron-forward" size={fs(14)} color="#999" />
+              </View>
+            </View>
+          </Pressable>
+
           <Text style={[styles.sectionTitle, { fontSize: fs(18) }]}>Financial Snapshot</Text>
           <View style={styles.pillarGrid}>
             <PillarCard
@@ -472,4 +504,15 @@ const styles = StyleSheet.create({
   legendText: { fontFamily: "DMSans_500Medium", fontSize: 11, color: "rgba(255,255,255,0.6)" },
   projectionCta: { flexDirection: "row", alignItems: "center", gap: 8, backgroundColor: "rgba(13,148,136,0.12)", borderRadius: 10, paddingVertical: 10, paddingHorizontal: 12 },
   projectionCtaText: { flex: 1, fontFamily: "DMSans_600SemiBold", fontSize: 12, color: Colors.light.tealLight },
+  fsvBar: { flexDirection: "row", alignItems: "center", backgroundColor: Colors.light.card, borderRadius: 16, padding: 14, marginBottom: 20, gap: 14, borderWidth: 1, borderColor: '#0D948820' },
+  fsvLeft: { flexDirection: "row", alignItems: "center", gap: 6 },
+  fsvBadge: { borderRadius: 6, paddingHorizontal: 8, paddingVertical: 3 },
+  fsvBadgeText: { fontFamily: "DMSans_700Bold", fontSize: 11, color: "#fff", letterSpacing: 1 },
+  fsvScoreText: { fontFamily: "DMSans_700Bold", fontSize: 22, color: Colors.light.text },
+  fsvMaxText: { fontFamily: "DMSans_400Regular", fontSize: 13, color: Colors.light.textMuted },
+  fsvRight: { flex: 1, gap: 4 },
+  fsvBarTrack: { height: 8, borderRadius: 4, backgroundColor: '#E5E7EB', overflow: "hidden" as const },
+  fsvBarFill: { height: 8, borderRadius: 4 },
+  fsvMeta: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
+  fsvLabel: { fontFamily: "DMSans_500Medium", fontSize: 10, color: Colors.light.textMuted },
 });
