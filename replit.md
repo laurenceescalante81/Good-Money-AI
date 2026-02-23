@@ -32,7 +32,7 @@ app/
     super.tsx            # Superannuation tracker
     budget.tsx           # Budget & savings
     investor.tsx         # Investor tab: 20-question scored risk profile questionnaire
-    fact-find.tsx        # Fact Find tab: comprehensive Australian financial fact find (18 sections)
+    fact-find.tsx        # Fact Find tab: comprehensive Australian financial fact find (19 sections incl. Financial Goals)
   add-transaction.tsx    # Modal: new transaction
   setup-mortgage.tsx     # Modal: mortgage setup/edit
   setup-super.tsx        # Modal: super setup/edit
