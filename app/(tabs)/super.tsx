@@ -209,6 +209,66 @@ export default function SuperScreen() {
           </View>
         </View>
 
+        <View style={styles.section}>
+          <LinearGradient colors={["#1E1A4C", "#3B2D8B"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.salesCta}>
+            <View style={styles.salesCtaHeader}>
+              <View style={styles.salesCtaBadge}>
+                <Ionicons name="flash" size={is(14)} color="#A78BFA" />
+                <Text style={[styles.salesCtaBadgeText, { fontSize: fs(11) }]}>RETIRE RICHER</Text>
+              </View>
+            </View>
+            <Text style={[styles.salesCtaTitle, { fontSize: fs(20) }]}>
+              Could an extra $50/week{'\n'}change your retirement?
+            </Text>
+            {(() => {
+              const weeklyExtra = 50;
+              const monthlyExtra = weeklyExtra * 52 / 12;
+              const yearsToRetire = 67 - 30;
+              let extraBalance = 0;
+              for (let i = 0; i < yearsToRetire; i++) {
+                extraBalance = (extraBalance + monthlyExtra * 12) * 1.07;
+              }
+              const extraMonthlyIncome = (extraBalance * 0.04) / 12;
+              return (
+                <>
+                  <Text style={[styles.salesCtaBody, { fontSize: fs(14) }]}>
+                    Just $50/week salary sacrificed into super could grow into an extra{' '}
+                    <Text style={{ fontFamily: 'DMSans_700Bold', color: '#A78BFA' }}>
+                      {fmt(Math.round(extraBalance))}
+                    </Text>{' '}
+                    by retirement — that's{' '}
+                    <Text style={{ fontFamily: 'DMSans_700Bold', color: '#A78BFA' }}>
+                      +{fmt(Math.round(extraMonthlyIncome))}/month
+                    </Text>{' '}
+                    extra income. And you'll pay less tax today.
+                  </Text>
+                  <View style={styles.salesCtaStats}>
+                    <View style={styles.salesCtaStat}>
+                      <Ionicons name="calculator-outline" size={is(18)} color="#A78BFA" />
+                      <Text style={[styles.salesCtaStatText, { fontSize: fs(12) }]}>
+                        Pre-tax: only 15% tax vs your marginal rate
+                      </Text>
+                    </View>
+                    <View style={styles.salesCtaStat}>
+                      <Ionicons name="trending-up" size={is(18)} color="#A78BFA" />
+                      <Text style={[styles.salesCtaStatText, { fontSize: fs(12) }]}>
+                        Compounds over {yearsToRetire} years at ~7% growth
+                      </Text>
+                    </View>
+                  </View>
+                </>
+              );
+            })()}
+            <Pressable
+              style={({ pressed }) => [styles.salesCtaBtn, pressed && { opacity: 0.9, transform: [{ scale: 0.98 }] }]}
+              onPress={() => router.push("/(tabs)/overview")}
+            >
+              <Text style={[styles.salesCtaBtnText, { fontSize: fs(15) }]}>Speak to an Adviser</Text>
+              <Ionicons name="arrow-forward" size={is(18)} color="#1E1A4C" />
+            </Pressable>
+          </LinearGradient>
+        </View>
+
         <Pressable onPress={() => router.push("/(tabs)/rewards")} style={({ pressed }) => [pressed && { opacity: 0.95 }]}>
           <View style={styles.missionBanner}>
             <View style={styles.missionBannerTop}>
@@ -295,4 +355,15 @@ const styles = StyleSheet.create({
   missionPromptTitle: { fontFamily: "DMSans_600SemiBold", fontSize: 12, color: Colors.light.text },
   missionPromptDesc: { fontFamily: "DMSans_400Regular", fontSize: 10, color: Colors.light.textMuted, marginTop: 1 },
   missionPromptPts: { fontFamily: "DMSans_700Bold", fontSize: 13, color: "#4ade80" },
+  salesCta: { borderRadius: 20, padding: 24 },
+  salesCtaHeader: { marginBottom: 12 },
+  salesCtaBadge: { flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: "rgba(167,139,250,0.15)", alignSelf: "flex-start", borderRadius: 20, paddingHorizontal: 10, paddingVertical: 5 },
+  salesCtaBadgeText: { fontFamily: "DMSans_700Bold", fontSize: 11, color: "#A78BFA", letterSpacing: 1 },
+  salesCtaTitle: { fontFamily: "DMSans_700Bold", fontSize: 20, color: "#fff", lineHeight: 28, marginBottom: 12 },
+  salesCtaBody: { fontFamily: "DMSans_400Regular", fontSize: 14, color: "rgba(255,255,255,0.8)", lineHeight: 22, marginBottom: 16 },
+  salesCtaStats: { gap: 10, marginBottom: 20 },
+  salesCtaStat: { flexDirection: "row", alignItems: "center", gap: 10 },
+  salesCtaStatText: { fontFamily: "DMSans_500Medium", fontSize: 12, color: "rgba(255,255,255,0.75)", flex: 1 },
+  salesCtaBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, backgroundColor: "#A78BFA", borderRadius: 14, paddingVertical: 14, paddingHorizontal: 24 },
+  salesCtaBtnText: { fontFamily: "DMSans_700Bold", fontSize: 15, color: "#1E1A4C" },
 });

@@ -242,6 +242,46 @@ export default function MortgageScreen() {
           </View>
         </View>
 
+        <View style={styles.section}>
+          <LinearGradient colors={["#0F4C3A", "#1B6B52"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.salesCta}>
+            <View style={styles.salesCtaHeader}>
+              <View style={styles.salesCtaBadge}>
+                <Ionicons name="trending-down" size={is(14)} color="#10B981" />
+                <Text style={[styles.salesCtaBadgeText, { fontSize: fs(11) }]}>SAVE MORE</Text>
+              </View>
+            </View>
+            <Text style={[styles.salesCtaTitle, { fontSize: fs(20) }]}>
+              Could a rate review save you{'\n'}thousands over your loan?
+            </Text>
+            <Text style={[styles.salesCtaBody, { fontSize: fs(14) }]}>
+              Even a 0.25% rate reduction on a {fmt(mortgage.loanAmount)} loan could save you{' '}
+              <Text style={{ fontFamily: 'DMSans_700Bold', color: '#4ADE80' }}>
+                {fmt(Math.round(mortgage.loanAmount * 0.0025 * mortgage.loanTermYears))}
+              </Text>{' '}
+              over {mortgage.loanTermYears} years. Most Australians don't review their rate — don't leave money on the table.
+            </Text>
+            <View style={styles.salesCtaStats}>
+              <View style={styles.salesCtaStat}>
+                <Ionicons name="wallet-outline" size={is(18)} color="#4ADE80" />
+                <Text style={[styles.salesCtaStatText, { fontSize: fs(12) }]}>
+                  {fmt(Math.round(mortgage.loanAmount * 0.0025 * mortgage.loanTermYears / mortgage.loanTermYears))}/yr potential savings
+                </Text>
+              </View>
+              <View style={styles.salesCtaStat}>
+                <Ionicons name="shield-checkmark-outline" size={is(18)} color="#4ADE80" />
+                <Text style={[styles.salesCtaStatText, { fontSize: fs(12) }]}>Free, no-obligation review</Text>
+              </View>
+            </View>
+            <Pressable
+              style={({ pressed }) => [styles.salesCtaBtn, pressed && { opacity: 0.9, transform: [{ scale: 0.98 }] }]}
+              onPress={() => router.push("/(tabs)/overview")}
+            >
+              <Text style={[styles.salesCtaBtnText, { fontSize: fs(15) }]}>Get a Free Rate Review</Text>
+              <Ionicons name="arrow-forward" size={is(18)} color="#0F4C3A" />
+            </Pressable>
+          </LinearGradient>
+        </View>
+
         <Pressable onPress={() => router.push("/(tabs)/rewards")} style={({ pressed }) => [pressed && { opacity: 0.95 }]}>
           <View style={styles.missionBanner}>
             <View style={styles.missionBannerTop}>
@@ -325,4 +365,15 @@ const styles = StyleSheet.create({
   missionPromptTitle: { fontFamily: "DMSans_600SemiBold", fontSize: 12, color: Colors.light.text },
   missionPromptDesc: { fontFamily: "DMSans_400Regular", fontSize: 10, color: Colors.light.textMuted, marginTop: 1 },
   missionPromptPts: { fontFamily: "DMSans_700Bold", fontSize: 13, color: "#4ade80" },
+  salesCta: { borderRadius: 20, padding: 24 },
+  salesCtaHeader: { marginBottom: 12 },
+  salesCtaBadge: { flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: "rgba(16,185,129,0.15)", alignSelf: "flex-start", borderRadius: 20, paddingHorizontal: 10, paddingVertical: 5 },
+  salesCtaBadgeText: { fontFamily: "DMSans_700Bold", fontSize: 11, color: "#10B981", letterSpacing: 1 },
+  salesCtaTitle: { fontFamily: "DMSans_700Bold", fontSize: 20, color: "#fff", lineHeight: 28, marginBottom: 12 },
+  salesCtaBody: { fontFamily: "DMSans_400Regular", fontSize: 14, color: "rgba(255,255,255,0.8)", lineHeight: 22, marginBottom: 16 },
+  salesCtaStats: { gap: 10, marginBottom: 20 },
+  salesCtaStat: { flexDirection: "row", alignItems: "center", gap: 10 },
+  salesCtaStatText: { fontFamily: "DMSans_500Medium", fontSize: 12, color: "rgba(255,255,255,0.75)", flex: 1 },
+  salesCtaBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, backgroundColor: "#4ADE80", borderRadius: 14, paddingVertical: 14, paddingHorizontal: 24 },
+  salesCtaBtnText: { fontFamily: "DMSans_700Bold", fontSize: 15, color: "#0F4C3A" },
 });
