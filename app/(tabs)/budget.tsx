@@ -6,6 +6,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import * as Haptics from "expo-haptics";
 import Colors from "@/constants/colors";
+import { useAccessibility } from "@/contexts/AccessibilityContext";
 import { useFinance, Transaction } from "@/contexts/FinanceContext";
 import { useRewards } from "@/contexts/RewardsContext";
 import { MessageOverlay } from "@/contexts/AppMessagesContext";
@@ -33,6 +34,7 @@ function fmt(n: number): string { return "$" + n.toLocaleString("en-AU", { minim
 type Filter = "all" | "income" | "expense";
 
 function TxItem({ item, onDelete }: { item: Transaction; onDelete: (id: string) => void }) {
+  const { fs, is } = useAccessibility();
   const cat = CATS[item.category] || CATS["Other"];
   return (
     <Pressable onLongPress={() => {
@@ -43,23 +45,24 @@ function TxItem({ item, onDelete }: { item: Transaction; onDelete: (id: string) 
       ]);
     }} style={styles.txItem}>
       <View style={[styles.txIcon, { backgroundColor: cat.color + "15" }]}>
-        <Ionicons name={cat.icon as any} size={20} color={cat.color} />
+        <Ionicons name={cat.icon as any} size={is(20)} color={cat.color} />
       </View>
       <View style={styles.txInfo}>
-        <Text style={styles.txNote} numberOfLines={1}>{item.note || item.category}</Text>
-        <Text style={styles.txMeta}>{item.category}{item.owner === "partner" ? " (Partner)" : ""}</Text>
+        <Text style={[styles.txNote, { fontSize: fs(14) }]} numberOfLines={1}>{item.note || item.category}</Text>
+        <Text style={[styles.txMeta, { fontSize: fs(11) }]}>{item.category}{item.owner === "partner" ? " (Partner)" : ""}</Text>
       </View>
       <View style={{ alignItems: "flex-end" as const }}>
-        <Text style={[styles.txAmount, { color: item.type === "income" ? Colors.light.income : Colors.light.expense }]}>
+        <Text style={[styles.txAmount, { color: item.type === "income" ? Colors.light.income : Colors.light.expense, fontSize: fs(14) }]}>
           {item.type === "income" ? "+" : "-"}{fmt(item.amount)}
         </Text>
-        <Text style={styles.txDate}>{new Date(item.date).toLocaleDateString("en-AU", { day: "numeric", month: "short" })}</Text>
+        <Text style={[styles.txDate, { fontSize: fs(11) }]}>{new Date(item.date).toLocaleDateString("en-AU", { day: "numeric", month: "short" })}</Text>
       </View>
     </Pressable>
   );
 }
 
 export default function BudgetScreen() {
+  const { fs, is } = useAccessibility();
   const insets = useSafeAreaInsets();
   const topInset = Platform.OS === "web" ? 67 : insets.top;
   const { transactions, deleteTransaction, getTotalIncome, getTotalExpenses, getMonthlyTransactions, goals, updateGoalAmount, deleteGoal } = useFinance();
@@ -110,21 +113,21 @@ export default function BudgetScreen() {
               title="Budget"
               rightElement={
                 <Pressable onPress={() => router.push("/add-transaction")} hitSlop={12}>
-                  <Ionicons name="add-circle" size={28} color={Colors.light.tint} />
+                  <Ionicons name="add-circle" size={is(28)} color={Colors.light.tint} />
                 </Pressable>
               }
             />
 
-            <Text style={styles.pageDesc}>Monitor your income, expenses, and savings goals.</Text>
+            <Text style={[styles.pageDesc, { fontSize: fs(14) }]}>Monitor your income, expenses, and savings goals.</Text>
 
             <View style={styles.summaryRow}>
               <View style={[styles.summaryCard, { backgroundColor: Colors.light.income + "10" }]}>
-                <Text style={styles.summaryLabel}>Income</Text>
-                <Text style={[styles.summaryVal, { color: Colors.light.income }]}>{fmt(income)}</Text>
+                <Text style={[styles.summaryLabel, { fontSize: fs(12) }]}>Income</Text>
+                <Text style={[styles.summaryVal, { color: Colors.light.income, fontSize: fs(20) }]}>{fmt(income)}</Text>
               </View>
               <View style={[styles.summaryCard, { backgroundColor: Colors.light.expense + "10" }]}>
-                <Text style={styles.summaryLabel}>Expenses</Text>
-                <Text style={[styles.summaryVal, { color: Colors.light.expense }]}>{fmt(expenses)}</Text>
+                <Text style={[styles.summaryLabel, { fontSize: fs(12) }]}>Expenses</Text>
+                <Text style={[styles.summaryVal, { color: Colors.light.expense, fontSize: fs(20) }]}>{fmt(expenses)}</Text>
               </View>
             </View>
 
@@ -144,38 +147,38 @@ export default function BudgetScreen() {
               return (
                 <LinearGradient colors={[Colors.light.budget, "#1a4a6b"]} style={styles.valueBanner}>
                   <View style={styles.valueBannerHeader}>
-                    <Ionicons name="trending-down-outline" size={20} color="#fff" />
-                    <Text style={styles.valueBannerTitle}>Your Savings Potential</Text>
+                    <Ionicons name="trending-down-outline" size={is(20)} color="#fff" />
+                    <Text style={[styles.valueBannerTitle, { fontSize: fs(18) }]}>Your Savings Potential</Text>
                   </View>
 
-                  <Text style={styles.valueBannerSubtitle}>Cutting spending by just 10% would save</Text>
+                  <Text style={[styles.valueBannerSubtitle, { fontSize: fs(13) }]}>Cutting spending by just 10% would save</Text>
                   <View style={styles.valueBannerRow}>
                     <View style={styles.valueBannerItem}>
-                      <Text style={styles.valueBannerBigNum}>{fmt(Math.round(annualSaving10))}</Text>
-                      <Text style={styles.valueBannerSmall}>per year</Text>
+                      <Text style={[styles.valueBannerBigNum, { fontSize: fs(26) }]}>{fmt(Math.round(annualSaving10))}</Text>
+                      <Text style={[styles.valueBannerSmall, { fontSize: fs(11) }]}>per year</Text>
                     </View>
                     <View style={styles.valueBannerDivider} />
                     <View style={styles.valueBannerItem}>
-                      <Text style={styles.valueBannerBigNum}>{fmt(Math.round(investedGrowth))}</Text>
-                      <Text style={styles.valueBannerSmall}>over 10yrs invested</Text>
+                      <Text style={[styles.valueBannerBigNum, { fontSize: fs(26) }]}>{fmt(Math.round(investedGrowth))}</Text>
+                      <Text style={[styles.valueBannerSmall, { fontSize: fs(11) }]}>over 10yrs invested</Text>
                     </View>
                   </View>
 
                   {topCat && (
                     <View style={styles.valueBannerPill}>
-                      <Ionicons name="bulb-outline" size={14} color="#fff" />
-                      <Text style={styles.valueBannerPillText}>
+                      <Ionicons name="bulb-outline" size={is(14)} color="#fff" />
+                      <Text style={[styles.valueBannerPillText, { fontSize: fs(12) }]}>
                         Top spend: {topCat[0]} at {fmt(topCat[1])}/mo ({income > 0 ? Math.round((topCat[1] / income) * 100) : 0}% of income)
                       </Text>
                     </View>
                   )}
 
                   <View style={styles.savingsRateRow}>
-                    <Text style={styles.savingsRateLabel}>Savings Rate</Text>
+                    <Text style={[styles.savingsRateLabel, { fontSize: fs(12) }]}>Savings Rate</Text>
                     <View style={styles.savingsRateBarBg}>
                       <View style={[styles.savingsRateBarFill, { width: `${Math.min(Math.max(savingsRate, 0), 100)}%`, backgroundColor: savingsRate >= 20 ? "#4ade80" : savingsRate >= 10 ? "#fbbf24" : "#f87171" }]} />
                     </View>
-                    <Text style={styles.savingsRatePct}>
+                    <Text style={[styles.savingsRatePct, { fontSize: fs(14) }]}>
                       {Math.round(savingsRate)}%
                     </Text>
                   </View>
@@ -185,7 +188,7 @@ export default function BudgetScreen() {
 
             {sortedCats.length > 0 && (
               <View style={styles.catSection}>
-                <Text style={styles.catTitle}>Spending Breakdown</Text>
+                <Text style={[styles.catTitle, { fontSize: fs(16) }]}>Spending Breakdown</Text>
                 <View style={styles.catList}>
                   {sortedCats.slice(0, 5).map(([cat, amount]) => {
                     const c = CATS[cat] || CATS["Other"];
@@ -193,15 +196,15 @@ export default function BudgetScreen() {
                     return (
                       <View key={cat} style={styles.catItem}>
                         <View style={[styles.catIcon, { backgroundColor: c.color + "15" }]}>
-                          <Ionicons name={c.icon as any} size={16} color={c.color} />
+                          <Ionicons name={c.icon as any} size={is(16)} color={c.color} />
                         </View>
                         <View style={styles.catInfo}>
-                          <Text style={styles.catName}>{cat}</Text>
+                          <Text style={[styles.catName, { fontSize: fs(13) }]}>{cat}</Text>
                           <View style={styles.catBarBg}>
                             <View style={[styles.catBarFill, { width: `${Math.min(pct, 100)}%`, backgroundColor: c.color }]} />
                           </View>
                         </View>
-                        <Text style={styles.catAmount}>{fmt(amount)}</Text>
+                        <Text style={[styles.catAmount, { fontSize: fs(13) }]}>{fmt(amount)}</Text>
                       </View>
                     );
                   })}
@@ -212,9 +215,9 @@ export default function BudgetScreen() {
             {goals.length > 0 && (
               <View style={styles.goalsSection}>
                 <View style={styles.goalsHeader}>
-                  <Text style={styles.catTitle}>Savings Goals</Text>
+                  <Text style={[styles.catTitle, { fontSize: fs(16) }]}>Savings Goals</Text>
                   <Pressable onPress={() => router.push("/add-goal")} hitSlop={12}>
-                    <Ionicons name="add" size={22} color={Colors.light.budget} />
+                    <Ionicons name="add" size={is(22)} color={Colors.light.budget} />
                   </Pressable>
                 </View>
                 {goals.map(g => {
@@ -233,20 +236,20 @@ export default function BudgetScreen() {
                     >
                       <View style={styles.goalRow}>
                         <View style={[styles.goalIconW, { backgroundColor: Colors.light.budget + "15" }]}>
-                          <Ionicons name={g.icon as any} size={18} color={Colors.light.budget} />
+                          <Ionicons name={g.icon as any} size={is(18)} color={Colors.light.budget} />
                         </View>
                         <View style={styles.goalInfo}>
-                          <Text style={styles.goalName}>{g.name}</Text>
-                          <Text style={styles.goalProgress}>{fmt(g.currentAmount)} of {fmt(g.targetAmount)}</Text>
+                          <Text style={[styles.goalName, { fontSize: fs(14) }]}>{g.name}</Text>
+                          <Text style={[styles.goalProgress, { fontSize: fs(11) }]}>{fmt(g.currentAmount)} of {fmt(g.targetAmount)}</Text>
                         </View>
-                        <Text style={styles.goalPct}>{Math.round(pct)}%</Text>
+                        <Text style={[styles.goalPct, { fontSize: fs(16) }]}>{Math.round(pct)}%</Text>
                       </View>
                       <View style={styles.goalBarBg}>
                         <View style={[styles.goalBarFill, { width: `${Math.min(pct, 100)}%` }]} />
                       </View>
                       <Pressable onPress={() => handleAddFunds(g.id)} style={({ pressed }) => [styles.addFundsBtn, pressed && { opacity: 0.8 }]}>
-                        <Ionicons name="add" size={16} color={Colors.light.white} />
-                        <Text style={styles.addFundsText}>Add Funds</Text>
+                        <Ionicons name="add" size={is(16)} color={Colors.light.white} />
+                        <Text style={[styles.addFundsText, { fontSize: fs(12) }]}>Add Funds</Text>
                       </Pressable>
                     </Pressable>
                   );
@@ -256,9 +259,9 @@ export default function BudgetScreen() {
 
             {goals.length === 0 && (
               <Pressable onPress={() => router.push("/add-goal")} style={styles.addGoalBanner}>
-                <Ionicons name="flag-outline" size={20} color={Colors.light.budget} />
-                <Text style={styles.addGoalText}>Set a savings goal</Text>
-                <Ionicons name="chevron-forward" size={18} color={Colors.light.textMuted} />
+                <Ionicons name="flag-outline" size={is(20)} color={Colors.light.budget} />
+                <Text style={[styles.addGoalText, { fontSize: fs(14) }]}>Set a savings goal</Text>
+                <Ionicons name="chevron-forward" size={is(18)} color={Colors.light.textMuted} />
               </Pressable>
             )}
 
@@ -266,31 +269,31 @@ export default function BudgetScreen() {
               <View style={styles.missionBanner}>
                 <View style={styles.missionBannerTop}>
                   <View style={styles.missionPtsCircle}>
-                    <Ionicons name="star" size={14} color="#D4AF37" />
-                    <Text style={styles.missionPtsNum}>{rewardsState.points.toLocaleString()}</Text>
+                    <Ionicons name="star" size={is(14)} color="#D4AF37" />
+                    <Text style={[styles.missionPtsNum, { fontSize: fs(13) }]}>{rewardsState.points.toLocaleString()}</Text>
                   </View>
                 </View>
                 {budgetMission && (
                   <Pressable onPress={() => completeMission('add_transaction')} style={({ pressed }) => [styles.missionPrompt, pressed && { opacity: 0.85 }]}>
                     <View style={[styles.missionPromptIcon, { backgroundColor: '#10B98120' }]}>
-                      <Ionicons name="receipt-outline" size={14} color="#10B981" />
+                      <Ionicons name="receipt-outline" size={is(14)} color="#10B981" />
                     </View>
                     <View style={{ flex: 1 }}>
-                      <Text style={styles.missionPromptTitle}>{budgetMission.title}</Text>
-                      <Text style={styles.missionPromptDesc}>{budgetMission.description}</Text>
+                      <Text style={[styles.missionPromptTitle, { fontSize: fs(12) }]}>{budgetMission.title}</Text>
+                      <Text style={[styles.missionPromptDesc, { fontSize: fs(10) }]}>{budgetMission.description}</Text>
                     </View>
-                    <Text style={styles.missionPromptPts}>+{budgetMission.is2xActive ? budgetMission.basePoints * 2 : budgetMission.basePoints}</Text>
+                    <Text style={[styles.missionPromptPts, { fontSize: fs(13) }]}>+{budgetMission.is2xActive ? budgetMission.basePoints * 2 : budgetMission.basePoints}</Text>
                   </Pressable>
                 )}
               </View>
             </Pressable>
 
             <View style={styles.txHeader}>
-              <Text style={styles.catTitle}>Transactions</Text>
+              <Text style={[styles.catTitle, { fontSize: fs(16) }]}>Transactions</Text>
               <View style={styles.filterRow}>
                 {(["all", "income", "expense"] as Filter[]).map(f => (
                   <Pressable key={f} onPress={() => setFilter(f)} style={[styles.filterBtn, filter === f && styles.filterBtnActive]}>
-                    <Text style={[styles.filterText, filter === f && styles.filterTextActive]}>
+                    <Text style={[styles.filterText, filter === f && styles.filterTextActive, { fontSize: fs(12) }]}>
                       {f === "all" ? "All" : f === "income" ? "In" : "Out"}
                     </Text>
                   </Pressable>
@@ -301,9 +304,9 @@ export default function BudgetScreen() {
         }
         ListEmptyComponent={
           <View style={styles.emptyTx}>
-            <Ionicons name="receipt-outline" size={40} color={Colors.light.gray300} />
-            <Text style={styles.emptyTxText}>No transactions yet</Text>
-            <Text style={styles.emptyTxSub}>Add your income and expenses to start tracking</Text>
+            <Ionicons name="receipt-outline" size={is(40)} color={Colors.light.gray300} />
+            <Text style={[styles.emptyTxText, { fontSize: fs(15) }]}>No transactions yet</Text>
+            <Text style={[styles.emptyTxSub, { fontSize: fs(12) }]}>Add your income and expenses to start tracking</Text>
           </View>
         }
         renderItem={({ item }) => <TxItem item={item} onDelete={deleteTransaction} />}
@@ -313,14 +316,14 @@ export default function BudgetScreen() {
       <Modal visible={goalModalVisible} transparent animationType="fade" onRequestClose={() => setGoalModalVisible(false)}>
         <Pressable style={styles.modalOverlay} onPress={() => setGoalModalVisible(false)}>
           <Pressable style={styles.modalContent} onPress={() => {}}>
-            <Text style={styles.modalTitle}>Add Funds</Text>
-            <TextInput style={styles.modalInput} placeholder="Amount" placeholderTextColor={Colors.light.textMuted} keyboardType="decimal-pad" value={fundAmount} onChangeText={setFundAmount} autoFocus />
+            <Text style={[styles.modalTitle, { fontSize: fs(20) }]}>Add Funds</Text>
+            <TextInput style={[styles.modalInput, { fontSize: fs(24) }]} placeholder="Amount" placeholderTextColor={Colors.light.textMuted} keyboardType="decimal-pad" value={fundAmount} onChangeText={setFundAmount} autoFocus />
             <View style={styles.modalBtns}>
               <Pressable style={styles.modalCancel} onPress={() => setGoalModalVisible(false)}>
-                <Text style={styles.modalCancelText}>Cancel</Text>
+                <Text style={[styles.modalCancelText, { fontSize: fs(14) }]}>Cancel</Text>
               </Pressable>
               <Pressable style={[styles.modalConfirm, (!fundAmount || parseFloat(fundAmount) <= 0) && { opacity: 0.5 }]} onPress={confirmAddFunds} disabled={!fundAmount || parseFloat(fundAmount) <= 0}>
-                <Text style={styles.modalConfirmText}>Add</Text>
+                <Text style={[styles.modalConfirmText, { fontSize: fs(14) }]}>Add</Text>
               </Pressable>
             </View>
           </Pressable>

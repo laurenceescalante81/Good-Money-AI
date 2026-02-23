@@ -8,12 +8,14 @@ import * as Haptics from "expo-haptics";
 function goBack() { if (router.canGoBack()) router.back(); else router.replace("/(tabs)/mortgage"); }
 import Colors from "@/constants/colors";
 import { useFinance } from "@/contexts/FinanceContext";
+import { useAccessibility } from '@/contexts/AccessibilityContext';
 
 export default function SetupMortgageScreen() {
   const insets = useSafeAreaInsets();
   const topInset = Platform.OS === "web" ? 67 : insets.top;
   const bottomInset = Platform.OS === "web" ? 34 : insets.bottom;
   const { mortgage, setMortgage } = useFinance();
+  const { fs, is } = useAccessibility();
 
   const [loanAmount, setLoanAmount] = useState(mortgage?.loanAmount?.toString() || "");
   const [interestRate, setInterestRate] = useState(mortgage?.interestRate?.toString() || "");
@@ -44,61 +46,61 @@ export default function SetupMortgageScreen() {
   return (
     <View style={[styles.container, { paddingTop: topInset }]}>
       <View style={styles.topBar}>
-        <Pressable onPress={goBack} hitSlop={12}><Ionicons name="close" size={26} color={Colors.light.text} /></Pressable>
-        <Text style={styles.topTitle}>{mortgage ? "Edit Mortgage" : "Set Up Mortgage"}</Text>
-        <Pressable onPress={handleSave} disabled={!canSave} hitSlop={12}><Ionicons name="checkmark" size={26} color={canSave ? Colors.light.mortgage : Colors.light.gray300} /></Pressable>
+        <Pressable onPress={goBack} hitSlop={12}><Ionicons name="close" size={is(26)} color={Colors.light.text} /></Pressable>
+        <Text style={[styles.topTitle, { fontSize: fs(17) }]}>{mortgage ? "Edit Mortgage" : "Set Up Mortgage"}</Text>
+        <Pressable onPress={handleSave} disabled={!canSave} hitSlop={12}><Ionicons name="checkmark" size={is(26)} color={canSave ? Colors.light.mortgage : Colors.light.gray300} /></Pressable>
       </View>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: bottomInset + 20 }}>
         <View style={styles.section}>
-          <Text style={styles.label}>Lender</Text>
-          <TextInput style={styles.input} placeholder="e.g. CommBank, ANZ, Westpac" placeholderTextColor={Colors.light.textMuted} value={lender} onChangeText={setLender} />
+          <Text style={[styles.label, { fontSize: fs(13) }]}>Lender</Text>
+          <TextInput style={[styles.input, { fontSize: fs(16) }]} placeholder="e.g. CommBank, ANZ, Westpac" placeholderTextColor={Colors.light.textMuted} value={lender} onChangeText={setLender} />
         </View>
         <View style={styles.section}>
-          <Text style={styles.label}>Loan Amount</Text>
+          <Text style={[styles.label, { fontSize: fs(13) }]}>Loan Amount</Text>
           <View style={styles.amountRow}>
-            <Text style={styles.dollar}>$</Text>
-            <TextInput style={styles.amountInput} placeholder="500000" placeholderTextColor={Colors.light.gray300} keyboardType="decimal-pad" value={loanAmount} onChangeText={setLoanAmount} />
+            <Text style={[styles.dollar, { fontSize: fs(32) }]}>$</Text>
+            <TextInput style={[styles.amountInput, { fontSize: fs(32) }]} placeholder="500000" placeholderTextColor={Colors.light.gray300} keyboardType="decimal-pad" value={loanAmount} onChangeText={setLoanAmount} />
           </View>
         </View>
         <View style={styles.section}>
-          <Text style={styles.label}>Property Value</Text>
+          <Text style={[styles.label, { fontSize: fs(13) }]}>Property Value</Text>
           <View style={styles.amountRow}>
-            <Text style={styles.dollarSm}>$</Text>
-            <TextInput style={styles.inputSm} placeholder="750000" placeholderTextColor={Colors.light.gray300} keyboardType="decimal-pad" value={propertyValue} onChangeText={setPropertyValue} />
+            <Text style={[styles.dollarSm, { fontSize: fs(20) }]}>$</Text>
+            <TextInput style={[styles.inputSm, { fontSize: fs(20) }]} placeholder="750000" placeholderTextColor={Colors.light.gray300} keyboardType="decimal-pad" value={propertyValue} onChangeText={setPropertyValue} />
           </View>
         </View>
         <View style={styles.section}>
-          <Text style={styles.label}>Interest Rate (% p.a.)</Text>
-          <TextInput style={styles.input} placeholder="6.2" placeholderTextColor={Colors.light.textMuted} keyboardType="decimal-pad" value={interestRate} onChangeText={setInterestRate} />
+          <Text style={[styles.label, { fontSize: fs(13) }]}>Interest Rate (% p.a.)</Text>
+          <TextInput style={[styles.input, { fontSize: fs(16) }]} placeholder="6.2" placeholderTextColor={Colors.light.textMuted} keyboardType="decimal-pad" value={interestRate} onChangeText={setInterestRate} />
         </View>
         <View style={styles.section}>
-          <Text style={styles.label}>Loan Term</Text>
+          <Text style={[styles.label, { fontSize: fs(13) }]}>Loan Term</Text>
           <View style={styles.termRow}>
             {["15", "20", "25", "30"].map(t => (
               <Pressable key={t} onPress={() => setLoanTerm(t)} style={[styles.termBtn, loanTerm === t && styles.termBtnActive]}>
-                <Text style={[styles.termText, loanTerm === t && styles.termTextActive]}>{t} yrs</Text>
+                <Text style={[styles.termText, loanTerm === t && styles.termTextActive, { fontSize: fs(14) }]}>{t} yrs</Text>
               </Pressable>
             ))}
           </View>
         </View>
         <View style={styles.section}>
-          <Text style={styles.label}>Repayment Type</Text>
+          <Text style={[styles.label, { fontSize: fs(13) }]}>Repayment Type</Text>
           <View style={styles.termRow}>
             <Pressable onPress={() => setRepType("principal_interest")} style={[styles.repBtn, repType === "principal_interest" && styles.repBtnActive]}>
-              <Text style={[styles.termText, repType === "principal_interest" && styles.termTextActive]}>P&I</Text>
+              <Text style={[styles.termText, repType === "principal_interest" && styles.termTextActive, { fontSize: fs(14) }]}>P&I</Text>
             </Pressable>
             <Pressable onPress={() => setRepType("interest_only")} style={[styles.repBtn, repType === "interest_only" && styles.repBtnActive]}>
-              <Text style={[styles.termText, repType === "interest_only" && styles.termTextActive]}>Interest Only</Text>
+              <Text style={[styles.termText, repType === "interest_only" && styles.termTextActive, { fontSize: fs(14) }]}>Interest Only</Text>
             </Pressable>
           </View>
         </View>
         <View style={styles.section}>
-          <Text style={styles.label}>Extra Monthly Repayment</Text>
+          <Text style={[styles.label, { fontSize: fs(13) }]}>Extra Monthly Repayment</Text>
           <View style={styles.amountRow}>
-            <Text style={styles.dollarSm}>$</Text>
-            <TextInput style={styles.inputSm} placeholder="0" placeholderTextColor={Colors.light.gray300} keyboardType="decimal-pad" value={extraRep} onChangeText={setExtraRep} />
+            <Text style={[styles.dollarSm, { fontSize: fs(20) }]}>$</Text>
+            <TextInput style={[styles.inputSm, { fontSize: fs(20) }]} placeholder="0" placeholderTextColor={Colors.light.gray300} keyboardType="decimal-pad" value={extraRep} onChangeText={setExtraRep} />
           </View>
-          <Text style={styles.hint}>Extra repayments can save thousands in interest</Text>
+          <Text style={[styles.hint, { fontSize: fs(12) }]}>Extra repayments can save thousands in interest</Text>
         </View>
       </ScrollView>
     </View>

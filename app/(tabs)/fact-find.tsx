@@ -9,6 +9,7 @@ import Colors from '@/constants/colors';
 import { useFinance } from '@/contexts/FinanceContext';
 import { useRewards, FactFindSection } from '@/contexts/RewardsContext';
 import CoinHeader from '@/components/CoinHeader';
+import { useAccessibility } from '@/contexts/AccessibilityContext';
 
 const AU_STATES = ['NSW', 'VIC', 'QLD', 'WA', 'SA', 'TAS', 'ACT', 'NT'];
 
@@ -116,6 +117,7 @@ export default function FactFindTabScreen() {
   const bottomInset = Platform.OS === 'web' ? 34 : insets.bottom;
   const { personalDetails, updatePersonalDetails, mortgage, superDetails, insurancePolicies } = useFinance();
   const { factFindSections, completeFactFind, completeFactFindSection, getFactFindProgress, state } = useRewards();
+  const { fs, is } = useAccessibility();
 
   const [activeSubTab, setActiveSubTab] = useState<SubTab>('personal');
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
@@ -318,18 +320,18 @@ export default function FactFindTabScreen() {
       <View style={styles.fieldRow} key={fieldId}>
         <View style={styles.fieldHeader}>
           <View style={styles.fieldLabelRow}>
-            <Ionicons name={done ? 'checkmark-circle' : 'ellipse-outline'} size={20} color={done ? '#10B981' : Colors.light.gray400} style={{ marginRight: 8 }} />
-            <Text style={[styles.fieldLabel, done && { color: Colors.light.gray400 }]}>{label}</Text>
+            <Ionicons name={done ? 'checkmark-circle' : 'ellipse-outline'} size={is(20)} color={done ? '#10B981' : Colors.light.gray400} style={{ marginRight: 8 }} />
+            <Text style={[styles.fieldLabel, { fontSize: fs(14) }, done && { color: Colors.light.gray400 }]}>{label}</Text>
           </View>
           <View style={[styles.coinBadge, done && { backgroundColor: '#E5E7EB' }]}>
-            <View style={[styles.goldCoin, done && styles.goldCoinDone]}><Text style={[styles.goldCoinText, done && styles.goldCoinTextDone]}>$</Text></View>
-            <Text style={[styles.coinBadgeText, done && { color: Colors.light.gray400 }]}>{field?.coins || 0}</Text>
+            <View style={[styles.goldCoin, done && styles.goldCoinDone]}><Text style={[styles.goldCoinText, { fontSize: fs(7) }, done && styles.goldCoinTextDone]}>$</Text></View>
+            <Text style={[styles.coinBadgeText, { fontSize: fs(11) }, done && { color: Colors.light.gray400 }]}>{field?.coins || 0}</Text>
           </View>
         </View>
         <View style={styles.inputWrap}>
-          {opts?.isCurrency && <Text style={styles.currencyPrefix}>$</Text>}
+          {opts?.isCurrency && <Text style={[styles.currencyPrefix, { fontSize: fs(15) }]}>$</Text>}
           <TextInput
-            style={[styles.input, done && styles.inputDone, opts?.isCurrency && { paddingLeft: 28 }]}
+            style={[styles.input, { fontSize: fs(15) }, done && styles.inputDone, opts?.isCurrency && { paddingLeft: 28 }]}
             value={value}
             onChangeText={setter}
             placeholder={opts?.placeholder || `Enter ${label.toLowerCase()}`}
@@ -353,12 +355,12 @@ export default function FactFindTabScreen() {
       <View style={styles.fieldRow} key={fieldId}>
         <View style={styles.fieldHeader}>
           <View style={styles.fieldLabelRow}>
-            <Ionicons name={done ? 'checkmark-circle' : 'ellipse-outline'} size={20} color={done ? '#10B981' : Colors.light.gray400} style={{ marginRight: 8 }} />
-            <Text style={[styles.fieldLabel, done && { color: Colors.light.gray400 }]}>{label}</Text>
+            <Ionicons name={done ? 'checkmark-circle' : 'ellipse-outline'} size={is(20)} color={done ? '#10B981' : Colors.light.gray400} style={{ marginRight: 8 }} />
+            <Text style={[styles.fieldLabel, { fontSize: fs(14) }, done && { color: Colors.light.gray400 }]}>{label}</Text>
           </View>
           <View style={[styles.coinBadge, done && { backgroundColor: '#E5E7EB' }]}>
-            <View style={[styles.goldCoin, done && styles.goldCoinDone]}><Text style={[styles.goldCoinText, done && styles.goldCoinTextDone]}>$</Text></View>
-            <Text style={[styles.coinBadgeText, done && { color: Colors.light.gray400 }]}>{field?.coins || 0}</Text>
+            <View style={[styles.goldCoin, done && styles.goldCoinDone]}><Text style={[styles.goldCoinText, { fontSize: fs(7) }, done && styles.goldCoinTextDone]}>$</Text></View>
+            <Text style={[styles.coinBadgeText, { fontSize: fs(11) }, done && { color: Colors.light.gray400 }]}>{field?.coins || 0}</Text>
           </View>
         </View>
         <View style={styles.chipRow}>
@@ -373,7 +375,7 @@ export default function FactFindTabScreen() {
                 saveChipField(fieldId, label, opt.value, updater(opt.value));
               }}
             >
-              <Text style={[styles.chipText, value === opt.value && styles.chipTextActive]}>{opt.label}</Text>
+              <Text style={[styles.chipText, { fontSize: fs(13) }, value === opt.value && styles.chipTextActive]}>{opt.label}</Text>
             </Pressable>
           ))}
         </View>
@@ -414,19 +416,19 @@ export default function FactFindTabScreen() {
       case 'dependents':
         return (
           <View>
-            <Text style={styles.fieldSectionLabel}>Dependent 1</Text>
+            <Text style={[styles.fieldSectionLabel, { fontSize: fs(13) }]}>Dependent 1</Text>
             <View style={styles.fieldRow}>
               <View style={styles.fieldHeader}>
                 <View style={styles.fieldLabelRow}>
-                  <Ionicons name={isFieldComplete('ff_dependent1') ? 'checkmark-circle' : 'ellipse-outline'} size={20} color={isFieldComplete('ff_dependent1') ? '#10B981' : Colors.light.gray400} style={{ marginRight: 8 }} />
-                  <Text style={[styles.fieldLabel, isFieldComplete('ff_dependent1') && { color: Colors.light.gray400 }]}>First Dependent</Text>
+                  <Ionicons name={isFieldComplete('ff_dependent1') ? 'checkmark-circle' : 'ellipse-outline'} size={is(20)} color={isFieldComplete('ff_dependent1') ? '#10B981' : Colors.light.gray400} style={{ marginRight: 8 }} />
+                  <Text style={[styles.fieldLabel, { fontSize: fs(14) }, isFieldComplete('ff_dependent1') && { color: Colors.light.gray400 }]}>First Dependent</Text>
                 </View>
                 <View style={[styles.coinBadge, isFieldComplete('ff_dependent1') && { backgroundColor: '#E5E7EB' }]}>
-                  <View style={[styles.goldCoin, isFieldComplete('ff_dependent1') && styles.goldCoinDone]}><Text style={[styles.goldCoinText, isFieldComplete('ff_dependent1') && styles.goldCoinTextDone]}>$</Text></View>
-                  <Text style={[styles.coinBadgeText, isFieldComplete('ff_dependent1') && { color: Colors.light.gray400 }]}>40</Text>
+                  <View style={[styles.goldCoin, isFieldComplete('ff_dependent1') && styles.goldCoinDone]}><Text style={[styles.goldCoinText, { fontSize: fs(7) }, isFieldComplete('ff_dependent1') && styles.goldCoinTextDone]}>$</Text></View>
+                  <Text style={[styles.coinBadgeText, { fontSize: fs(11) }, isFieldComplete('ff_dependent1') && { color: Colors.light.gray400 }]}>40</Text>
                 </View>
               </View>
-              <TextInput style={[styles.input, isFieldComplete('ff_dependent1') && styles.inputDone]} value={dep1Name} onChangeText={setDep1Name} placeholder="Name" placeholderTextColor={Colors.light.gray400} editable={!isFieldComplete('ff_dependent1')} onBlur={() => {
+              <TextInput style={[styles.input, { fontSize: fs(15) }, isFieldComplete('ff_dependent1') && styles.inputDone]} value={dep1Name} onChangeText={setDep1Name} placeholder="Name" placeholderTextColor={Colors.light.gray400} editable={!isFieldComplete('ff_dependent1')} onBlur={() => {
                 if (!dep1Name.trim()) return;
                 const deps = [...personalDetails.dependents];
                 if (deps.length === 0) deps.push({ name: dep1Name.trim(), dob: dep1Dob, relationship: (dep1Rel as any) || 'child', financiallyDependent: true });
@@ -437,28 +439,28 @@ export default function FactFindTabScreen() {
                   if (earned > 0) { Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success); showCoinToast(earned, 'First Dependent'); }
                 }
               }} />
-              <TextInput style={[styles.input, { marginTop: 8 }, isFieldComplete('ff_dependent1') && styles.inputDone]} value={dep1Dob} onChangeText={setDep1Dob} placeholder="DOB (DD/MM/YYYY)" placeholderTextColor={Colors.light.gray400} editable={!isFieldComplete('ff_dependent1')} />
+              <TextInput style={[styles.input, { marginTop: 8, fontSize: fs(15) }, isFieldComplete('ff_dependent1') && styles.inputDone]} value={dep1Dob} onChangeText={setDep1Dob} placeholder="DOB (DD/MM/YYYY)" placeholderTextColor={Colors.light.gray400} editable={!isFieldComplete('ff_dependent1')} />
               <View style={[styles.chipRow, { marginTop: 8 }]}>
                 {RELATIONSHIP_OPTIONS.map(opt => (
                   <Pressable key={opt.value} style={[styles.chip, dep1Rel === opt.value && styles.chipActive, isFieldComplete('ff_dependent1') && { opacity: 0.5 }]} onPress={() => { if (isFieldComplete('ff_dependent1')) return; setDep1Rel(opt.value); Haptics.selectionAsync(); }}>
-                    <Text style={[styles.chipText, dep1Rel === opt.value && styles.chipTextActive]}>{opt.label}</Text>
+                    <Text style={[styles.chipText, { fontSize: fs(13) }, dep1Rel === opt.value && styles.chipTextActive]}>{opt.label}</Text>
                   </Pressable>
                 ))}
               </View>
             </View>
-            <Text style={styles.fieldSectionLabel}>Dependent 2</Text>
+            <Text style={[styles.fieldSectionLabel, { fontSize: fs(13) }]}>Dependent 2</Text>
             <View style={styles.fieldRow}>
               <View style={styles.fieldHeader}>
                 <View style={styles.fieldLabelRow}>
-                  <Ionicons name={isFieldComplete('ff_dependent2') ? 'checkmark-circle' : 'ellipse-outline'} size={20} color={isFieldComplete('ff_dependent2') ? '#10B981' : Colors.light.gray400} style={{ marginRight: 8 }} />
-                  <Text style={[styles.fieldLabel, isFieldComplete('ff_dependent2') && { color: Colors.light.gray400 }]}>Second Dependent</Text>
+                  <Ionicons name={isFieldComplete('ff_dependent2') ? 'checkmark-circle' : 'ellipse-outline'} size={is(20)} color={isFieldComplete('ff_dependent2') ? '#10B981' : Colors.light.gray400} style={{ marginRight: 8 }} />
+                  <Text style={[styles.fieldLabel, { fontSize: fs(14) }, isFieldComplete('ff_dependent2') && { color: Colors.light.gray400 }]}>Second Dependent</Text>
                 </View>
                 <View style={[styles.coinBadge, isFieldComplete('ff_dependent2') && { backgroundColor: '#E5E7EB' }]}>
-                  <View style={[styles.goldCoin, isFieldComplete('ff_dependent2') && styles.goldCoinDone]}><Text style={[styles.goldCoinText, isFieldComplete('ff_dependent2') && styles.goldCoinTextDone]}>$</Text></View>
-                  <Text style={[styles.coinBadgeText, isFieldComplete('ff_dependent2') && { color: Colors.light.gray400 }]}>40</Text>
+                  <View style={[styles.goldCoin, isFieldComplete('ff_dependent2') && styles.goldCoinDone]}><Text style={[styles.goldCoinText, { fontSize: fs(7) }, isFieldComplete('ff_dependent2') && styles.goldCoinTextDone]}>$</Text></View>
+                  <Text style={[styles.coinBadgeText, { fontSize: fs(11) }, isFieldComplete('ff_dependent2') && { color: Colors.light.gray400 }]}>40</Text>
                 </View>
               </View>
-              <TextInput style={[styles.input, isFieldComplete('ff_dependent2') && styles.inputDone]} value={dep2Name} onChangeText={setDep2Name} placeholder="Name" placeholderTextColor={Colors.light.gray400} editable={!isFieldComplete('ff_dependent2')} onBlur={() => {
+              <TextInput style={[styles.input, { fontSize: fs(15) }, isFieldComplete('ff_dependent2') && styles.inputDone]} value={dep2Name} onChangeText={setDep2Name} placeholder="Name" placeholderTextColor={Colors.light.gray400} editable={!isFieldComplete('ff_dependent2')} onBlur={() => {
                 if (!dep2Name.trim()) return;
                 const deps = [...personalDetails.dependents];
                 while (deps.length < 2) deps.push({ name: '', dob: '', relationship: 'child', financiallyDependent: true });
@@ -469,21 +471,21 @@ export default function FactFindTabScreen() {
                   if (earned > 0) { Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success); showCoinToast(earned, 'Second Dependent'); }
                 }
               }} />
-              <TextInput style={[styles.input, { marginTop: 8 }, isFieldComplete('ff_dependent2') && styles.inputDone]} value={dep2Dob} onChangeText={setDep2Dob} placeholder="DOB (DD/MM/YYYY)" placeholderTextColor={Colors.light.gray400} editable={!isFieldComplete('ff_dependent2')} />
+              <TextInput style={[styles.input, { marginTop: 8, fontSize: fs(15) }, isFieldComplete('ff_dependent2') && styles.inputDone]} value={dep2Dob} onChangeText={setDep2Dob} placeholder="DOB (DD/MM/YYYY)" placeholderTextColor={Colors.light.gray400} editable={!isFieldComplete('ff_dependent2')} />
             </View>
-            <Text style={styles.fieldSectionLabel}>Dependent 3</Text>
+            <Text style={[styles.fieldSectionLabel, { fontSize: fs(13) }]}>Dependent 3</Text>
             <View style={styles.fieldRow}>
               <View style={styles.fieldHeader}>
                 <View style={styles.fieldLabelRow}>
-                  <Ionicons name={isFieldComplete('ff_dependent3') ? 'checkmark-circle' : 'ellipse-outline'} size={20} color={isFieldComplete('ff_dependent3') ? '#10B981' : Colors.light.gray400} style={{ marginRight: 8 }} />
-                  <Text style={[styles.fieldLabel, isFieldComplete('ff_dependent3') && { color: Colors.light.gray400 }]}>Third Dependent</Text>
+                  <Ionicons name={isFieldComplete('ff_dependent3') ? 'checkmark-circle' : 'ellipse-outline'} size={is(20)} color={isFieldComplete('ff_dependent3') ? '#10B981' : Colors.light.gray400} style={{ marginRight: 8 }} />
+                  <Text style={[styles.fieldLabel, { fontSize: fs(14) }, isFieldComplete('ff_dependent3') && { color: Colors.light.gray400 }]}>Third Dependent</Text>
                 </View>
                 <View style={[styles.coinBadge, isFieldComplete('ff_dependent3') && { backgroundColor: '#E5E7EB' }]}>
-                  <View style={[styles.goldCoin, isFieldComplete('ff_dependent3') && styles.goldCoinDone]}><Text style={[styles.goldCoinText, isFieldComplete('ff_dependent3') && styles.goldCoinTextDone]}>$</Text></View>
-                  <Text style={[styles.coinBadgeText, isFieldComplete('ff_dependent3') && { color: Colors.light.gray400 }]}>40</Text>
+                  <View style={[styles.goldCoin, isFieldComplete('ff_dependent3') && styles.goldCoinDone]}><Text style={[styles.goldCoinText, { fontSize: fs(7) }, isFieldComplete('ff_dependent3') && styles.goldCoinTextDone]}>$</Text></View>
+                  <Text style={[styles.coinBadgeText, { fontSize: fs(11) }, isFieldComplete('ff_dependent3') && { color: Colors.light.gray400 }]}>40</Text>
                 </View>
               </View>
-              <TextInput style={[styles.input, isFieldComplete('ff_dependent3') && styles.inputDone]} value={dep3Name} onChangeText={setDep3Name} placeholder="Name" placeholderTextColor={Colors.light.gray400} editable={!isFieldComplete('ff_dependent3')} onBlur={() => {
+              <TextInput style={[styles.input, { fontSize: fs(15) }, isFieldComplete('ff_dependent3') && styles.inputDone]} value={dep3Name} onChangeText={setDep3Name} placeholder="Name" placeholderTextColor={Colors.light.gray400} editable={!isFieldComplete('ff_dependent3')} onBlur={() => {
                 if (!dep3Name.trim()) return;
                 const deps = [...personalDetails.dependents];
                 while (deps.length < 3) deps.push({ name: '', dob: '', relationship: 'child', financiallyDependent: true });
@@ -533,8 +535,8 @@ export default function FactFindTabScreen() {
           <View>
             {renderTextInput('ff_tfn', 'Tax File Number', tfn, setTfn, { tfn: tfn.trim() }, { placeholder: 'XXX XXX XXX', keyboardType: 'number-pad', maxLength: 11 })}
             <View style={styles.infoCard}>
-              <Ionicons name="lock-closed-outline" size={16} color={Colors.light.tint} />
-              <Text style={styles.infoCardText}>Your TFN is stored securely on your device only and never sent to any server.</Text>
+              <Ionicons name="lock-closed-outline" size={is(16)} color={Colors.light.tint} />
+              <Text style={[styles.infoCardText, { fontSize: fs(12) }]}>Your TFN is stored securely on your device only and never sent to any server.</Text>
             </View>
           </View>
         );
@@ -567,19 +569,19 @@ export default function FactFindTabScreen() {
           <View>
             {mortgage ? (
               <View style={styles.autoCompleteCard}>
-                <Ionicons name="checkmark-circle" size={24} color="#10B981" />
+                <Ionicons name="checkmark-circle" size={is(24)} color="#10B981" />
                 <View style={{ marginLeft: 12, flex: 1 }}>
-                  <Text style={styles.autoCompleteTitle}>Auto-detected from Mortgage tab</Text>
-                  <Text style={styles.autoCompleteSubtext}>{mortgage.lender} - ${mortgage.loanAmount.toLocaleString()} @ {mortgage.interestRate}%</Text>
+                  <Text style={[styles.autoCompleteTitle, { fontSize: fs(14) }]}>Auto-detected from Mortgage tab</Text>
+                  <Text style={[styles.autoCompleteSubtext, { fontSize: fs(13) }]}>{mortgage.lender} - ${mortgage.loanAmount.toLocaleString()} @ {mortgage.interestRate}%</Text>
                 </View>
               </View>
             ) : (
               <View style={styles.autoCompleteCard}>
-                <Ionicons name="information-circle-outline" size={24} color={Colors.light.tint} />
+                <Ionicons name="information-circle-outline" size={is(24)} color={Colors.light.tint} />
                 <View style={{ marginLeft: 12, flex: 1 }}>
-                  <Text style={styles.autoCompleteTitle}>Set up your mortgage first</Text>
+                  <Text style={[styles.autoCompleteTitle, { fontSize: fs(14) }]}>Set up your mortgage first</Text>
                   <Pressable onPress={() => router.push('/setup-mortgage')}>
-                    <Text style={[styles.autoCompleteSubtext, { color: Colors.light.tint }]}>Go to Mortgage Setup</Text>
+                    <Text style={[styles.autoCompleteSubtext, { color: Colors.light.tint, fontSize: fs(13) }]}>Go to Mortgage Setup</Text>
                   </Pressable>
                 </View>
               </View>
@@ -591,19 +593,19 @@ export default function FactFindTabScreen() {
           <View>
             {superDetails ? (
               <View style={styles.autoCompleteCard}>
-                <Ionicons name="checkmark-circle" size={24} color="#10B981" />
+                <Ionicons name="checkmark-circle" size={is(24)} color="#10B981" />
                 <View style={{ marginLeft: 12, flex: 1 }}>
-                  <Text style={styles.autoCompleteTitle}>Auto-detected from Super tab</Text>
-                  <Text style={styles.autoCompleteSubtext}>{superDetails.fund} - ${superDetails.balance.toLocaleString()}</Text>
+                  <Text style={[styles.autoCompleteTitle, { fontSize: fs(14) }]}>Auto-detected from Super tab</Text>
+                  <Text style={[styles.autoCompleteSubtext, { fontSize: fs(13) }]}>{superDetails.fund} - ${superDetails.balance.toLocaleString()}</Text>
                 </View>
               </View>
             ) : (
               <View style={styles.autoCompleteCard}>
-                <Ionicons name="information-circle-outline" size={24} color={Colors.light.tint} />
+                <Ionicons name="information-circle-outline" size={is(24)} color={Colors.light.tint} />
                 <View style={{ marginLeft: 12, flex: 1 }}>
-                  <Text style={styles.autoCompleteTitle}>Set up your super first</Text>
+                  <Text style={[styles.autoCompleteTitle, { fontSize: fs(14) }]}>Set up your super first</Text>
                   <Pressable onPress={() => router.push('/setup-super')}>
-                    <Text style={[styles.autoCompleteSubtext, { color: Colors.light.tint }]}>Go to Super Setup</Text>
+                    <Text style={[styles.autoCompleteSubtext, { color: Colors.light.tint, fontSize: fs(13) }]}>Go to Super Setup</Text>
                   </Pressable>
                 </View>
               </View>
@@ -614,15 +616,15 @@ export default function FactFindTabScreen() {
         return (
           <View>
             <View style={styles.autoCompleteCard}>
-              <Ionicons name={insurancePolicies.length >= 3 ? 'checkmark-circle' : 'information-circle-outline'} size={24} color={insurancePolicies.length >= 3 ? '#10B981' : Colors.light.tint} />
+              <Ionicons name={insurancePolicies.length >= 3 ? 'checkmark-circle' : 'information-circle-outline'} size={is(24)} color={insurancePolicies.length >= 3 ? '#10B981' : Colors.light.tint} />
               <View style={{ marginLeft: 12, flex: 1 }}>
-                <Text style={styles.autoCompleteTitle}>{insurancePolicies.length} {insurancePolicies.length === 1 ? 'policy' : 'policies'} added</Text>
-                <Text style={styles.autoCompleteSubtext}>
+                <Text style={[styles.autoCompleteTitle, { fontSize: fs(14) }]}>{insurancePolicies.length} {insurancePolicies.length === 1 ? 'policy' : 'policies'} added</Text>
+                <Text style={[styles.autoCompleteSubtext, { fontSize: fs(13) }]}>
                   {insurancePolicies.length >= 3 ? 'All 3 policies detected' : `Add ${3 - insurancePolicies.length} more for full bonus`}
                 </Text>
                 {insurancePolicies.length < 3 && (
                   <Pressable onPress={() => router.push('/add-insurance')}>
-                    <Text style={{ color: Colors.light.tint, fontFamily: 'DMSans_600SemiBold' as const, fontSize: 13, marginTop: 4 }}>Add Insurance Policy</Text>
+                    <Text style={{ color: Colors.light.tint, fontFamily: 'DMSans_600SemiBold' as const, fontSize: fs(13), marginTop: 4 }}>Add Insurance Policy</Text>
                   </Pressable>
                 )}
               </View>
@@ -633,19 +635,19 @@ export default function FactFindTabScreen() {
         return (
           <View>
             <View style={styles.goalBlock}>
-              <Text style={styles.goalBlockTitle}>Goal 1</Text>
+              <Text style={[styles.goalBlockTitle, { fontSize: fs(14) }]}>Goal 1</Text>
               {renderTextInput('ff_goal1_desc', 'What is this goal?', goal1Desc, setGoal1Desc, getGoalsUpdater(0, 'description', goal1Desc), { placeholder: 'e.g. Save for a house deposit' })}
               {renderTextInput('ff_goal1_date', 'Target Date', goal1Date, setGoal1Date, getGoalsUpdater(0, 'targetDate', goal1Date), { placeholder: 'e.g. Dec 2028' })}
               {renderTextInput('ff_goal1_amount', 'Amount Required', goal1Amount, setGoal1Amount, getGoalsUpdater(0, 'amount', goal1Amount), { isCurrency: true, placeholder: 'e.g. 100,000' })}
             </View>
             <View style={styles.goalBlock}>
-              <Text style={styles.goalBlockTitle}>Goal 2</Text>
+              <Text style={[styles.goalBlockTitle, { fontSize: fs(14) }]}>Goal 2</Text>
               {renderTextInput('ff_goal2_desc', 'What is this goal?', goal2Desc, setGoal2Desc, getGoalsUpdater(1, 'description', goal2Desc), { placeholder: 'e.g. Pay off car loan' })}
               {renderTextInput('ff_goal2_date', 'Target Date', goal2Date, setGoal2Date, getGoalsUpdater(1, 'targetDate', goal2Date), { placeholder: 'e.g. Jun 2027' })}
               {renderTextInput('ff_goal2_amount', 'Amount Required', goal2Amount, setGoal2Amount, getGoalsUpdater(1, 'amount', goal2Amount), { isCurrency: true, placeholder: 'e.g. 25,000' })}
             </View>
             <View style={styles.goalBlock}>
-              <Text style={styles.goalBlockTitle}>Goal 3</Text>
+              <Text style={[styles.goalBlockTitle, { fontSize: fs(14) }]}>Goal 3</Text>
               {renderTextInput('ff_goal3_desc', 'What is this goal?', goal3Desc, setGoal3Desc, getGoalsUpdater(2, 'description', goal3Desc), { placeholder: 'e.g. Build emergency fund' })}
               {renderTextInput('ff_goal3_date', 'Target Date', goal3Date, setGoal3Date, getGoalsUpdater(2, 'targetDate', goal3Date), { placeholder: 'e.g. Mar 2026' })}
               {renderTextInput('ff_goal3_amount', 'Amount Required', goal3Amount, setGoal3Amount, getGoalsUpdater(2, 'amount', goal3Amount), { isCurrency: true, placeholder: 'e.g. 15,000' })}
@@ -715,12 +717,12 @@ export default function FactFindTabScreen() {
             <LinearGradient colors={['#1a2942', '#0f1c30']} style={styles.progressCardInner}>
               <View style={styles.progressTopRow}>
                 <View>
-                  <Text style={styles.progressLabel}>QUEST PROGRESS</Text>
-                  <Text style={styles.progressBig}>{progress.percentage}%</Text>
+                  <Text style={[styles.progressLabel, { fontSize: fs(11) }]}>QUEST PROGRESS</Text>
+                  <Text style={[styles.progressBig, { fontSize: fs(32) }]}>{progress.percentage}%</Text>
                 </View>
                 <View style={styles.progressCoinsWrap}>
-                  <View style={styles.goldCoinLg}><Text style={styles.goldCoinLgText}>$</Text></View>
-                  <Text style={styles.progressCoinsText}>{progress.completed}/{progress.total} fields</Text>
+                  <View style={styles.goldCoinLg}><Text style={[styles.goldCoinLgText, { fontSize: fs(9) }]}>$</Text></View>
+                  <Text style={[styles.progressCoinsText, { fontSize: fs(13) }]}>{progress.completed}/{progress.total} fields</Text>
                 </View>
               </View>
               <View style={styles.progressBarBg}>
@@ -740,7 +742,7 @@ export default function FactFindTabScreen() {
                 onPress={() => { setActiveSubTab(tab.key); setExpandedSection(null); Haptics.selectionAsync(); }}
                 style={[styles.subTabItem, activeSubTab === tab.key && styles.subTabItemActive]}
               >
-                <Text style={[styles.subTabText, activeSubTab === tab.key && styles.subTabTextActive]}>{tab.label}</Text>
+                <Text style={[styles.subTabText, { fontSize: fs(13) }, activeSubTab === tab.key && styles.subTabTextActive]}>{tab.label}</Text>
               </Pressable>
             ))}
           </View>
@@ -748,8 +750,8 @@ export default function FactFindTabScreen() {
 
         {coinToast && (
           <Animated.View style={[styles.coinToast, { opacity: toastAnim, transform: [{ translateY: toastAnim.interpolate({ inputRange: [0, 1], outputRange: [-20, 0] }) }] }]}>
-            <View style={styles.goldCoinLg}><Text style={styles.goldCoinLgText}>$</Text></View>
-            <Text style={styles.coinToastText}>+{coinToast.amount} Good Coins - {coinToast.label}</Text>
+            <View style={styles.goldCoinLg}><Text style={[styles.goldCoinLgText, { fontSize: fs(9) }]}>$</Text></View>
+            <Text style={[styles.coinToastText, { fontSize: fs(14) }]}>+{coinToast.amount} Good Coins - {coinToast.label}</Text>
           </Animated.View>
         )}
 
@@ -764,30 +766,30 @@ export default function FactFindTabScreen() {
               <View key={section.id} style={styles.sectionCard}>
                 <Pressable style={styles.sectionHeader} onPress={() => { setExpandedSection(isExpanded ? null : section.id); Haptics.selectionAsync(); }}>
                   <View style={[styles.sectionIcon, { backgroundColor: section.iconBg + '20' }]}>
-                    <Ionicons name={section.icon as any} size={22} color={section.iconBg} />
+                    <Ionicons name={section.icon as any} size={is(22)} color={section.iconBg} />
                   </View>
                   <View style={{ flex: 1, marginLeft: 12 }}>
                     <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                      <Text style={styles.sectionTitle}>{section.title}</Text>
-                      {sectionDone && <Ionicons name="checkmark-circle" size={18} color="#10B981" style={{ marginLeft: 6 }} />}
+                      <Text style={[styles.sectionTitle, { fontSize: fs(15) }]}>{section.title}</Text>
+                      {sectionDone && <Ionicons name="checkmark-circle" size={is(18)} color="#10B981" style={{ marginLeft: 6 }} />}
                     </View>
-                    <Text style={styles.sectionSubtitle}>{section.description}</Text>
+                    <Text style={[styles.sectionSubtitle, { fontSize: fs(12) }]}>{section.description}</Text>
                     <View style={styles.sectionMeta}>
-                      <Text style={styles.sectionMetaText}>{fieldsComplete}/{section.fields.length} fields</Text>
+                      <Text style={[styles.sectionMetaText, { fontSize: fs(11) }]}>{fieldsComplete}/{section.fields.length} fields</Text>
                       <View style={styles.sectionCoinBadge}>
-                        <View style={styles.goldCoinSm}><Text style={styles.goldCoinSmText}>$</Text></View>
-                        <Text style={styles.sectionCoinText}>{totalCoins} Good Coins</Text>
+                        <View style={styles.goldCoinSm}><Text style={[styles.goldCoinSmText, { fontSize: fs(6) }]}>$</Text></View>
+                        <Text style={[styles.sectionCoinText, { fontSize: fs(11) }]}>{totalCoins} Good Coins</Text>
                       </View>
                     </View>
                   </View>
-                  <Ionicons name={isExpanded ? 'chevron-up' : 'chevron-down'} size={20} color={Colors.light.gray400} />
+                  <Ionicons name={isExpanded ? 'chevron-up' : 'chevron-down'} size={is(20)} color={Colors.light.gray400} />
                 </Pressable>
                 {isExpanded && (
                   <View style={styles.sectionContent}>
                     {sectionDone && (
                       <View style={styles.sectionCompleteBanner}>
-                        <Ionicons name="trophy" size={16} color="#F59E0B" />
-                        <Text style={styles.sectionCompleteText}>Section complete! +{section.bonusCoins} bonus Good Coins earned</Text>
+                        <Ionicons name="trophy" size={is(16)} color="#F59E0B" />
+                        <Text style={[styles.sectionCompleteText, { fontSize: fs(13) }]}>Section complete! +{section.bonusCoins} bonus Good Coins earned</Text>
                       </View>
                     )}
                     {renderSectionContent(section)}
@@ -799,24 +801,24 @@ export default function FactFindTabScreen() {
 
           {progress.percentage === 100 && (
             <View style={styles.allCompleteCard}>
-              <Ionicons name="trophy" size={32} color="#F59E0B" />
-              <Text style={styles.allCompleteTitle}>Fact Find Complete!</Text>
-              <Text style={styles.allCompleteSubtext}>You can now generate account comparisons and switch requests</Text>
+              <Ionicons name="trophy" size={is(32)} color="#F59E0B" />
+              <Text style={[styles.allCompleteTitle, { fontSize: fs(18) }]}>Fact Find Complete!</Text>
+              <Text style={[styles.allCompleteSubtext, { fontSize: fs(13) }]}>You can now generate account comparisons and switch requests</Text>
               <Pressable style={styles.switchBtn} onPress={() => router.push('/switch-request' as any)}>
-                <Ionicons name="swap-horizontal" size={20} color="#FFF" />
-                <Text style={styles.switchBtnText}>Generate Switch Request</Text>
+                <Ionicons name="swap-horizontal" size={is(20)} color="#FFF" />
+                <Text style={[styles.switchBtnText, { fontSize: fs(15) }]}>Generate Switch Request</Text>
               </Pressable>
             </View>
           )}
 
           {progress.percentage >= 50 && progress.percentage < 100 && (
             <View style={[styles.allCompleteCard, { backgroundColor: Colors.light.tint + '10' }]}>
-              <Ionicons name="swap-horizontal" size={24} color={Colors.light.tint} />
-              <Text style={[styles.allCompleteTitle, { color: Colors.light.tint }]}>Switch Requests Available</Text>
-              <Text style={styles.allCompleteSubtext}>You have enough data to start comparing and switching providers</Text>
+              <Ionicons name="swap-horizontal" size={is(24)} color={Colors.light.tint} />
+              <Text style={[styles.allCompleteTitle, { color: Colors.light.tint, fontSize: fs(18) }]}>Switch Requests Available</Text>
+              <Text style={[styles.allCompleteSubtext, { fontSize: fs(13) }]}>You have enough data to start comparing and switching providers</Text>
               <Pressable style={styles.switchBtn} onPress={() => router.push('/switch-request' as any)}>
-                <Ionicons name="swap-horizontal" size={20} color="#FFF" />
-                <Text style={styles.switchBtnText}>Generate Switch Request</Text>
+                <Ionicons name="swap-horizontal" size={is(20)} color="#FFF" />
+                <Text style={[styles.switchBtnText, { fontSize: fs(15) }]}>Generate Switch Request</Text>
               </Pressable>
             </View>
           )}

@@ -6,6 +6,7 @@ import { router } from "expo-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import Colors from "@/constants/colors";
 import { getApiUrl, apiRequest } from "@/lib/query-client";
+import { useAccessibility } from '@/contexts/AccessibilityContext';
 
 function goBack() {
   if (router.canGoBack()) { router.back(); } else { router.replace("/(tabs)/banks"); }
@@ -29,6 +30,7 @@ const TIER_LABELS: Record<string, string> = {
 };
 
 function InstitutionRow({ inst, onPress }: { inst: Institution; onPress: () => void }) {
+  const { fs, is } = useAccessibility();
   const tierColors: Record<string, string> = {
     "1": Colors.light.tint,
     "2": Colors.light.mortgage,
@@ -40,15 +42,15 @@ function InstitutionRow({ inst, onPress }: { inst: Institution; onPress: () => v
   return (
     <Pressable onPress={onPress} style={({ pressed }) => [styles.instRow, pressed && { opacity: 0.7 }]}>
       <View style={[styles.instIcon, { backgroundColor: color + "15" }]}>
-        <Ionicons name="business" size={20} color={color} />
+        <Ionicons name="business" size={is(20)} color={color} />
       </View>
       <View style={styles.instInfo}>
-        <Text style={styles.instName} numberOfLines={1}>{inst.name}</Text>
+        <Text style={[styles.instName, { fontSize: fs(14) }]} numberOfLines={1}>{inst.name}</Text>
         {inst.status && inst.status !== "operational" && (
-          <Text style={[styles.instStatus, { color: Colors.light.insurance }]}>{inst.status}</Text>
+          <Text style={[styles.instStatus, { color: Colors.light.insurance, fontSize: fs(11) }]}>{inst.status}</Text>
         )}
       </View>
-      <Ionicons name="chevron-forward" size={18} color={Colors.light.textMuted} />
+      <Ionicons name="chevron-forward" size={is(18)} color={Colors.light.textMuted} />
     </Pressable>
   );
 }
@@ -59,6 +61,7 @@ export default function ConnectBankScreen() {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [connecting, setConnecting] = useState(false);
+  const { fs, is } = useAccessibility();
 
   const institutionsQuery = useQuery<{ institutions: Institution[] }>({
     queryKey: ["/api/basiq/institutions"],
@@ -112,16 +115,16 @@ export default function ConnectBankScreen() {
     <View style={styles.container}>
       <View style={[styles.header, { paddingTop: topInset + 12 }]}>
         <Pressable onPress={goBack} hitSlop={12}>
-          <Ionicons name="close" size={26} color={Colors.light.text} />
+          <Ionicons name="close" size={is(26)} color={Colors.light.text} />
         </Pressable>
-        <Text style={styles.headerTitle}>Connect Bank</Text>
+        <Text style={[styles.headerTitle, { fontSize: fs(18) }]}>Connect Bank</Text>
         <View style={{ width: 26 }} />
       </View>
 
       <View style={styles.searchContainer}>
-        <Ionicons name="search" size={18} color={Colors.light.textMuted} />
+        <Ionicons name="search" size={is(18)} color={Colors.light.textMuted} />
         <TextInput
-          style={styles.searchInput}
+          style={[styles.searchInput, { fontSize: fs(15) }]}
           placeholder="Search banks..."
           placeholderTextColor={Colors.light.textMuted}
           value={search}
@@ -131,7 +134,7 @@ export default function ConnectBankScreen() {
         />
         {search.length > 0 && (
           <Pressable onPress={() => setSearch("")} hitSlop={8}>
-            <Ionicons name="close-circle" size={18} color={Colors.light.textMuted} />
+            <Ionicons name="close-circle" size={is(18)} color={Colors.light.textMuted} />
           </Pressable>
         )}
       </View>
@@ -145,27 +148,27 @@ export default function ConnectBankScreen() {
           <ActivityIndicator color={Colors.light.white} />
         ) : (
           <>
-            <Ionicons name="link" size={20} color={Colors.light.white} />
-            <Text style={styles.connectAllText}>Connect Any Bank</Text>
+            <Ionicons name="link" size={is(20)} color={Colors.light.white} />
+            <Text style={[styles.connectAllText, { fontSize: fs(15) }]}>Connect Any Bank</Text>
           </>
         )}
       </Pressable>
 
-      <Text style={styles.helpText}>
+      <Text style={[styles.helpText, { fontSize: fs(12) }]}>
         Or select a specific institution below. You'll be redirected to Basiq's secure consent page to authorise access.
       </Text>
 
       {institutionsQuery.isLoading && (
         <View style={styles.loadingState}>
           <ActivityIndicator size="large" color={Colors.light.tint} />
-          <Text style={styles.loadingText}>Loading institutions...</Text>
+          <Text style={[styles.loadingText, { fontSize: fs(13) }]}>Loading institutions...</Text>
         </View>
       )}
 
       <ScrollView style={styles.list} contentContainerStyle={{ paddingBottom: 50 }} showsVerticalScrollIndicator={false}>
         {Object.entries(grouped).sort(([a], [b]) => a.localeCompare(b)).map(([tier, insts]) => (
           <View key={tier} style={styles.tierGroup}>
-            <Text style={styles.tierTitle}>{TIER_LABELS[tier] || `Tier ${tier}`}</Text>
+            <Text style={[styles.tierTitle, { fontSize: fs(12) }]}>{TIER_LABELS[tier] || `Tier ${tier}`}</Text>
             {insts.map(inst => (
               <InstitutionRow key={inst.id} inst={inst} onPress={() => handleConnect(inst.id)} />
             ))}
@@ -174,8 +177,8 @@ export default function ConnectBankScreen() {
 
         {!institutionsQuery.isLoading && filtered.length === 0 && (
           <View style={styles.emptyState}>
-            <Ionicons name="search-outline" size={32} color={Colors.light.gray300} />
-            <Text style={styles.emptyText}>No institutions found</Text>
+            <Ionicons name="search-outline" size={is(32)} color={Colors.light.gray300} />
+            <Text style={[styles.emptyText, { fontSize: fs(14) }]}>No institutions found</Text>
           </View>
         )}
       </ScrollView>

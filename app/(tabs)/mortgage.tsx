@@ -9,15 +9,17 @@ import { useFinance } from "@/contexts/FinanceContext";
 import { useRewards } from "@/contexts/RewardsContext";
 import { MessageOverlay } from "@/contexts/AppMessagesContext";
 import CoinHeader from '@/components/CoinHeader';
+import { useAccessibility } from '@/contexts/AccessibilityContext';
 
 function fmt(n: number): string { return "$" + n.toLocaleString("en-AU", { minimumFractionDigits: 0, maximumFractionDigits: 0 }); }
 function fmtDec(n: number): string { return "$" + n.toLocaleString("en-AU", { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
 
 function StatRow({ label, value, color }: { label: string; value: string; color?: string }) {
+  const { fs } = useAccessibility();
   return (
     <View style={styles.statRow}>
-      <Text style={styles.statLabel}>{label}</Text>
-      <Text style={[styles.statValue, color ? { color } : {}]}>{value}</Text>
+      <Text style={[styles.statLabel, { fontSize: fs(14) }]}>{label}</Text>
+      <Text style={[styles.statValue, { fontSize: fs(14) }, color ? { color } : {}]}>{value}</Text>
     </View>
   );
 }
@@ -27,22 +29,23 @@ export default function MortgageScreen() {
   const topInset = Platform.OS === "web" ? 67 : insets.top;
   const { mortgage, calculateMortgageRepayment, clearMortgage } = useFinance();
   const { state: rewardsState, missions, completeMission } = useRewards();
+  const { fs, is } = useAccessibility();
   const mortgageMission = missions.find(m => m.id === 'run_valuation' && !m.completed);
 
   if (!mortgage) {
     return (
       <View style={styles.container}>
         <CoinHeader title="Mortgage" />
-        <Text style={styles.pageDesc}>Track your home loan and see the impact of extra repayments.</Text>
+        <Text style={[styles.pageDesc, { fontSize: fs(14) }]}>Track your home loan and see the impact of extra repayments.</Text>
         <View style={styles.emptyState}>
           <View style={[styles.emptyIcon, { backgroundColor: Colors.light.mortgage + "15" }]}>
-            <Ionicons name="home-outline" size={48} color={Colors.light.mortgage} />
+            <Ionicons name="home-outline" size={is(48)} color={Colors.light.mortgage} />
           </View>
-          <Text style={styles.emptyText}>No mortgage set up</Text>
-          <Text style={styles.emptySubtext}>Add your home loan details to track repayments and see how extra payments can save you money</Text>
+          <Text style={[styles.emptyText, { fontSize: fs(20) }]}>No mortgage set up</Text>
+          <Text style={[styles.emptySubtext, { fontSize: fs(14) }]}>Add your home loan details to track repayments and see how extra payments can save you money</Text>
           <Pressable style={({ pressed }) => [styles.setupBtn, pressed && { opacity: 0.9 }]} onPress={() => router.push("/setup-mortgage")}>
-            <Ionicons name="add" size={20} color={Colors.light.white} />
-            <Text style={styles.setupBtnText}>Set Up Mortgage</Text>
+            <Ionicons name="add" size={is(20)} color={Colors.light.white} />
+            <Text style={[styles.setupBtnText, { fontSize: fs(15) }]}>Set Up Mortgage</Text>
           </Pressable>
         </View>
       </View>
@@ -68,27 +71,27 @@ export default function MortgageScreen() {
     <View style={styles.container}>
       <ScrollView contentInsetAdjustmentBehavior="automatic" showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
         <CoinHeader title="Mortgage" />
-        <Text style={styles.pageDesc}>Track your home loan and see the impact of extra repayments.</Text>
+        <Text style={[styles.pageDesc, { fontSize: fs(14) }]}>Track your home loan and see the impact of extra repayments.</Text>
         <View style={[styles.header]}>
           <View />
           <View style={styles.headerBtns}>
             <Pressable onPress={() => router.push("/setup-mortgage")} hitSlop={12}>
-              <Ionicons name="pencil" size={22} color={Colors.light.mortgage} />
+              <Ionicons name="pencil" size={is(22)} color={Colors.light.mortgage} />
             </Pressable>
             <Pressable onPress={() => Alert.alert("Remove Mortgage", "Clear your mortgage details?", [
               { text: "Cancel", style: "cancel" },
               { text: "Remove", style: "destructive", onPress: clearMortgage },
             ])} hitSlop={12}>
-              <Ionicons name="trash-outline" size={22} color={Colors.light.expense} />
+              <Ionicons name="trash-outline" size={is(22)} color={Colors.light.expense} />
             </Pressable>
           </View>
         </View>
 
         <View style={styles.heroCard}>
-          <Text style={styles.heroLabel}>Monthly Repayment</Text>
-          <Text style={styles.heroAmount}>{fmtDec(calc.monthly)}</Text>
+          <Text style={[styles.heroLabel, { fontSize: fs(14) }]}>Monthly Repayment</Text>
+          <Text style={[styles.heroAmount, { fontSize: fs(36) }]}>{fmtDec(calc.monthly)}</Text>
           {mortgage.extraRepayment > 0 && (
-            <Text style={styles.heroExtra}>Includes {fmt(mortgage.extraRepayment)} extra</Text>
+            <Text style={[styles.heroExtra, { fontSize: fs(13) }]}>Includes {fmt(mortgage.extraRepayment)} extra</Text>
           )}
         </View>
 
@@ -134,48 +137,48 @@ export default function MortgageScreen() {
           return (
             <LinearGradient colors={[Colors.light.mortgage, "#1a6b5a"]} style={styles.valueBanner}>
               <View style={styles.valueBannerHeader}>
-                <Ionicons name="sparkles" size={20} color="#fff" />
-                <Text style={styles.valueBannerTitle}>Optimise Your Mortgage</Text>
+                <Ionicons name="sparkles" size={is(20)} color="#fff" />
+                <Text style={[styles.valueBannerTitle, { fontSize: fs(18) }]}>Optimise Your Mortgage</Text>
               </View>
 
               {currentExtraSaving && mortgage.extraRepayment > 0 ? (
                 <>
-                  <Text style={styles.valueBannerSubtitle}>Your {fmt(mortgage.extraRepayment)}/mo extra repayment saves</Text>
+                  <Text style={[styles.valueBannerSubtitle, { fontSize: fs(13) }]}>Your {fmt(mortgage.extraRepayment)}/mo extra repayment saves</Text>
                   <View style={styles.valueBannerRow}>
                     <View style={styles.valueBannerItem}>
-                      <Text style={styles.valueBannerBigNum}>{fmt(Math.round(currentExtraSaving.savedPerYear))}</Text>
-                      <Text style={styles.valueBannerSmall}>per year</Text>
+                      <Text style={[styles.valueBannerBigNum, { fontSize: fs(26) }]}>{fmt(Math.round(currentExtraSaving.savedPerYear))}</Text>
+                      <Text style={[styles.valueBannerSmall, { fontSize: fs(11) }]}>per year</Text>
                     </View>
                     <View style={styles.valueBannerDivider} />
                     <View style={styles.valueBannerItem}>
-                      <Text style={styles.valueBannerBigNum}>{fmt(Math.round(currentExtraSaving.saved10yr))}</Text>
-                      <Text style={styles.valueBannerSmall}>over 10 years</Text>
+                      <Text style={[styles.valueBannerBigNum, { fontSize: fs(26) }]}>{fmt(Math.round(currentExtraSaving.saved10yr))}</Text>
+                      <Text style={[styles.valueBannerSmall, { fontSize: fs(11) }]}>over 10 years</Text>
                     </View>
                   </View>
                   <View style={styles.valueBannerPill}>
-                    <Ionicons name="time-outline" size={14} color="#fff" />
-                    <Text style={styles.valueBannerPillText}>
+                    <Ionicons name="time-outline" size={is(14)} color="#fff" />
+                    <Text style={[styles.valueBannerPillText, { fontSize: fs(12) }]}>
                       Pay off {currentExtraSaving.yearsSaved.toFixed(1)} years early — {fmt(Math.round(currentExtraSaving.savedLife))} total saved
                     </Text>
                   </View>
                 </>
               ) : (
                 <>
-                  <Text style={styles.valueBannerSubtitle}>Adding $500/mo extra could save you</Text>
+                  <Text style={[styles.valueBannerSubtitle, { fontSize: fs(13) }]}>Adding $500/mo extra could save you</Text>
                   <View style={styles.valueBannerRow}>
                     <View style={styles.valueBannerItem}>
-                      <Text style={styles.valueBannerBigNum}>{fmt(Math.round(bestScenario.savedPerYear))}</Text>
-                      <Text style={styles.valueBannerSmall}>per year</Text>
+                      <Text style={[styles.valueBannerBigNum, { fontSize: fs(26) }]}>{fmt(Math.round(bestScenario.savedPerYear))}</Text>
+                      <Text style={[styles.valueBannerSmall, { fontSize: fs(11) }]}>per year</Text>
                     </View>
                     <View style={styles.valueBannerDivider} />
                     <View style={styles.valueBannerItem}>
-                      <Text style={styles.valueBannerBigNum}>{fmt(Math.round(bestScenario.saved10yr))}</Text>
-                      <Text style={styles.valueBannerSmall}>over 10 years</Text>
+                      <Text style={[styles.valueBannerBigNum, { fontSize: fs(26) }]}>{fmt(Math.round(bestScenario.saved10yr))}</Text>
+                      <Text style={[styles.valueBannerSmall, { fontSize: fs(11) }]}>over 10 years</Text>
                     </View>
                   </View>
                   <View style={styles.valueBannerPill}>
-                    <Ionicons name="time-outline" size={14} color="#fff" />
-                    <Text style={styles.valueBannerPillText}>
+                    <Ionicons name="time-outline" size={is(14)} color="#fff" />
+                    <Text style={[styles.valueBannerPillText, { fontSize: fs(12) }]}>
                       {bestScenario.yearsSaved.toFixed(1)} years earlier payoff — {fmt(Math.round(bestScenario.savedLife))} less interest
                     </Text>
                   </View>
@@ -188,9 +191,9 @@ export default function MortgageScreen() {
                   const isActive = mortgage.extraRepayment === extra;
                   return (
                     <View key={extra} style={[styles.scenarioItem, isActive && styles.scenarioItemActive]}>
-                      <Text style={styles.scenarioExtra}>+{fmt(extra)}/mo</Text>
-                      <Text style={styles.scenarioSaved}>{fmt(Math.round(s.savedLife))}</Text>
-                      <Text style={styles.scenarioYears}>{s.yearsSaved.toFixed(1)}yr faster</Text>
+                      <Text style={[styles.scenarioExtra, { fontSize: fs(11) }]}>+{fmt(extra)}/mo</Text>
+                      <Text style={[styles.scenarioSaved, { fontSize: fs(13) }]}>{fmt(Math.round(s.savedLife))}</Text>
+                      <Text style={[styles.scenarioYears, { fontSize: fs(10) }]}>{s.yearsSaved.toFixed(1)}yr faster</Text>
                     </View>
                   );
                 })}
@@ -200,7 +203,7 @@ export default function MortgageScreen() {
         })()}
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Loan Details</Text>
+          <Text style={[styles.sectionTitle, { fontSize: fs(16) }]}>Loan Details</Text>
           <View style={styles.card}>
             <StatRow label="Lender" value={mortgage.lender || "Not specified"} />
             <StatRow label="Loan Amount" value={fmt(mortgage.loanAmount)} />
@@ -212,7 +215,7 @@ export default function MortgageScreen() {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Property & Equity</Text>
+          <Text style={[styles.sectionTitle, { fontSize: fs(16) }]}>Property & Equity</Text>
           <View style={styles.card}>
             <StatRow label="Property Value" value={fmt(mortgage.propertyValue)} />
             <StatRow label="Equity" value={fmt(equity)} color={equity >= 0 ? Colors.light.income : Colors.light.expense} />
@@ -224,14 +227,14 @@ export default function MortgageScreen() {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Interest Breakdown</Text>
+          <Text style={[styles.sectionTitle, { fontSize: fs(16) }]}>Interest Breakdown</Text>
           <View style={styles.card}>
             <StatRow label="Total Interest (life of loan)" value={fmt(Math.max(0, calc.totalInterest))} color={Colors.light.expense} />
             <StatRow label="Total Repayment" value={fmt(calc.totalPayment)} />
             {mortgage.extraRepayment > 0 && (
               <View style={styles.savingBadge}>
-                <Ionicons name="sparkles" size={16} color={Colors.light.income} />
-                <Text style={styles.savingText}>
+                <Ionicons name="sparkles" size={is(16)} color={Colors.light.income} />
+                <Text style={[styles.savingText, { fontSize: fs(13) }]}>
                   Extra repayments could save you {fmt(Math.round(extraSaving))} in interest
                 </Text>
               </View>
@@ -243,20 +246,20 @@ export default function MortgageScreen() {
           <View style={styles.missionBanner}>
             <View style={styles.missionBannerTop}>
               <View style={styles.missionPtsCircle}>
-                <Ionicons name="star" size={14} color="#D4AF37" />
-                <Text style={styles.missionPtsNum}>{rewardsState.points.toLocaleString()}</Text>
+                <Ionicons name="star" size={is(14)} color="#D4AF37" />
+                <Text style={[styles.missionPtsNum, { fontSize: fs(13) }]}>{rewardsState.points.toLocaleString()}</Text>
               </View>
             </View>
             {mortgageMission && (
               <Pressable onPress={() => completeMission('run_valuation')} style={({ pressed }) => [styles.missionPrompt, pressed && { opacity: 0.85 }]}>
                 <View style={[styles.missionPromptIcon, { backgroundColor: '#F59E0B20' }]}>
-                  <Ionicons name="home-outline" size={14} color="#F59E0B" />
+                  <Ionicons name="home-outline" size={is(14)} color="#F59E0B" />
                 </View>
                 <View style={{ flex: 1 }}>
-                  <Text style={styles.missionPromptTitle}>{mortgageMission.title}</Text>
-                  <Text style={styles.missionPromptDesc}>{mortgageMission.description}</Text>
+                  <Text style={[styles.missionPromptTitle, { fontSize: fs(12) }]}>{mortgageMission.title}</Text>
+                  <Text style={[styles.missionPromptDesc, { fontSize: fs(10) }]}>{mortgageMission.description}</Text>
                 </View>
-                <Text style={styles.missionPromptPts}>+{mortgageMission.is2xActive ? mortgageMission.basePoints * 2 : mortgageMission.basePoints}</Text>
+                <Text style={[styles.missionPromptPts, { fontSize: fs(13) }]}>+{mortgageMission.is2xActive ? mortgageMission.basePoints * 2 : mortgageMission.basePoints}</Text>
               </Pressable>
             )}
           </View>

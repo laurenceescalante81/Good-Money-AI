@@ -5,6 +5,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import Colors from "@/constants/colors";
+import { useAccessibility } from "@/contexts/AccessibilityContext";
 import { useFinance } from "@/contexts/FinanceContext";
 import CoinHeader from '@/components/CoinHeader';
 
@@ -227,6 +228,7 @@ function annualCost(p: { premium: number; premiumFrequency: string }): number {
 }
 
 export default function InsuranceScreen() {
+  const { fs, is } = useAccessibility();
   const insets = useSafeAreaInsets();
   const topInset = Platform.OS === "web" ? 67 : insets.top;
   const { insurancePolicies, getTotalInsuranceCost } = useFinance();
@@ -252,26 +254,26 @@ export default function InsuranceScreen() {
           title="Insurance"
           rightElement={
             <Pressable onPress={() => router.push("/add-insurance")} hitSlop={12}>
-              <Ionicons name="add-circle" size={28} color={Colors.light.insurance} />
+              <Ionicons name="add-circle" size={is(28)} color={Colors.light.insurance} />
             </Pressable>
           }
         />
 
-        <Text style={styles.pageDesc}>Track and manage all your insurance policies in one place.</Text>
+        <Text style={[styles.pageDesc, { fontSize: fs(14) }]}>Track and manage all your insurance policies in one place.</Text>
 
         {insurancePolicies.length > 0 && (
           <View style={styles.summaryRow}>
             <View style={[styles.summaryCard, { backgroundColor: Colors.light.insurance + "12" }]}>
-              <Text style={styles.summaryLabel}>Annual Cost</Text>
-              <Text style={[styles.summaryVal, { color: Colors.light.insurance }]}>{fmt(totalAnnual)}</Text>
+              <Text style={[styles.summaryLabel, { fontSize: fs(11) }]}>Annual Cost</Text>
+              <Text style={[styles.summaryVal, { color: Colors.light.insurance, fontSize: fs(18) }]}>{fmt(totalAnnual)}</Text>
             </View>
             <View style={[styles.summaryCard, { backgroundColor: Colors.light.insurance + "12" }]}>
-              <Text style={styles.summaryLabel}>Monthly</Text>
-              <Text style={[styles.summaryVal, { color: Colors.light.insurance }]}>{fmt(totalMonthly)}</Text>
+              <Text style={[styles.summaryLabel, { fontSize: fs(11) }]}>Monthly</Text>
+              <Text style={[styles.summaryVal, { color: Colors.light.insurance, fontSize: fs(18) }]}>{fmt(totalMonthly)}</Text>
             </View>
             <View style={[styles.summaryCard, { backgroundColor: Colors.light.insurance + "12" }]}>
-              <Text style={styles.summaryLabel}>Policies</Text>
-              <Text style={[styles.summaryVal, { color: Colors.light.insurance }]}>{insurancePolicies.length}</Text>
+              <Text style={[styles.summaryLabel, { fontSize: fs(11) }]}>Policies</Text>
+              <Text style={[styles.summaryVal, { color: Colors.light.insurance, fontSize: fs(18) }]}>{insurancePolicies.length}</Text>
             </View>
           </View>
         )}
@@ -287,18 +289,18 @@ export default function InsuranceScreen() {
                 <LinearGradient colors={cat.gradient} style={styles.categoryHeader} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
                   <View style={styles.categoryHeaderLeft}>
                     <View style={styles.categoryIconCircle}>
-                      <Ionicons name={cat.icon as any} size={22} color="#fff" />
+                      <Ionicons name={cat.icon as any} size={is(22)} color="#fff" />
                     </View>
                     <View>
-                      <Text style={styles.categoryTitle}>{cat.title}</Text>
-                      <Text style={styles.categorySubtitle}>
+                      <Text style={[styles.categoryTitle, { fontSize: fs(17) }]}>{cat.title}</Text>
+                      <Text style={[styles.categorySubtitle, { fontSize: fs(12) }]}>
                         {myPolicies.length > 0
                           ? `${myPolicies.length} ${myPolicies.length === 1 ? "policy" : "policies"} — ${fmt(catAnnual)}/yr`
                           : "No active policies"}
                       </Text>
                     </View>
                   </View>
-                  <Ionicons name={isExpanded ? "chevron-up" : "chevron-down"} size={20} color="rgba(255,255,255,0.8)" />
+                  <Ionicons name={isExpanded ? "chevron-up" : "chevron-down"} size={is(20)} color="rgba(255,255,255,0.8)" />
                 </LinearGradient>
               </Pressable>
 
@@ -306,46 +308,46 @@ export default function InsuranceScreen() {
                 <View style={styles.categoryBody}>
                   {myPolicies.length > 0 && (
                     <View style={styles.myPoliciesSection}>
-                      <Text style={styles.subSectionTitle}>Your Active Policies</Text>
+                      <Text style={[styles.subSectionTitle, { fontSize: fs(14) }]}>Your Active Policies</Text>
                       {myPolicies.map(p => (
                         <View key={p.id} style={styles.miniPolicyCard}>
                           <View style={{ flex: 1 }}>
-                            <Text style={styles.miniPolicyProvider}>{p.provider}</Text>
-                            <Text style={styles.miniPolicyDetail}>Cover: {fmt(p.coverAmount)} — #{p.policyNumber || "N/A"}</Text>
+                            <Text style={[styles.miniPolicyProvider, { fontSize: fs(13) }]}>{p.provider}</Text>
+                            <Text style={[styles.miniPolicyDetail, { fontSize: fs(11) }]}>Cover: {fmt(p.coverAmount)} — #{p.policyNumber || "N/A"}</Text>
                           </View>
                           <View style={{ alignItems: "flex-end" as const }}>
-                            <Text style={styles.miniPolicyPremium}>${p.premium}/{p.premiumFrequency === "monthly" ? "mo" : p.premiumFrequency === "annually" ? "yr" : p.premiumFrequency === "weekly" ? "wk" : "qtr"}</Text>
+                            <Text style={[styles.miniPolicyPremium, { fontSize: fs(14) }]}>${p.premium}/{p.premiumFrequency === "monthly" ? "mo" : p.premiumFrequency === "annually" ? "yr" : p.premiumFrequency === "weekly" ? "wk" : "qtr"}</Text>
                           </View>
                         </View>
                       ))}
                     </View>
                   )}
 
-                  <Text style={styles.subSectionTitle}>Coverage Levels</Text>
+                  <Text style={[styles.subSectionTitle, { fontSize: fs(14) }]}>Coverage Levels</Text>
                   {cat.tiers.map((tier, idx) => (
                     <View key={idx} style={styles.tierCard}>
                       <View style={styles.tierHeader}>
                         <View style={{ flex: 1 }}>
                           <View style={styles.tierTitleRow}>
-                            <Text style={styles.tierLevel}>{tier.level}</Text>
+                            <Text style={[styles.tierLevel, { fontSize: fs(15) }]}>{tier.level}</Text>
                             {tier.tag && (
                               <View style={[styles.tierTag, { backgroundColor: (tier.tagColor || "#6B7280") + "18" }]}>
-                                <Text style={[styles.tierTagText, { color: tier.tagColor }]}>{tier.tag}</Text>
+                                <Text style={[styles.tierTagText, { color: tier.tagColor, fontSize: fs(10) }]}>{tier.tag}</Text>
                               </View>
                             )}
                           </View>
                           <View style={styles.tierCostRow}>
-                            <Text style={styles.tierMonthly}>{tier.monthly}/mo</Text>
-                            <Text style={styles.tierCover}>{tier.coverAmount}</Text>
+                            <Text style={[styles.tierMonthly, { fontSize: fs(16) }]}>{tier.monthly}/mo</Text>
+                            <Text style={[styles.tierCover, { fontSize: fs(12) }]}>{tier.coverAmount}</Text>
                           </View>
                         </View>
                       </View>
                       <View style={styles.tierConsequences}>
-                        <Text style={styles.consequencesLabel}>What this means in practice:</Text>
+                        <Text style={[styles.consequencesLabel, { fontSize: fs(11) }]}>What this means in practice:</Text>
                         {tier.consequences.map((c, ci) => (
                           <View key={ci} style={styles.consequenceRow}>
                             <View style={[styles.consequenceDot, { backgroundColor: cat.color + "40" }]} />
-                            <Text style={styles.consequenceText}>{c}</Text>
+                            <Text style={[styles.consequenceText, { fontSize: fs(13) }]}>{c}</Text>
                           </View>
                         ))}
                       </View>
@@ -354,28 +356,28 @@ export default function InsuranceScreen() {
 
                   <View style={styles.tipsCard}>
                     <View style={styles.tipsHeader}>
-                      <Ionicons name="bulb-outline" size={18} color="#F59E0B" />
-                      <Text style={styles.tipsTitle}>Coverage Tips</Text>
+                      <Ionicons name="bulb-outline" size={is(18)} color="#F59E0B" />
+                      <Text style={[styles.tipsTitle, { fontSize: fs(14) }]}>Coverage Tips</Text>
                     </View>
                     {cat.tips.map((tip, i) => (
                       <View key={i} style={styles.tipRow}>
-                        <Text style={styles.tipNumber}>{i + 1}</Text>
-                        <Text style={styles.tipText}>{tip}</Text>
+                        <Text style={[styles.tipNumber, { fontSize: fs(12) }]}>{i + 1}</Text>
+                        <Text style={[styles.tipText, { fontSize: fs(13) }]}>{tip}</Text>
                       </View>
                     ))}
                   </View>
 
                   <View style={styles.optimiseCard}>
                     <View style={styles.tipsHeader}>
-                      <Ionicons name="flash-outline" size={18} color="#10B981" />
-                      <Text style={[styles.tipsTitle, { color: "#10B981" }]}>Save Money</Text>
+                      <Ionicons name="flash-outline" size={is(18)} color="#10B981" />
+                      <Text style={[styles.tipsTitle, { color: "#10B981", fontSize: fs(14) }]}>Save Money</Text>
                     </View>
                     {cat.optimisations.map((opt, i) => (
                       <View key={i} style={styles.tipRow}>
                         <View style={styles.optCheckCircle}>
-                          <Ionicons name="checkmark" size={10} color="#10B981" />
+                          <Ionicons name="checkmark" size={is(10)} color="#10B981" />
                         </View>
-                        <Text style={styles.tipText}>{opt}</Text>
+                        <Text style={[styles.tipText, { fontSize: fs(13) }]}>{opt}</Text>
                       </View>
                     ))}
                   </View>
@@ -386,11 +388,11 @@ export default function InsuranceScreen() {
         })}
 
         <View style={styles.otherSection}>
-          <Text style={styles.otherTitle}>Other Insurance</Text>
-          <Text style={styles.otherSubtext}>Health, travel, and income protection policies can also be tracked</Text>
+          <Text style={[styles.otherTitle, { fontSize: fs(16) }]}>Other Insurance</Text>
+          <Text style={[styles.otherSubtext, { fontSize: fs(13) }]}>Health, travel, and income protection policies can also be tracked</Text>
           <Pressable style={({ pressed }) => [styles.addPolicyBtn, pressed && { opacity: 0.9 }]} onPress={() => router.push("/add-insurance")}>
-            <Ionicons name="add" size={18} color={Colors.light.tint} />
-            <Text style={styles.addPolicyBtnText}>Add a Policy</Text>
+            <Ionicons name="add" size={is(18)} color={Colors.light.tint} />
+            <Text style={[styles.addPolicyBtnText, { fontSize: fs(14) }]}>Add a Policy</Text>
           </Pressable>
         </View>
       </ScrollView>

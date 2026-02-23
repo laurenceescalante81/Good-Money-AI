@@ -10,6 +10,7 @@ import { useRewards, Mission, TokenTransaction } from '@/contexts/RewardsContext
 import { MessageOverlay } from '@/contexts/AppMessagesContext';
 import Colors from '@/constants/colors';
 import CoinHeader from '@/components/CoinHeader';
+import { useAccessibility } from '@/contexts/AccessibilityContext';
 
 const { width: SCREEN_W } = Dimensions.get('window');
 const fmt = (n: number) => '$' + n.toLocaleString('en-AU', { maximumFractionDigits: 0 });
@@ -17,6 +18,7 @@ const fmt = (n: number) => '$' + n.toLocaleString('en-AU', { maximumFractionDigi
 type TabKey = 'hub' | 'missions' | 'badges' | 'redeem' | 'wallet';
 
 function SpinWheel() {
+  const { fs, is } = useAccessibility();
   const { canSpin, spinWheel, spinResetTime } = useRewards();
   const [spinning, setSpinning] = useState(false);
   const [prize, setPrize] = useState<number | null>(null);
@@ -54,16 +56,16 @@ function SpinWheel() {
     <View style={s.spinSection}>
       <View style={s.spinHeader}>
         <View style={s.spinTitleRow}>
-          <Ionicons name="sync" size={16} color={Colors.light.super} />
-          <Text style={s.spinLabel}>DAILY SPIN</Text>
+          <Ionicons name="sync" size={is(16)} color={Colors.light.super} />
+          <Text style={[s.spinLabel, { fontSize: fs(11) }]}>DAILY SPIN</Text>
         </View>
         <View style={s.spinResetBadge}>
-          <Text style={s.spinResetLabel}>RESETS IN</Text>
-          <Text style={s.spinResetTime}>{spinResetTime}</Text>
+          <Text style={[s.spinResetLabel, { fontSize: fs(9) }]}>RESETS IN</Text>
+          <Text style={[s.spinResetTime, { fontSize: fs(14) }]}>{spinResetTime}</Text>
         </View>
       </View>
-      <Text style={s.spinTitle}>Spin for bonus Good Coins</Text>
-      <Text style={s.spinSub}>1 free spin per day — up to 500 coins</Text>
+      <Text style={[s.spinTitle, { fontSize: fs(20) }]}>Spin for bonus Good Coins</Text>
+      <Text style={[s.spinSub, { fontSize: fs(13) }]}>1 free spin per day — up to 500 coins</Text>
 
       <View style={s.wheelContainer}>
         <Animated.View style={[s.wheel, wheelStyle]}>
@@ -72,23 +74,23 @@ function SpinWheel() {
             return (
               <View key={i} style={[s.wheelSegment, { transform: [{ rotate: `${angle}deg` }] }]}>
                 <View style={[s.segmentInner, { backgroundColor: seg.color }]}>
-                  <Text style={s.segmentText}>{seg.label}</Text>
+                  <Text style={[s.segmentText, { fontSize: fs(10) }]}>{seg.label}</Text>
                 </View>
               </View>
             );
           })}
           <View style={s.wheelCenter}>
-            <Ionicons name="gift" size={20} color="#fff" />
+            <Ionicons name="gift" size={is(20)} color="#fff" />
           </View>
         </Animated.View>
         <View style={s.wheelPointer}>
-          <Ionicons name="caret-down" size={24} color={Colors.light.super} />
+          <Ionicons name="caret-down" size={is(24)} color={Colors.light.super} />
         </View>
       </View>
 
       {prize !== null && (
         <View style={s.prizeResult}>
-          <Text style={s.prizeText}>+{prize} coins earned!</Text>
+          <Text style={[s.prizeText, { fontSize: fs(22) }]}>+{prize} coins earned!</Text>
         </View>
       )}
 
@@ -97,13 +99,14 @@ function SpinWheel() {
         disabled={!canSpin || spinning}
         style={({ pressed }) => [s.spinBtn, (!canSpin || spinning) && s.spinBtnDisabled, pressed && { opacity: 0.85 }]}
       >
-        <Text style={s.spinBtnText}>{spinning ? 'Spinning...' : canSpin ? 'SPIN' : 'Come back tomorrow'}</Text>
+        <Text style={[s.spinBtnText, { fontSize: fs(16) }]}>{spinning ? 'Spinning...' : canSpin ? 'SPIN' : 'Come back tomorrow'}</Text>
       </Pressable>
     </View>
   );
 }
 
 function ScratchCard() {
+  const { fs, is } = useAccessibility();
   const { canScratch, scratchCard } = useRewards();
   const [revealed, setRevealed] = useState(false);
   const [prize, setPrize] = useState(0);
@@ -130,15 +133,15 @@ function ScratchCard() {
     <View style={s.scratchSection}>
       <View style={s.scratchHeaderRow}>
         <View style={s.scratchTitleRow}>
-          <Ionicons name="ticket" size={16} color={Colors.light.tint} />
-          <Text style={s.scratchLabel}>WEEKLY SCRATCH</Text>
+          <Ionicons name="ticket" size={is(16)} color={Colors.light.tint} />
+          <Text style={[s.scratchLabel, { fontSize: fs(11) }]}>WEEKLY SCRATCH</Text>
         </View>
         <View style={s.scratchNewBadge}>
-          <Text style={s.scratchNewText}>NEW</Text>
+          <Text style={[s.scratchNewText, { fontSize: fs(10) }]}>NEW</Text>
         </View>
       </View>
-      <Text style={s.scratchTitle}>Scratch for a bonus reward</Text>
-      <Text style={s.scratchSub}>1 card available this week</Text>
+      <Text style={[s.scratchTitle, { fontSize: fs(20) }]}>Scratch for a bonus reward</Text>
+      <Text style={[s.scratchSub, { fontSize: fs(13) }]}>1 card available this week</Text>
 
       <Pressable onPress={handleScratch} disabled={revealed || !canScratch}>
         <Animated.View style={[s.scratchCardBody, cardStyle]}>
@@ -151,16 +154,16 @@ function ScratchCard() {
             {!revealed ? (
               <>
                 <View style={s.scratchIconWrap}>
-                  <Ionicons name="gift" size={32} color="#D4AF37" />
+                  <Ionicons name="gift" size={is(32)} color="#D4AF37" />
                 </View>
-                <Text style={s.scratchTapText}>Tap to Scratch</Text>
-                <Text style={s.scratchTapSub}>PP Bonus Card</Text>
+                <Text style={[s.scratchTapText, { fontSize: fs(16) }]}>Tap to Scratch</Text>
+                <Text style={[s.scratchTapSub, { fontSize: fs(12) }]}>PP Bonus Card</Text>
               </>
             ) : (
               <>
-                <Ionicons name="checkmark-circle" size={36} color="#fff" />
-                <Text style={s.scratchPrizeText}>+{prize} coins</Text>
-                <Text style={s.scratchWonText}>Bonus coins added!</Text>
+                <Ionicons name="checkmark-circle" size={is(36)} color="#fff" />
+                <Text style={[s.scratchPrizeText, { fontSize: fs(32) }]}>+{prize} coins</Text>
+                <Text style={[s.scratchWonText, { fontSize: fs(14) }]}>Bonus coins added!</Text>
               </>
             )}
           </LinearGradient>
@@ -171,6 +174,7 @@ function ScratchCard() {
 }
 
 function MissionItem({ mission }: { mission: Mission }) {
+  const { fs, is } = useAccessibility();
   const now = Date.now();
   const remaining = Math.max(0, mission.expiresAt - now);
   const days = Math.floor(remaining / 86400000);
@@ -181,50 +185,52 @@ function MissionItem({ mission }: { mission: Mission }) {
   return (
     <View style={[s.missionItem, mission.completed && s.missionCompleted]}>
       <View style={[s.missionIcon, { backgroundColor: mission.iconBg + '15' }]}>
-        <Ionicons name={mission.icon as any} size={22} color={mission.iconBg} />
+        <Ionicons name={mission.icon as any} size={is(22)} color={mission.iconBg} />
       </View>
       <View style={s.missionInfo}>
-        <Text style={[s.missionTitle, mission.completed && s.missionTitleDone]}>{mission.title}</Text>
-        <Text style={s.missionDesc}>{mission.description}</Text>
+        <Text style={[s.missionTitle, { fontSize: fs(15) }, mission.completed && s.missionTitleDone]}>{mission.title}</Text>
+        <Text style={[s.missionDesc, { fontSize: fs(12) }]}>{mission.description}</Text>
         {!mission.completed && (
           <View style={s.missionExpiryRow}>
-            <Ionicons name="hourglass-outline" size={12} color={Colors.light.amber} />
-            <Text style={s.missionExpiry}>Expires in {expiryText}</Text>
+            <Ionicons name="hourglass-outline" size={is(12)} color={Colors.light.amber} />
+            <Text style={[s.missionExpiry, { fontSize: fs(11) }]}>Expires in {expiryText}</Text>
           </View>
         )}
       </View>
       <View style={s.missionPtsCol}>
         {mission.is2xActive && (
           <>
-            <Text style={s.missionOldPts}>+{mission.basePoints}</Text>
+            <Text style={[s.missionOldPts, { fontSize: fs(12) }]}>+{mission.basePoints}</Text>
             <View style={s.mission2xBadge}>
-              <Text style={s.mission2xText}>2x ACTIVE</Text>
+              <Text style={[s.mission2xText, { fontSize: fs(9) }]}>2x ACTIVE</Text>
             </View>
           </>
         )}
-        <Text style={[s.missionPts, mission.completed && { color: Colors.light.gray400 }]}>
+        <Text style={[s.missionPts, { fontSize: fs(18) }, mission.completed && { color: Colors.light.gray400 }]}>
           {mission.completed ? 'Done' : `+${effectivePts}`}
         </Text>
-        {!mission.completed && !mission.is2xActive && <Text style={s.missionPtsSuffix}>coins</Text>}
+        {!mission.completed && !mission.is2xActive && <Text style={[s.missionPtsSuffix, { fontSize: fs(11) }]}>coins</Text>}
       </View>
     </View>
   );
 }
 
 function BadgeItem({ badge }: { badge: { id: string; title: string; description: string; icon: string; color: string; unlocked: boolean } }) {
+  const { fs, is } = useAccessibility();
   return (
     <View style={[s.badgeItem, !badge.unlocked && s.badgeLocked]}>
       <View style={[s.badgeIconWrap, { backgroundColor: badge.unlocked ? badge.color + '15' : Colors.light.gray100 }]}>
-        <Ionicons name={badge.icon as any} size={24} color={badge.unlocked ? badge.color : Colors.light.gray400} />
+        <Ionicons name={badge.icon as any} size={is(24)} color={badge.unlocked ? badge.color : Colors.light.gray400} />
       </View>
-      <Text style={[s.badgeName, !badge.unlocked && s.badgeNameLocked]}>{badge.title}</Text>
-      <Text style={s.badgeDesc}>{badge.description}</Text>
-      {badge.unlocked && <Ionicons name="checkmark-circle" size={16} color={Colors.light.income} style={s.badgeCheck} />}
+      <Text style={[s.badgeName, { fontSize: fs(12) }, !badge.unlocked && s.badgeNameLocked]}>{badge.title}</Text>
+      <Text style={[s.badgeDesc, { fontSize: fs(10) }]}>{badge.description}</Text>
+      {badge.unlocked && <Ionicons name="checkmark-circle" size={is(16)} color={Colors.light.income} style={s.badgeCheck} />}
     </View>
   );
 }
 
 export default function RewardsScreen() {
+  const { fs, is } = useAccessibility();
   const insets = useSafeAreaInsets();
   const topInset = Platform.OS === 'web' ? 67 : insets.top;
   const { state, missions, badges, rewards, checkIn, redeemReward, convertPointsToTokens, getFactFindProgress, canSpin, canScratch, is2xWeekend, xpForLevel, TOKEN_RATE } = useRewards();
@@ -303,50 +309,50 @@ export default function RewardsScreen() {
           <LinearGradient colors={[Colors.light.navy, Colors.light.navyMid]} style={s.heroGradient}>
             <View style={s.pointsTopRow}>
               <View>
-                <Text style={s.pointsLabel}>GOOD COINS</Text>
-                <Text style={s.pointsBig}>{state.points.toLocaleString()}<Text style={s.pointsSuffix}> coins</Text></Text>
-                <Text style={s.pointsCash}>{'\u2248'} ${coinValue} cash value</Text>
+                <Text style={[s.pointsLabel, { fontSize: fs(11) }]}>GOOD COINS</Text>
+                <Text style={[s.pointsBig, { fontSize: fs(36) }]}>{state.points.toLocaleString()}<Text style={[s.pointsSuffix, { fontSize: fs(18) }]}> coins</Text></Text>
+                <Text style={[s.pointsCash, { fontSize: fs(13) }]}>{'\u2248'} ${coinValue} cash value</Text>
                 {(state.tokenBalance ?? 0) > 0 && (
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 4 }}>
                     <View style={{ width: 14, height: 14, borderRadius: 7, backgroundColor: '#D4AF37', alignItems: 'center', justifyContent: 'center' }}>
-                      <Text style={{ fontSize: 7, fontFamily: 'DMSans_700Bold' as const, color: '#0C1B2A' }}>pp</Text>
+                      <Text style={{ fontSize: fs(7), fontFamily: 'DMSans_700Bold' as const, color: '#0C1B2A' }}>pp</Text>
                     </View>
-                    <Text style={{ fontSize: 12, fontFamily: 'DMSans_600SemiBold' as const, color: '#D4AF37' }}>{(state.tokenBalance ?? 0).toFixed(2)} Good Coins</Text>
+                    <Text style={{ fontSize: fs(12), fontFamily: 'DMSans_600SemiBold' as const, color: '#D4AF37' }}>{(state.tokenBalance ?? 0).toFixed(2)} Good Coins</Text>
                   </View>
                 )}
               </View>
               <View style={s.levelBadge}>
-                <Text style={s.levelBadgeLabel}>LEVEL</Text>
-                <Text style={s.levelBadgeNum}>{state.level}</Text>
-                <Text style={s.levelBadgeName}>{levelName}</Text>
+                <Text style={[s.levelBadgeLabel, { fontSize: fs(9) }]}>LEVEL</Text>
+                <Text style={[s.levelBadgeNum, { fontSize: fs(24) }]}>{state.level}</Text>
+                <Text style={[s.levelBadgeName, { fontSize: fs(10) }]}>{levelName}</Text>
               </View>
             </View>
 
             {is2xWeekend && (
               <View style={s.weekendBadge}>
-                <Ionicons name="flash" size={12} color="#D4AF37" />
-                <Text style={s.weekendBadgeText}>2x Weekend</Text>
+                <Ionicons name="flash" size={is(12)} color="#D4AF37" />
+                <Text style={[s.weekendBadgeText, { fontSize: fs(11) }]}>2x Weekend</Text>
               </View>
             )}
 
             <View style={s.xpRow}>
-              <Text style={s.xpLabel}>Lv {state.level} {'\u2192'} Lv {state.level + 1}</Text>
-              <Text style={s.xpNums}>{state.xp.toLocaleString()} / {xpNeeded.toLocaleString()} XP</Text>
+              <Text style={[s.xpLabel, { fontSize: fs(12) }]}>Lv {state.level} {'\u2192'} Lv {state.level + 1}</Text>
+              <Text style={[s.xpNums, { fontSize: fs(12) }]}>{state.xp.toLocaleString()} / {xpNeeded.toLocaleString()} XP</Text>
             </View>
             <View style={s.xpBarBg}>
               <LinearGradient colors={[Colors.light.tint, Colors.light.tintLight]} style={[s.xpBarFill, { width: `${xpPct}%` }]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} />
             </View>
-            <Text style={s.xpRemaining}>{(xpNeeded - state.xp).toLocaleString()} XP to next level</Text>
+            <Text style={[s.xpRemaining, { fontSize: fs(11) }]}>{(xpNeeded - state.xp).toLocaleString()} XP to next level</Text>
 
             <View style={s.statsRow}>
               <View style={s.statItem}>
-                <Text style={s.statLabel}>MISSIONS</Text>
-                <Text style={s.statValue}>{completedMissions}/{missions.length}</Text>
+                <Text style={[s.statLabel, { fontSize: fs(10) }]}>MISSIONS</Text>
+                <Text style={[s.statValue, { fontSize: fs(18) }]}>{completedMissions}/{missions.length}</Text>
               </View>
               <View style={s.statDivider} />
               <View style={s.statItem}>
-                <Text style={s.statLabel}>BADGES</Text>
-                <Text style={s.statValue}>{unlockedBadges}/{badges.length}</Text>
+                <Text style={[s.statLabel, { fontSize: fs(10) }]}>BADGES</Text>
+                <Text style={[s.statValue, { fontSize: fs(18) }]}>{unlockedBadges}/{badges.length}</Text>
               </View>
             </View>
           </LinearGradient>
@@ -359,8 +365,8 @@ export default function RewardsScreen() {
               onPress={() => { setActiveTab(tab.key); Haptics.selectionAsync(); }}
               style={[s.tabItem, activeTab === tab.key && s.tabItemActive]}
             >
-              <Ionicons name={tab.icon as any} size={16} color={activeTab === tab.key ? Colors.light.tint : Colors.light.gray400} />
-              <Text style={[s.tabText, activeTab === tab.key && s.tabTextActive]}>{tab.label}</Text>
+              <Ionicons name={tab.icon as any} size={is(16)} color={activeTab === tab.key ? Colors.light.tint : Colors.light.gray400} />
+              <Text style={[s.tabText, { fontSize: fs(13) }, activeTab === tab.key && s.tabTextActive]}>{tab.label}</Text>
             </Pressable>
           ))}
         </View>
@@ -373,36 +379,36 @@ export default function RewardsScreen() {
                   <View style={s.factFindRow}>
                     <View style={{ flex: 1 }}>
                       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 4 }}>
-                        <Ionicons name="search" size={14} color="#D4AF37" />
-                        <Text style={s.factFindLabel}>FINANCIAL FACT FIND</Text>
+                        <Ionicons name="search" size={is(14)} color="#D4AF37" />
+                        <Text style={[s.factFindLabel, { fontSize: fs(10) }]}>FINANCIAL FACT FIND</Text>
                       </View>
-                      <Text style={s.factFindTitle}>Complete your profile & earn Good Coins</Text>
-                      <Text style={s.factFindSub}>Enter your details to unlock comparisons & switch requests</Text>
+                      <Text style={[s.factFindTitle, { fontSize: fs(16) }]}>Complete your profile & earn Good Coins</Text>
+                      <Text style={[s.factFindSub, { fontSize: fs(12) }]}>Enter your details to unlock comparisons & switch requests</Text>
                     </View>
                     <View style={s.factFindProgress}>
-                      <Text style={s.factFindPct}>{getFactFindProgress().percentage}%</Text>
+                      <Text style={[s.factFindPct, { fontSize: fs(18) }]}>{getFactFindProgress().percentage}%</Text>
                       <View style={s.factFindBarBg}>
                         <View style={[s.factFindBarFill, { width: `${getFactFindProgress().percentage}%` }]} />
                       </View>
                     </View>
                   </View>
                   <View style={s.factFindCoinsRow}>
-                    <View style={{ width: 16, height: 16, borderRadius: 8, backgroundColor: '#F59E0B', alignItems: 'center', justifyContent: 'center', borderWidth: 1.5, borderColor: '#D4930D' }}><Text style={{ fontSize: 8, fontWeight: '800', color: '#7C5800' }}>$</Text></View>
-                    <Text style={s.factFindCoinsText}>Earn up to 5,450 Good Coins</Text>
-                    <Ionicons name="chevron-forward" size={16} color="rgba(255,255,255,0.6)" />
+                    <View style={{ width: 16, height: 16, borderRadius: 8, backgroundColor: '#F59E0B', alignItems: 'center', justifyContent: 'center', borderWidth: 1.5, borderColor: '#D4930D' }}><Text style={{ fontSize: fs(8), fontWeight: '800', color: '#7C5800' }}>$</Text></View>
+                    <Text style={[s.factFindCoinsText, { fontSize: fs(12) }]}>Earn up to 5,450 Good Coins</Text>
+                    <Ionicons name="chevron-forward" size={is(16)} color="rgba(255,255,255,0.6)" />
                   </View>
                 </LinearGradient>
               </Pressable>
 
               {is2xWeekend && (
                 <View style={s.promoCard}>
-                  <Ionicons name="flash" size={18} color="#D4AF37" />
+                  <Ionicons name="flash" size={is(18)} color="#D4AF37" />
                   <View style={s.promoInfo}>
-                    <Text style={s.promoTitle}>2x COINS WEEKEND</Text>
-                    <Text style={s.promoDesc}>All missions earn double this weekend</Text>
-                    <Text style={s.promoExpiry}>Ends Sunday at midnight</Text>
+                    <Text style={[s.promoTitle, { fontSize: fs(13) }]}>2x COINS WEEKEND</Text>
+                    <Text style={[s.promoDesc, { fontSize: fs(13) }]}>All missions earn double this weekend</Text>
+                    <Text style={[s.promoExpiry, { fontSize: fs(11) }]}>Ends Sunday at midnight</Text>
                   </View>
-                  <Text style={s.promo2x}>2x</Text>
+                  <Text style={[s.promo2x, { fontSize: fs(28) }]}>2x</Text>
                 </View>
               )}
 
@@ -414,12 +420,12 @@ export default function RewardsScreen() {
           {activeTab === 'missions' && (
             <>
               <View style={s.sectionHeaderRow}>
-                <Text style={s.sectionTitle}>Active Missions</Text>
+                <Text style={[s.sectionTitle, { fontSize: fs(18) }]}>Active Missions</Text>
               </View>
               {missions.filter(m => !m.completed).map(m => <MissionItem key={m.id} mission={m} />)}
               {missions.filter(m => m.completed).length > 0 && (
                 <>
-                  <Text style={[s.sectionTitle, { marginTop: 24 }]}>Completed</Text>
+                  <Text style={[s.sectionTitle, { marginTop: 24, fontSize: fs(18) }]}>Completed</Text>
                   {missions.filter(m => m.completed).map(m => <MissionItem key={m.id} mission={m} />)}
                 </>
               )}
@@ -428,8 +434,8 @@ export default function RewardsScreen() {
 
           {activeTab === 'badges' && (
             <>
-              <Text style={s.sectionTitle}>Your Badges</Text>
-              <Text style={s.badgesSubtitle}>{unlockedBadges} of {badges.length} unlocked</Text>
+              <Text style={[s.sectionTitle, { fontSize: fs(18) }]}>Your Badges</Text>
+              <Text style={[s.badgesSubtitle, { fontSize: fs(13) }]}>{unlockedBadges} of {badges.length} unlocked</Text>
               <View style={s.badgesGrid}>
                 {badges.map(b => <BadgeItem key={b.id} badge={b} />)}
               </View>
@@ -445,59 +451,59 @@ export default function RewardsScreen() {
                       <Image source={require('@/assets/images/logo.jpeg')} style={s.walletLogo} />
                     </View>
                     <View style={s.walletTokenInfo}>
-                      <Text style={s.walletTokenName}>Good Coins</Text>
-                      <Text style={s.walletTokenSub}>Good Money AUD Stablecoin</Text>
+                      <Text style={[s.walletTokenName, { fontSize: fs(18) }]}>Good Coins</Text>
+                      <Text style={[s.walletTokenSub, { fontSize: fs(11) }]}>Good Money AUD Stablecoin</Text>
                     </View>
                     <View style={s.walletPegBadge}>
-                      <Text style={s.walletPegText}>1:1 AUD</Text>
+                      <Text style={[s.walletPegText, { fontSize: fs(11) }]}>1:1 AUD</Text>
                     </View>
                   </View>
 
-                  <Text style={s.walletBalanceLabel}>Token Balance</Text>
-                  <Text style={s.walletBalanceBig}>{(state.tokenBalance ?? 0).toLocaleString('en-AU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}<Text style={s.walletBalanceCurrency}> Good Coins</Text></Text>
-                  <Text style={s.walletBalanceAud}>{'\u2248'} ${(state.tokenBalance ?? 0).toLocaleString('en-AU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} AUD</Text>
+                  <Text style={[s.walletBalanceLabel, { fontSize: fs(11) }]}>Token Balance</Text>
+                  <Text style={[s.walletBalanceBig, { fontSize: fs(36) }]}>{(state.tokenBalance ?? 0).toLocaleString('en-AU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}<Text style={[s.walletBalanceCurrency, { fontSize: fs(16) }]}> Good Coins</Text></Text>
+                  <Text style={[s.walletBalanceAud, { fontSize: fs(13) }]}>{'\u2248'} ${(state.tokenBalance ?? 0).toLocaleString('en-AU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} AUD</Text>
 
                   <View style={s.walletStatsRow}>
                     <View style={s.walletStatItem}>
-                      <Text style={s.walletStatLabel}>Total Earned</Text>
-                      <Text style={s.walletStatValue}>{(state.totalTokensEarned ?? 0).toFixed(2)}</Text>
+                      <Text style={[s.walletStatLabel, { fontSize: fs(10) }]}>Total Earned</Text>
+                      <Text style={[s.walletStatValue, { fontSize: fs(14) }]}>{(state.totalTokensEarned ?? 0).toFixed(2)}</Text>
                     </View>
                     <View style={s.walletStatDivider} />
                     <View style={s.walletStatItem}>
-                      <Text style={s.walletStatLabel}>Rate</Text>
-                      <Text style={s.walletStatValue}>{TOKEN_RATE} coins = 1</Text>
+                      <Text style={[s.walletStatLabel, { fontSize: fs(10) }]}>Rate</Text>
+                      <Text style={[s.walletStatValue, { fontSize: fs(14) }]}>{TOKEN_RATE} coins = 1</Text>
                     </View>
                     <View style={s.walletStatDivider} />
                     <View style={s.walletStatItem}>
-                      <Text style={s.walletStatLabel}>Available Coins</Text>
-                      <Text style={s.walletStatValue}>{state.points.toLocaleString()}</Text>
+                      <Text style={[s.walletStatLabel, { fontSize: fs(10) }]}>Available Coins</Text>
+                      <Text style={[s.walletStatValue, { fontSize: fs(14) }]}>{state.points.toLocaleString()}</Text>
                     </View>
                   </View>
                 </LinearGradient>
               </View>
 
               <View style={s.convertSection}>
-                <Text style={s.convertTitle}>Convert to Good Coins</Text>
-                <Text style={s.convertDesc}>{TOKEN_RATE} coins = 1.00 Good Coin (pegged 1:1 to AUD)</Text>
+                <Text style={[s.convertTitle, { fontSize: fs(16) }]}>Convert to Good Coins</Text>
+                <Text style={[s.convertDesc, { fontSize: fs(12) }]}>{TOKEN_RATE} coins = 1.00 Good Coin (pegged 1:1 to AUD)</Text>
 
                 <View style={s.convertInputRow}>
                   <View style={s.convertInputWrap}>
                     <TextInput
-                      style={s.convertInput}
+                      style={[s.convertInput, { fontSize: fs(16) }]}
                       placeholder="Enter coins"
                       placeholderTextColor={Colors.light.gray400}
                       keyboardType="number-pad"
                       value={convertAmount}
                       onChangeText={setConvertAmount}
                     />
-                    <Text style={s.convertInputSuffix}>coins</Text>
+                    <Text style={[s.convertInputSuffix, { fontSize: fs(13) }]}>coins</Text>
                   </View>
-                  <Ionicons name="arrow-forward" size={20} color={Colors.light.gray400} />
+                  <Ionicons name="arrow-forward" size={is(20)} color={Colors.light.gray400} />
                   <View style={s.convertOutputWrap}>
-                    <Text style={s.convertOutputValue}>
+                    <Text style={[s.convertOutputValue, { fontSize: fs(16) }]}>
                       {convertAmount && !isNaN(parseInt(convertAmount)) ? (Math.floor(parseInt(convertAmount) / TOKEN_RATE)).toFixed(2) : '0.00'}
                     </Text>
-                    <Text style={s.convertOutputSuffix}>Good Coins</Text>
+                    <Text style={[s.convertOutputSuffix, { fontSize: fs(13) }]}>Good Coins</Text>
                   </View>
                 </View>
 
@@ -508,7 +514,7 @@ export default function RewardsScreen() {
                       onPress={() => setConvertAmount(val === 'Max' ? String(state.points) : String(val))} 
                       style={s.convertQuickBtn}
                     >
-                      <Text style={s.convertQuickText}>{val === 'Max' ? 'MAX' : val}</Text>
+                      <Text style={[s.convertQuickText, { fontSize: fs(12) }]}>{val === 'Max' ? 'MAX' : val}</Text>
                     </Pressable>
                   ))}
                 </View>
@@ -517,55 +523,55 @@ export default function RewardsScreen() {
                   onPress={handleConvert}
                   style={({ pressed }) => [s.convertBtn, pressed && { opacity: 0.85 }]}
                 >
-                  <Ionicons name="swap-horizontal" size={18} color="#fff" />
-                  <Text style={s.convertBtnText}>Convert to Good Coins</Text>
+                  <Ionicons name="swap-horizontal" size={is(18)} color="#fff" />
+                  <Text style={[s.convertBtnText, { fontSize: fs(15) }]}>Convert to Good Coins</Text>
                 </Pressable>
               </View>
 
               <View style={s.tokenInfoSection}>
-                <Text style={s.tokenInfoTitle}>About Good Coins</Text>
+                <Text style={[s.tokenInfoTitle, { fontSize: fs(16) }]}>About Good Coins</Text>
                 <View style={s.tokenInfoRow}>
                   <View style={[s.tokenInfoIcon, { backgroundColor: '#D4AF3715' }]}>
-                    <Ionicons name="shield-checkmark-outline" size={18} color="#D4AF37" />
+                    <Ionicons name="shield-checkmark-outline" size={is(18)} color="#D4AF37" />
                   </View>
                   <View style={s.tokenInfoContent}>
-                    <Text style={s.tokenInfoLabel}>AUD Stablecoin</Text>
-                    <Text style={s.tokenInfoDesc}>Pegged 1:1 to the Australian Dollar. Your tokens hold stable value.</Text>
+                    <Text style={[s.tokenInfoLabel, { fontSize: fs(14) }]}>AUD Stablecoin</Text>
+                    <Text style={[s.tokenInfoDesc, { fontSize: fs(12) }]}>Pegged 1:1 to the Australian Dollar. Your tokens hold stable value.</Text>
                   </View>
                 </View>
                 <View style={s.tokenInfoRow}>
                   <View style={[s.tokenInfoIcon, { backgroundColor: Colors.light.super + '15' }]}>
-                    <Ionicons name="swap-horizontal-outline" size={18} color={Colors.light.super} />
+                    <Ionicons name="swap-horizontal-outline" size={is(18)} color={Colors.light.super} />
                   </View>
                   <View style={s.tokenInfoContent}>
-                    <Text style={s.tokenInfoLabel}>Instant Conversion</Text>
-                    <Text style={s.tokenInfoDesc}>Convert your earned points to Good Coins instantly at {TOKEN_RATE} points per coin.</Text>
+                    <Text style={[s.tokenInfoLabel, { fontSize: fs(14) }]}>Instant Conversion</Text>
+                    <Text style={[s.tokenInfoDesc, { fontSize: fs(12) }]}>Convert your earned points to Good Coins instantly at {TOKEN_RATE} points per coin.</Text>
                   </View>
                 </View>
                 <View style={s.tokenInfoRow}>
                   <View style={[s.tokenInfoIcon, { backgroundColor: Colors.light.income + '15' }]}>
-                    <Ionicons name="gift-outline" size={18} color={Colors.light.income} />
+                    <Ionicons name="gift-outline" size={is(18)} color={Colors.light.income} />
                   </View>
                   <View style={s.tokenInfoContent}>
-                    <Text style={s.tokenInfoLabel}>Redeem for Rewards</Text>
-                    <Text style={s.tokenInfoDesc}>Use Good Coins towards cashback, gift cards, and premium benefits.</Text>
+                    <Text style={[s.tokenInfoLabel, { fontSize: fs(14) }]}>Redeem for Rewards</Text>
+                    <Text style={[s.tokenInfoDesc, { fontSize: fs(12) }]}>Use Good Coins towards cashback, gift cards, and premium benefits.</Text>
                   </View>
                 </View>
               </View>
 
               {(state.tokenTransactions ?? []).length > 0 && (
                 <View style={s.txnSection}>
-                  <Text style={s.txnTitle}>Transaction History</Text>
+                  <Text style={[s.txnTitle, { fontSize: fs(16) }]}>Transaction History</Text>
                   {(state.tokenTransactions ?? []).slice(0, 10).map((txn) => (
                     <View key={txn.id} style={s.txnRow}>
                       <View style={s.txnIconWrap}>
-                        <Ionicons name={txn.type === 'convert' ? 'swap-horizontal' : txn.type === 'reward' ? 'gift' : 'flash'} size={16} color={Colors.light.tint} />
+                        <Ionicons name={txn.type === 'convert' ? 'swap-horizontal' : txn.type === 'reward' ? 'gift' : 'flash'} size={is(16)} color={Colors.light.tint} />
                       </View>
                       <View style={s.txnInfo}>
-                        <Text style={s.txnDesc}>{txn.description}</Text>
-                        <Text style={s.txnDate}>{new Date(txn.date).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</Text>
+                        <Text style={[s.txnDesc, { fontSize: fs(13) }]}>{txn.description}</Text>
+                        <Text style={[s.txnDate, { fontSize: fs(11) }]}>{new Date(txn.date).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</Text>
                       </View>
-                      <Text style={s.txnAmount}>+{txn.amount.toFixed(2)}</Text>
+                      <Text style={[s.txnAmount, { fontSize: fs(15) }]}>+{txn.amount.toFixed(2)}</Text>
                     </View>
                   ))}
                 </View>
@@ -576,9 +582,9 @@ export default function RewardsScreen() {
           {activeTab === 'redeem' && (
             <>
               <View style={s.sectionHeaderRow}>
-                <Text style={s.sectionTitle}>Popular Rewards</Text>
+                <Text style={[s.sectionTitle, { fontSize: fs(18) }]}>Popular Rewards</Text>
               </View>
-              <Text style={s.redeemBalance}>Your balance: {state.points.toLocaleString()} coins</Text>
+              <Text style={[s.redeemBalance, { fontSize: fs(14) }]}>Your balance: {state.points.toLocaleString()} coins</Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} style={s.rewardsScroll} contentContainerStyle={s.rewardsScrollContent}>
                 {rewards.map(r => (
                   <Pressable
@@ -587,17 +593,17 @@ export default function RewardsScreen() {
                     style={({ pressed }) => [s.rewardCard, r.redeemed && s.rewardRedeemed, pressed && !r.redeemed && { opacity: 0.85 }]}
                   >
                     <View style={[s.rewardIconWrap, { backgroundColor: r.redeemed ? Colors.light.gray100 : Colors.light.tint + '12' }]}>
-                      <Ionicons name={r.icon as any} size={28} color={r.redeemed ? Colors.light.gray400 : Colors.light.tint} />
+                      <Ionicons name={r.icon as any} size={is(28)} color={r.redeemed ? Colors.light.gray400 : Colors.light.tint} />
                     </View>
-                    <Text style={s.rewardTitle}>{r.title}</Text>
-                    <Text style={[s.rewardCost, r.redeemed && { color: Colors.light.gray400 }]}>
+                    <Text style={[s.rewardTitle, { fontSize: fs(13) }]}>{r.title}</Text>
+                    <Text style={[s.rewardCost, { fontSize: fs(13) }, r.redeemed && { color: Colors.light.gray400 }]}>
                       {r.redeemed ? 'Redeemed' : `${r.pointsCost.toLocaleString()} coins`}
                     </Text>
                   </Pressable>
                 ))}
               </ScrollView>
 
-              <Text style={[s.sectionTitle, { marginTop: 28 }]}>How to Earn Coins</Text>
+              <Text style={[s.sectionTitle, { marginTop: 28, fontSize: fs(18) }]}>How to Earn Coins</Text>
               {[
                 { icon: 'flame-outline', label: 'Daily Check-in', pts: '+50/day', color: Colors.light.amber },
                 { icon: 'sync-outline', label: 'Daily Spin', pts: 'Up to +500', color: Colors.light.super },
@@ -606,10 +612,10 @@ export default function RewardsScreen() {
               ].map((item, i) => (
                 <View key={i} style={s.earnRow}>
                   <View style={[s.earnIcon, { backgroundColor: item.color + '12' }]}>
-                    <Ionicons name={item.icon as any} size={20} color={item.color} />
+                    <Ionicons name={item.icon as any} size={is(20)} color={item.color} />
                   </View>
-                  <Text style={s.earnLabel}>{item.label}</Text>
-                  <Text style={s.earnPts}>{item.pts}</Text>
+                  <Text style={[s.earnLabel, { fontSize: fs(14) }]}>{item.label}</Text>
+                  <Text style={[s.earnPts, { fontSize: fs(14) }]}>{item.pts}</Text>
                 </View>
               ))}
             </>

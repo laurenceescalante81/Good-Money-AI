@@ -9,14 +9,16 @@ import { useFinance } from "@/contexts/FinanceContext";
 import { useRewards } from "@/contexts/RewardsContext";
 import { MessageOverlay } from "@/contexts/AppMessagesContext";
 import CoinHeader from '@/components/CoinHeader';
+import { useAccessibility } from '@/contexts/AccessibilityContext';
 
 function fmt(n: number): string { return "$" + n.toLocaleString("en-AU", { minimumFractionDigits: 0, maximumFractionDigits: 0 }); }
 
 function StatRow({ label, value, color }: { label: string; value: string; color?: string }) {
+  const { fs } = useAccessibility();
   return (
     <View style={styles.statRow}>
-      <Text style={styles.statLabel}>{label}</Text>
-      <Text style={[styles.statValue, color ? { color } : {}]}>{value}</Text>
+      <Text style={[styles.statLabel, { fontSize: fs(14) }]}>{label}</Text>
+      <Text style={[styles.statValue, { fontSize: fs(14) }, color ? { color } : {}]}>{value}</Text>
     </View>
   );
 }
@@ -26,22 +28,23 @@ export default function SuperScreen() {
   const topInset = Platform.OS === "web" ? 67 : insets.top;
   const { superDetails, calculateSuperProjection, clearSuper } = useFinance();
   const { state: rewardsState, missions, completeMission } = useRewards();
+  const { fs, is } = useAccessibility();
   const superMission = missions.find(m => m.id === 'compare_super' && !m.completed);
 
   if (!superDetails) {
     return (
       <View style={styles.container}>
         <CoinHeader title="Super" />
-        <Text style={styles.pageDesc}>Monitor your superannuation balance and retirement projections.</Text>
+        <Text style={[styles.pageDesc, { fontSize: fs(14) }]}>Monitor your superannuation balance and retirement projections.</Text>
         <View style={styles.emptyState}>
           <View style={[styles.emptyIcon, { backgroundColor: Colors.light.super + "15" }]}>
-            <Ionicons name="trending-up-outline" size={48} color={Colors.light.super} />
+            <Ionicons name="trending-up-outline" size={is(48)} color={Colors.light.super} />
           </View>
-          <Text style={styles.emptyText}>Track your super</Text>
-          <Text style={styles.emptySubtext}>Add your superannuation details to project your retirement balance and track employer contributions</Text>
+          <Text style={[styles.emptyText, { fontSize: fs(20) }]}>Track your super</Text>
+          <Text style={[styles.emptySubtext, { fontSize: fs(14) }]}>Add your superannuation details to project your retirement balance and track employer contributions</Text>
           <Pressable style={({ pressed }) => [styles.setupBtn, pressed && { opacity: 0.9 }]} onPress={() => router.push("/setup-super")}>
-            <Ionicons name="add" size={20} color={Colors.light.white} />
-            <Text style={styles.setupBtnText}>Set Up Super</Text>
+            <Ionicons name="add" size={is(20)} color={Colors.light.white} />
+            <Text style={[styles.setupBtnText, { fontSize: fs(15) }]}>Set Up Super</Text>
           </Pressable>
         </View>
       </View>
@@ -66,26 +69,26 @@ export default function SuperScreen() {
     <View style={styles.container}>
       <ScrollView contentInsetAdjustmentBehavior="automatic" showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
         <CoinHeader title="Super" />
-        <Text style={styles.pageDesc}>Monitor your superannuation balance and retirement projections.</Text>
+        <Text style={[styles.pageDesc, { fontSize: fs(14) }]}>Monitor your superannuation balance and retirement projections.</Text>
         <View style={[styles.header]}>
           <View />
           <View style={styles.headerBtns}>
             <Pressable onPress={() => router.push("/setup-super")} hitSlop={12}>
-              <Ionicons name="pencil" size={22} color={Colors.light.super} />
+              <Ionicons name="pencil" size={is(22)} color={Colors.light.super} />
             </Pressable>
             <Pressable onPress={() => Alert.alert("Remove Super", "Clear your super details?", [
               { text: "Cancel", style: "cancel" },
               { text: "Remove", style: "destructive", onPress: clearSuper },
             ])} hitSlop={12}>
-              <Ionicons name="trash-outline" size={22} color={Colors.light.expense} />
+              <Ionicons name="trash-outline" size={is(22)} color={Colors.light.expense} />
             </Pressable>
           </View>
         </View>
 
         <View style={styles.heroCard}>
-          <Text style={styles.heroLabel}>Current Balance</Text>
-          <Text style={styles.heroAmount}>{fmt(superDetails.balance)}</Text>
-          <Text style={styles.heroSub}>{superDetails.fund}</Text>
+          <Text style={[styles.heroLabel, { fontSize: fs(14) }]}>Current Balance</Text>
+          <Text style={[styles.heroAmount, { fontSize: fs(36) }]}>{fmt(superDetails.balance)}</Text>
+          <Text style={[styles.heroSub, { fontSize: fs(13) }]}>{superDetails.fund}</Text>
         </View>
 
         {(() => {
@@ -114,26 +117,26 @@ export default function SuperScreen() {
           return (
             <LinearGradient colors={[Colors.light.super, "#1a3a6b"]} style={styles.valueBanner}>
               <View style={styles.valueBannerHeader}>
-                <Ionicons name="rocket-outline" size={20} color="#fff" />
-                <Text style={styles.valueBannerTitle}>Grow Your Super</Text>
+                <Ionicons name="rocket-outline" size={is(20)} color="#fff" />
+                <Text style={[styles.valueBannerTitle, { fontSize: fs(18) }]}>Grow Your Super</Text>
               </View>
 
-              <Text style={styles.valueBannerSubtitle}>Adding $200/mo salary sacrifice could give you</Text>
+              <Text style={[styles.valueBannerSubtitle, { fontSize: fs(13) }]}>Adding $200/mo salary sacrifice could give you</Text>
               <View style={styles.valueBannerRow}>
                 <View style={styles.valueBannerItem}>
-                  <Text style={styles.valueBannerBigNum}>{fmt(Math.round(extra200))}</Text>
-                  <Text style={styles.valueBannerSmall}>extra at retirement</Text>
+                  <Text style={[styles.valueBannerBigNum, { fontSize: fs(26) }]}>{fmt(Math.round(extra200))}</Text>
+                  <Text style={[styles.valueBannerSmall, { fontSize: fs(11) }]}>extra at retirement</Text>
                 </View>
                 <View style={styles.valueBannerDivider} />
                 <View style={styles.valueBannerItem}>
-                  <Text style={styles.valueBannerBigNum}>+{fmt(Math.round(extraMonthlyIncome200))}</Text>
-                  <Text style={styles.valueBannerSmall}>per month extra income</Text>
+                  <Text style={[styles.valueBannerBigNum, { fontSize: fs(26) }]}>+{fmt(Math.round(extraMonthlyIncome200))}</Text>
+                  <Text style={[styles.valueBannerSmall, { fontSize: fs(11) }]}>per month extra income</Text>
                 </View>
               </View>
 
               <View style={styles.valueBannerPill}>
-                <Ionicons name="information-circle-outline" size={14} color="#fff" />
-                <Text style={styles.valueBannerPillText}>
+                <Ionicons name="information-circle-outline" size={is(14)} color="#fff" />
+                <Text style={[styles.valueBannerPillText, { fontSize: fs(12) }]}>
                   Pre-tax contributions are taxed at only 15% vs your marginal rate
                 </Text>
               </View>
@@ -145,9 +148,9 @@ export default function SuperScreen() {
                   const monthlyGain = (gain * 0.04) / 12;
                   return (
                     <View key={extra} style={styles.scenarioItem}>
-                      <Text style={styles.scenarioExtra}>+${extra}/mo</Text>
-                      <Text style={styles.scenarioSaved}>{fmt(Math.round(gain))}</Text>
-                      <Text style={styles.scenarioYears}>+{fmt(Math.round(monthlyGain))}/mo</Text>
+                      <Text style={[styles.scenarioExtra, { fontSize: fs(11) }]}>+${extra}/mo</Text>
+                      <Text style={[styles.scenarioSaved, { fontSize: fs(13) }]}>{fmt(Math.round(gain))}</Text>
+                      <Text style={[styles.scenarioYears, { fontSize: fs(10) }]}>+{fmt(Math.round(monthlyGain))}/mo</Text>
                     </View>
                   );
                 })}
@@ -157,7 +160,7 @@ export default function SuperScreen() {
         })()}
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Contributions</Text>
+          <Text style={[styles.sectionTitle, { fontSize: fs(16) }]}>Contributions</Text>
           <View style={styles.card}>
             <StatRow label="Salary" value={fmt(superDetails.salary) + "/yr"} />
             <StatRow label="Employer Rate (SG)" value={`${superDetails.employerRate}%`} />
@@ -167,30 +170,30 @@ export default function SuperScreen() {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Retirement Projection</Text>
+          <Text style={[styles.sectionTitle, { fontSize: fs(16) }]}>Retirement Projection</Text>
           <View style={styles.card}>
             <StatRow label="Projected at 67" value={fmt(Math.round(proj.atRetirement))} color={Colors.light.super} />
             <StatRow label="Years to Retirement" value={`${proj.yearsToRetirement} years`} />
             <StatRow label="Monthly Income (est.)" value={fmt(Math.round(proj.monthlyInRetirement))} color={Colors.light.income} />
             <View style={styles.projNote}>
-              <Ionicons name="information-circle-outline" size={14} color={Colors.light.textMuted} />
-              <Text style={styles.projNoteText}>Based on 7% annual growth and 4% drawdown rate</Text>
+              <Ionicons name="information-circle-outline" size={is(14)} color={Colors.light.textMuted} />
+              <Text style={[styles.projNoteText, { fontSize: fs(11) }]}>Based on 7% annual growth and 4% drawdown rate</Text>
             </View>
           </View>
         </View>
 
         {nextMilestone && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Next Milestone</Text>
+            <Text style={[styles.sectionTitle, { fontSize: fs(16) }]}>Next Milestone</Text>
             <View style={styles.milestoneCard}>
               <View style={styles.milestoneHeader}>
-                <Ionicons name="flag" size={20} color={Colors.light.super} />
-                <Text style={styles.milestoneLabel}>{nextMilestone.label}</Text>
+                <Ionicons name="flag" size={is(20)} color={Colors.light.super} />
+                <Text style={[styles.milestoneLabel, { fontSize: fs(20) }]}>{nextMilestone.label}</Text>
               </View>
               <View style={styles.milestoneBarBg}>
                 <View style={[styles.milestoneBarFill, { width: `${Math.min(milestoneProgress, 100)}%` }]} />
               </View>
-              <Text style={styles.milestoneText}>
+              <Text style={[styles.milestoneText, { fontSize: fs(13) }]}>
                 {fmt(nextMilestone.amount - superDetails.balance)} to go
               </Text>
             </View>
@@ -198,7 +201,7 @@ export default function SuperScreen() {
         )}
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Fund Details</Text>
+          <Text style={[styles.sectionTitle, { fontSize: fs(16) }]}>Fund Details</Text>
           <View style={styles.card}>
             <StatRow label="Fund" value={superDetails.fund} />
             <StatRow label="Investment Option" value={superDetails.investmentOption} />
@@ -210,20 +213,20 @@ export default function SuperScreen() {
           <View style={styles.missionBanner}>
             <View style={styles.missionBannerTop}>
               <View style={styles.missionPtsCircle}>
-                <Ionicons name="star" size={14} color="#D4AF37" />
-                <Text style={styles.missionPtsNum}>{rewardsState.points.toLocaleString()}</Text>
+                <Ionicons name="star" size={is(14)} color="#D4AF37" />
+                <Text style={[styles.missionPtsNum, { fontSize: fs(13) }]}>{rewardsState.points.toLocaleString()}</Text>
               </View>
             </View>
             {superMission && (
               <Pressable onPress={() => completeMission('compare_super')} style={({ pressed }) => [styles.missionPrompt, pressed && { opacity: 0.85 }]}>
                 <View style={[styles.missionPromptIcon, { backgroundColor: '#8B5CF620' }]}>
-                  <Ionicons name="bar-chart-outline" size={14} color="#8B5CF6" />
+                  <Ionicons name="bar-chart-outline" size={is(14)} color="#8B5CF6" />
                 </View>
                 <View style={{ flex: 1 }}>
-                  <Text style={styles.missionPromptTitle}>{superMission.title}</Text>
-                  <Text style={styles.missionPromptDesc}>{superMission.description}</Text>
+                  <Text style={[styles.missionPromptTitle, { fontSize: fs(12) }]}>{superMission.title}</Text>
+                  <Text style={[styles.missionPromptDesc, { fontSize: fs(10) }]}>{superMission.description}</Text>
                 </View>
-                <Text style={styles.missionPromptPts}>+{superMission.is2xActive ? superMission.basePoints * 2 : superMission.basePoints}</Text>
+                <Text style={[styles.missionPromptPts, { fontSize: fs(13) }]}>+{superMission.is2xActive ? superMission.basePoints * 2 : superMission.basePoints}</Text>
               </Pressable>
             )}
           </View>

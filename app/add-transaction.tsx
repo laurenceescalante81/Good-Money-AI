@@ -8,6 +8,7 @@ import * as Haptics from "expo-haptics";
 function goBack() { if (router.canGoBack()) router.back(); else router.replace("/(tabs)/budget"); }
 import Colors from "@/constants/colors";
 import { useFinance, TransactionType } from "@/contexts/FinanceContext";
+import { useAccessibility } from '@/contexts/AccessibilityContext';
 
 const EXPENSE_CATS = [
   { name: "Groceries", icon: "cart-outline", color: "#F59E0B" },
@@ -35,6 +36,7 @@ export default function AddTransactionScreen() {
   const topInset = Platform.OS === "web" ? 67 : insets.top;
   const bottomInset = Platform.OS === "web" ? 34 : insets.bottom;
   const { addTransaction, profileMode } = useFinance();
+  const { fs, is } = useAccessibility();
 
   const [type, setType] = useState<TransactionType>("expense");
   const [amount, setAmount] = useState("");
@@ -55,54 +57,54 @@ export default function AddTransactionScreen() {
   return (
     <View style={[styles.container, { paddingTop: topInset }]}>
       <View style={styles.topBar}>
-        <Pressable onPress={goBack} hitSlop={12}><Ionicons name="close" size={26} color={Colors.light.text} /></Pressable>
-        <Text style={styles.topTitle}>New Transaction</Text>
-        <Pressable onPress={handleSave} disabled={!canSave} hitSlop={12}><Ionicons name="checkmark" size={26} color={canSave ? Colors.light.tint : Colors.light.gray300} /></Pressable>
+        <Pressable onPress={goBack} hitSlop={12}><Ionicons name="close" size={is(26)} color={Colors.light.text} /></Pressable>
+        <Text style={[styles.topTitle, { fontSize: fs(17) }]}>New Transaction</Text>
+        <Pressable onPress={handleSave} disabled={!canSave} hitSlop={12}><Ionicons name="checkmark" size={is(26)} color={canSave ? Colors.light.tint : Colors.light.gray300} /></Pressable>
       </View>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: bottomInset + 20 }}>
         <View style={styles.typeRow}>
           <Pressable onPress={() => { setType("expense"); setCategory(""); }} style={[styles.typeBtn, type === "expense" && styles.typeBtnExp]}>
-            <Ionicons name="arrow-up-circle" size={20} color={type === "expense" ? Colors.light.white : Colors.light.expense} />
-            <Text style={[styles.typeText, type === "expense" && styles.typeTextActive]}>Expense</Text>
+            <Ionicons name="arrow-up-circle" size={is(20)} color={type === "expense" ? Colors.light.white : Colors.light.expense} />
+            <Text style={[styles.typeText, type === "expense" && styles.typeTextActive, { fontSize: fs(15) }]}>Expense</Text>
           </Pressable>
           <Pressable onPress={() => { setType("income"); setCategory(""); }} style={[styles.typeBtn, type === "income" && styles.typeBtnInc]}>
-            <Ionicons name="arrow-down-circle" size={20} color={type === "income" ? Colors.light.white : Colors.light.income} />
-            <Text style={[styles.typeText, type === "income" && styles.typeTextActive]}>Income</Text>
+            <Ionicons name="arrow-down-circle" size={is(20)} color={type === "income" ? Colors.light.white : Colors.light.income} />
+            <Text style={[styles.typeText, type === "income" && styles.typeTextActive, { fontSize: fs(15) }]}>Income</Text>
           </Pressable>
         </View>
         <View style={styles.section}>
-          <Text style={styles.label}>Amount (AUD)</Text>
+          <Text style={[styles.label, { fontSize: fs(13) }]}>Amount (AUD)</Text>
           <View style={styles.amountRow}>
-            <Text style={styles.dollar}>$</Text>
-            <TextInput style={styles.amountInput} placeholder="0.00" placeholderTextColor={Colors.light.gray300} keyboardType="decimal-pad" value={amount} onChangeText={setAmount} autoFocus />
+            <Text style={[styles.dollar, { fontSize: fs(36) }]}>$</Text>
+            <TextInput style={[styles.amountInput, { fontSize: fs(36) }]} placeholder="0.00" placeholderTextColor={Colors.light.gray300} keyboardType="decimal-pad" value={amount} onChangeText={setAmount} autoFocus />
           </View>
         </View>
         <View style={styles.section}>
-          <Text style={styles.label}>Category</Text>
+          <Text style={[styles.label, { fontSize: fs(13) }]}>Category</Text>
           <View style={styles.catGrid}>
             {categories.map(c => (
               <Pressable key={c.name} onPress={() => setCategory(c.name)} style={[styles.catBtn, category === c.name && { backgroundColor: c.color + "20", borderColor: c.color }]}>
-                <View style={[styles.catIcon, { backgroundColor: c.color + "15" }]}><Ionicons name={c.icon as any} size={18} color={c.color} /></View>
-                <Text style={[styles.catText, category === c.name && { color: c.color }]}>{c.name}</Text>
+                <View style={[styles.catIcon, { backgroundColor: c.color + "15" }]}><Ionicons name={c.icon as any} size={is(18)} color={c.color} /></View>
+                <Text style={[styles.catText, category === c.name && { color: c.color }, { fontSize: fs(13) }]}>{c.name}</Text>
               </Pressable>
             ))}
           </View>
         </View>
         <View style={styles.section}>
-          <Text style={styles.label}>Note (optional)</Text>
-          <TextInput style={styles.noteInput} placeholder="What's this for?" placeholderTextColor={Colors.light.textMuted} value={note} onChangeText={setNote} />
+          <Text style={[styles.label, { fontSize: fs(13) }]}>Note (optional)</Text>
+          <TextInput style={[styles.noteInput, { fontSize: fs(15) }]} placeholder="What's this for?" placeholderTextColor={Colors.light.textMuted} value={note} onChangeText={setNote} />
         </View>
         {profileMode === "couple" && (
           <View style={styles.section}>
-            <Text style={styles.label}>Who</Text>
+            <Text style={[styles.label, { fontSize: fs(13) }]}>Who</Text>
             <View style={styles.ownerRow}>
               <Pressable onPress={() => setOwner("me")} style={[styles.ownerBtn, owner === "me" && styles.ownerActive]}>
-                <Ionicons name="person" size={18} color={owner === "me" ? Colors.light.white : Colors.light.textSecondary} />
-                <Text style={[styles.ownerText, owner === "me" && styles.ownerTextActive]}>Me</Text>
+                <Ionicons name="person" size={is(18)} color={owner === "me" ? Colors.light.white : Colors.light.textSecondary} />
+                <Text style={[styles.ownerText, owner === "me" && styles.ownerTextActive, { fontSize: fs(14) }]}>Me</Text>
               </Pressable>
               <Pressable onPress={() => setOwner("partner")} style={[styles.ownerBtn, owner === "partner" && styles.ownerActive]}>
-                <Ionicons name="people" size={18} color={owner === "partner" ? Colors.light.white : Colors.light.textSecondary} />
-                <Text style={[styles.ownerText, owner === "partner" && styles.ownerTextActive]}>Partner</Text>
+                <Ionicons name="people" size={is(18)} color={owner === "partner" ? Colors.light.white : Colors.light.textSecondary} />
+                <Text style={[styles.ownerText, owner === "partner" && styles.ownerTextActive, { fontSize: fs(14) }]}>Partner</Text>
               </Pressable>
             </View>
           </View>

@@ -6,6 +6,7 @@ import { router } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
 import Svg, { Path, Line, Text as SvgText, Circle, Defs, LinearGradient as SvgLinearGradient, Stop } from "react-native-svg";
 import Colors from "@/constants/colors";
+import { useAccessibility } from "@/contexts/AccessibilityContext";
 import { useFinance } from "@/contexts/FinanceContext";
 import { useRewards } from "@/contexts/RewardsContext";
 import { MessageOverlay } from "@/contexts/AppMessagesContext";
@@ -36,23 +37,25 @@ function fmtK(n: number): string {
 function PillarCard({ icon, iconColor, bgColor, title, value, subtitle, cta, onPress }: {
   icon: string; iconColor: string; bgColor: string; title: string; value: string; subtitle: string; cta: string; onPress: () => void;
 }) {
+  const { fs, is } = useAccessibility();
   return (
     <Pressable onPress={onPress} style={({ pressed }) => [styles.pillarCard, pressed && { opacity: 0.95, transform: [{ scale: 0.98 }] }]}>
       <View style={[styles.pillarIcon, { backgroundColor: bgColor }]}>
-        <Ionicons name={icon as any} size={22} color={iconColor} />
+        <Ionicons name={icon as any} size={is(22)} color={iconColor} />
       </View>
-      <Text style={styles.pillarTitle}>{title}</Text>
-      <Text style={[styles.pillarValue, { color: iconColor }]}>{value}</Text>
-      <Text style={styles.pillarSubtitle}>{subtitle}</Text>
+      <Text style={[styles.pillarTitle, { fontSize: fs(13) }]}>{title}</Text>
+      <Text style={[styles.pillarValue, { color: iconColor, fontSize: fs(18) }]}>{value}</Text>
+      <Text style={[styles.pillarSubtitle, { fontSize: fs(11) }]}>{subtitle}</Text>
       <View style={[styles.pillarCta, { backgroundColor: iconColor + '12' }]}>
-        <Text style={[styles.pillarCtaText, { color: iconColor }]}>{cta}</Text>
-        <Ionicons name="chevron-forward" size={12} color={iconColor} />
+        <Text style={[styles.pillarCtaText, { color: iconColor, fontSize: fs(10) }]}>{cta}</Text>
+        <Ionicons name="chevron-forward" size={is(12)} color={iconColor} />
       </View>
     </Pressable>
   );
 }
 
 export default function DashboardScreen() {
+  const { fs, is } = useAccessibility();
   const insets = useSafeAreaInsets();
   const topInset = Platform.OS === "web" ? 67 : insets.top;
   const {
@@ -170,14 +173,14 @@ export default function DashboardScreen() {
           rightElement={
             <Pressable onPress={() => router.push("/settings")} hitSlop={12}>
               <View style={styles.settingsBtn}>
-                <Feather name="settings" size={20} color={Colors.light.textSecondary} />
+                <Feather name="settings" size={is(20)} color={Colors.light.textSecondary} />
               </View>
             </Pressable>
           }
         />
 
         <View style={styles.body}>
-          <Text style={styles.sectionTitle}>Financial Snapshot</Text>
+          <Text style={[styles.sectionTitle, { fontSize: fs(18) }]}>Financial Snapshot</Text>
           <View style={styles.pillarGrid}>
             <PillarCard
               icon="home-outline"
@@ -245,25 +248,25 @@ export default function DashboardScreen() {
             <LinearGradient colors={['#0C1B2A', '#1B3A5C']} style={styles.rewardsSummary}>
               <View style={styles.rewardsSummaryHeader}>
                 <View style={styles.rewardsTitleRow}>
-                  <Ionicons name="star" size={18} color="#D4AF37" />
-                  <Text style={styles.rewardsSummaryTitle}>Rewards</Text>
+                  <Ionicons name="star" size={is(18)} color="#D4AF37" />
+                  <Text style={[styles.rewardsSummaryTitle, { fontSize: fs(17) }]}>Rewards</Text>
                 </View>
-                <Ionicons name="chevron-forward" size={18} color="rgba(255,255,255,0.5)" />
+                <Ionicons name="chevron-forward" size={is(18)} color="rgba(255,255,255,0.5)" />
               </View>
 
               <View style={styles.rewardsTopRow}>
                 <View style={{ flex: 1 }}>
-                  <Text style={styles.rewardsPointsBig}>{rewardsState.points.toLocaleString()}<Text style={styles.rewardsPointsSuffix}> coins</Text></Text>
+                  <Text style={[styles.rewardsPointsBig, { fontSize: fs(30) }]}>{rewardsState.points.toLocaleString()}<Text style={[styles.rewardsPointsSuffix, { fontSize: fs(14) }]}> coins</Text></Text>
                   {(rewardsState.tokenBalance ?? 0) > 0 && (
                     <View style={styles.rewardsTokenRow}>
                       <View style={styles.rewardsTokenDot} />
-                      <Text style={styles.rewardsTokenText}>{(rewardsState.tokenBalance ?? 0).toFixed(2)} Good Coins</Text> 
+                      <Text style={[styles.rewardsTokenText, { fontSize: fs(12) }]}>{(rewardsState.tokenBalance ?? 0).toFixed(2)} Good Coins</Text> 
                     </View>
                   )}
                 </View>
                 <View style={styles.rewardsLevelBadge}>
-                  <Text style={styles.rewardsLevelNum}>{rewardsState.level}</Text>
-                  <Text style={styles.rewardsLevelName}>{levelName}</Text>
+                  <Text style={[styles.rewardsLevelNum, { fontSize: fs(22) }]}>{rewardsState.level}</Text>
+                  <Text style={[styles.rewardsLevelName, { fontSize: fs(10) }]}>{levelName}</Text>
                 </View>
               </View>
 
@@ -271,27 +274,27 @@ export default function DashboardScreen() {
                 <View style={styles.rewardsXpBarBg}>
                   <LinearGradient colors={['#6366F1', '#8B5CF6']} style={[styles.rewardsXpBarFill, { width: `${xpPct}%` }]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} />
                 </View>
-                <Text style={styles.rewardsXpText}>{rewardsState.xp}/{xpNeeded} XP</Text>
+                <Text style={[styles.rewardsXpText, { fontSize: fs(10) }]}>{rewardsState.xp}/{xpNeeded} XP</Text>
               </View>
 
               <View style={styles.rewardsStatsRow}>
                 <View style={styles.rewardsStatItem}>
-                  <Ionicons name="checkmark-circle" size={14} color="#4ade80" />
-                  <Text style={styles.rewardsStatValue}>{completedMissionCount}/{missions.length}</Text>
-                  <Text style={styles.rewardsStatLabel}>missions</Text>
+                  <Ionicons name="checkmark-circle" size={is(14)} color="#4ade80" />
+                  <Text style={[styles.rewardsStatValue, { fontSize: fs(13) }]}>{completedMissionCount}/{missions.length}</Text>
+                  <Text style={[styles.rewardsStatLabel, { fontSize: fs(11) }]}>missions</Text>
                 </View>
                 <View style={styles.rewardsStatDivider} />
                 <View style={styles.rewardsStatItem}>
-                  <Ionicons name="trophy" size={14} color="#D4AF37" />
-                  <Text style={styles.rewardsStatValue}>{unlockedBadgeCount}/{badges.length}</Text>
-                  <Text style={styles.rewardsStatLabel}>badges</Text>
+                  <Ionicons name="trophy" size={is(14)} color="#D4AF37" />
+                  <Text style={[styles.rewardsStatValue, { fontSize: fs(13) }]}>{unlockedBadgeCount}/{badges.length}</Text>
+                  <Text style={[styles.rewardsStatLabel, { fontSize: fs(11) }]}>badges</Text>
                 </View>
                 {is2xWeekend && (
                   <>
                     <View style={styles.rewardsStatDivider} />
                     <View style={styles.rewards2xBadge}>
-                      <Ionicons name="flash" size={12} color="#D4AF37" />
-                      <Text style={styles.rewards2xText}>2x</Text>
+                      <Ionicons name="flash" size={is(12)} color="#D4AF37" />
+                      <Text style={[styles.rewards2xText, { fontSize: fs(11) }]}>2x</Text>
                     </View>
                   </>
                 )}
@@ -304,10 +307,10 @@ export default function DashboardScreen() {
                     return (
                       <View key={m.id} style={styles.rewardsMissionRow}>
                         <View style={[styles.rewardsMissionIcon, { backgroundColor: m.iconBg + '20' }]}>
-                          <Ionicons name={m.icon as any} size={14} color={m.iconBg} />
+                          <Ionicons name={m.icon as any} size={is(14)} color={m.iconBg} />
                         </View>
-                        <Text style={styles.rewardsMissionName} numberOfLines={1}>{m.title}</Text>
-                        <Text style={styles.rewardsMissionPts}>+{effectivePts}</Text>
+                        <Text style={[styles.rewardsMissionName, { fontSize: fs(12) }]} numberOfLines={1}>{m.title}</Text>
+                        <Text style={[styles.rewardsMissionPts, { fontSize: fs(12) }]}>+{effectivePts}</Text>
                       </View>
                     );
                   })}
@@ -315,9 +318,9 @@ export default function DashboardScreen() {
               )}
 
               <View style={styles.rewardsCtaRow}>
-                <Ionicons name="gift-outline" size={14} color="#D4AF37" />
-                <Text style={styles.rewardsCtaText}>{ctaTexts.rewards}</Text>
-                <Ionicons name="chevron-forward" size={14} color="rgba(255,255,255,0.4)" />
+                <Ionicons name="gift-outline" size={is(14)} color="#D4AF37" />
+                <Text style={[styles.rewardsCtaText, { fontSize: fs(12) }]}>{ctaTexts.rewards}</Text>
+                <Ionicons name="chevron-forward" size={is(14)} color="rgba(255,255,255,0.4)" />
               </View>
             </LinearGradient>
           </Pressable>
@@ -326,15 +329,15 @@ export default function DashboardScreen() {
             <LinearGradient colors={[Colors.light.navy, Colors.light.navyMid]} style={styles.projectionSection}>
               <View style={styles.projectionHeader}>
                 <View style={styles.projectionTitleRow}>
-                  <Ionicons name="analytics" size={18} color={Colors.light.tealLight} />
-                  <Text style={styles.projectionTitle}>10-Year Wealth Projection</Text>
+                  <Ionicons name="analytics" size={is(18)} color={Colors.light.tealLight} />
+                  <Text style={[styles.projectionTitle, { fontSize: fs(17) }]}>10-Year Wealth Projection</Text>
                 </View>
-                <Ionicons name="chevron-forward" size={18} color="rgba(255,255,255,0.5)" />
+                <Ionicons name="chevron-forward" size={is(18)} color="rgba(255,255,255,0.5)" />
               </View>
 
               <View style={styles.projectionValueRow}>
-                <Text style={styles.projectionValueLabel}>Projected net wealth</Text>
-                <Text style={styles.projectionValue}>{fmt(Math.round(finalWealth))}</Text>
+                <Text style={[styles.projectionValueLabel, { fontSize: fs(12) }]}>Projected net wealth</Text>
+                <Text style={[styles.projectionValue, { fontSize: fs(28) }]}>{fmt(Math.round(finalWealth))}</Text>
               </View>
 
               <View style={styles.chartWrap}>
@@ -365,22 +368,22 @@ export default function DashboardScreen() {
               <View style={styles.projectionLegend}>
                 <View style={styles.legendItem}>
                   <View style={[styles.legendDot, { backgroundColor: Colors.light.mortgage }]} />
-                  <Text style={styles.legendText}>Property: {fmtK(wealthProjection[wealthProjection.length - 1]?.property || 0)}</Text>
+                  <Text style={[styles.legendText, { fontSize: fs(11) }]}>Property: {fmtK(wealthProjection[wealthProjection.length - 1]?.property || 0)}</Text>
                 </View>
                 <View style={styles.legendItem}>
                   <View style={[styles.legendDot, { backgroundColor: Colors.light.super }]} />
-                  <Text style={styles.legendText}>Super: {fmtK(wealthProjection[wealthProjection.length - 1]?.super_ || 0)}</Text>
+                  <Text style={[styles.legendText, { fontSize: fs(11) }]}>Super: {fmtK(wealthProjection[wealthProjection.length - 1]?.super_ || 0)}</Text>
                 </View>
                 <View style={styles.legendItem}>
                   <View style={[styles.legendDot, { backgroundColor: Colors.light.budget }]} />
-                  <Text style={styles.legendText}>Savings: {fmtK(wealthProjection[wealthProjection.length - 1]?.savings || 0)}</Text>
+                  <Text style={[styles.legendText, { fontSize: fs(11) }]}>Savings: {fmtK(wealthProjection[wealthProjection.length - 1]?.savings || 0)}</Text>
                 </View>
               </View>
 
               <View style={styles.projectionCta}>
-                <Ionicons name="analytics-outline" size={14} color={Colors.light.tealLight} />
-                <Text style={styles.projectionCtaText}>{ctaTexts.planning}</Text>
-                <Ionicons name="chevron-forward" size={14} color="rgba(255,255,255,0.4)" />
+                <Ionicons name="analytics-outline" size={is(14)} color={Colors.light.tealLight} />
+                <Text style={[styles.projectionCtaText, { fontSize: fs(12) }]}>{ctaTexts.planning}</Text>
+                <Ionicons name="chevron-forward" size={is(14)} color="rgba(255,255,255,0.4)" />
               </View>
             </LinearGradient>
           </Pressable>

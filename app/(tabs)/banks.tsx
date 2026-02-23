@@ -7,6 +7,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import Colors from "@/constants/colors";
 import { getApiUrl } from "@/lib/query-client";
 import CoinHeader from '@/components/CoinHeader';
+import { useAccessibility } from '@/contexts/AccessibilityContext';
 
 function fmt(n: number): string { return "$" + Math.abs(n).toLocaleString("en-AU", { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
 
@@ -32,6 +33,7 @@ interface Connection {
 }
 
 function AccountCard({ account }: { account: Account }) {
+  const { fs, is } = useAccessibility();
   const isCredit = account.class?.type === "credit-card";
   const isLoan = account.class?.type === "loan" || account.class?.type === "mortgage";
   const balance = account.balance || 0;
@@ -63,21 +65,21 @@ function AccountCard({ account }: { account: Account }) {
     <View style={styles.accountCard}>
       <View style={styles.accountRow}>
         <View style={[styles.accountIcon, { backgroundColor: color + "15" }]}>
-          <Ionicons name={icon as any} size={20} color={color} />
+          <Ionicons name={icon as any} size={is(20)} color={color} />
         </View>
         <View style={styles.accountInfo}>
-          <Text style={styles.accountName} numberOfLines={1}>{account.name}</Text>
-          <Text style={styles.accountType}>
+          <Text style={[styles.accountName, { fontSize: fs(14) }]} numberOfLines={1}>{account.name}</Text>
+          <Text style={[styles.accountType, { fontSize: fs(12) }]}>
             {account.class?.product || account.class?.type || "Account"}
             {account.accountNo ? ` ···${account.accountNo.slice(-4)}` : ""}
           </Text>
         </View>
         <View style={{ alignItems: "flex-end" as const }}>
-          <Text style={[styles.accountBalance, (isCredit || isLoan) && balance < 0 && { color: Colors.light.expense }]}>
+          <Text style={[styles.accountBalance, { fontSize: fs(16) }, (isCredit || isLoan) && balance < 0 && { color: Colors.light.expense }]}>
             {balance < 0 ? "-" : ""}{fmt(balance)}
           </Text>
           {account.availableFunds != null && (
-            <Text style={styles.accountAvail}>{fmt(account.availableFunds)} avail</Text>
+            <Text style={[styles.accountAvail, { fontSize: fs(11) }]}>{fmt(account.availableFunds)} avail</Text>
           )}
         </View>
       </View>
@@ -89,6 +91,7 @@ export default function BanksScreen() {
   const insets = useSafeAreaInsets();
   const topInset = Platform.OS === "web" ? 67 : insets.top;
   const queryClient = useQueryClient();
+  const { fs, is } = useAccessibility();
 
   const statusQuery = useQuery<{ configured: boolean }>({
     queryKey: ["/api/basiq/status"],
@@ -192,46 +195,46 @@ export default function BanksScreen() {
           title="Banks"
           rightElement={isConfigured ? (
             <Pressable onPress={() => router.push("/connect-bank")} hitSlop={12}>
-              <Ionicons name="add-circle" size={28} color={Colors.light.tint} />
+              <Ionicons name="add-circle" size={is(28)} color={Colors.light.tint} />
             </Pressable>
           ) : undefined}
         />
 
-        <Text style={styles.pageDesc}>Connect your Australian bank accounts via Open Banking.</Text>
+        <Text style={[styles.pageDesc, { fontSize: fs(14) }]}>Connect your Australian bank accounts via Open Banking.</Text>
 
         {isLoading && (
           <View style={styles.loadingState}>
             <ActivityIndicator size="large" color={Colors.light.tint} />
-            <Text style={styles.loadingText}>Connecting to Basiq...</Text>
+            <Text style={[styles.loadingText, { fontSize: fs(14) }]}>Connecting to Basiq...</Text>
           </View>
         )}
 
         {!isLoading && !isConfigured && (
           <View style={styles.setupState}>
             <View style={[styles.setupIcon, { backgroundColor: Colors.light.tint + "15" }]}>
-              <Ionicons name="business-outline" size={48} color={Colors.light.tint} />
+              <Ionicons name="business-outline" size={is(48)} color={Colors.light.tint} />
             </View>
-            <Text style={styles.setupTitle}>Connect Your Banks</Text>
-            <Text style={styles.setupText}>
+            <Text style={[styles.setupTitle, { fontSize: fs(22) }]}>Connect Your Banks</Text>
+            <Text style={[styles.setupText, { fontSize: fs(14) }]}>
               Link your Australian bank accounts through Basiq's secure Open Banking platform to see real-time balances and transactions
             </Text>
             <View style={styles.setupSteps}>
               <View style={styles.stepRow}>
-                <View style={styles.stepNum}><Text style={styles.stepNumText}>1</Text></View>
-                <Text style={styles.stepText}>Get your API key from basiq.io</Text>
+                <View style={styles.stepNum}><Text style={[styles.stepNumText, { fontSize: fs(13) }]}>1</Text></View>
+                <Text style={[styles.stepText, { fontSize: fs(14) }]}>Get your API key from basiq.io</Text>
               </View>
               <View style={styles.stepRow}>
-                <View style={styles.stepNum}><Text style={styles.stepNumText}>2</Text></View>
-                <Text style={styles.stepText}>Add it as BASIQ_API_KEY in your app secrets</Text>
+                <View style={styles.stepNum}><Text style={[styles.stepNumText, { fontSize: fs(13) }]}>2</Text></View>
+                <Text style={[styles.stepText, { fontSize: fs(14) }]}>Add it as BASIQ_API_KEY in your app secrets</Text>
               </View>
               <View style={styles.stepRow}>
-                <View style={styles.stepNum}><Text style={styles.stepNumText}>3</Text></View>
-                <Text style={styles.stepText}>Connect your bank accounts securely</Text>
+                <View style={styles.stepNum}><Text style={[styles.stepNumText, { fontSize: fs(13) }]}>3</Text></View>
+                <Text style={[styles.stepText, { fontSize: fs(14) }]}>Connect your bank accounts securely</Text>
               </View>
             </View>
             <Pressable style={({ pressed }) => [styles.setupLink, pressed && { opacity: 0.8 }]} onPress={() => Linking.openURL("https://basiq.io")}>
-              <Ionicons name="open-outline" size={18} color={Colors.light.white} />
-              <Text style={styles.setupLinkText}>Visit basiq.io</Text>
+              <Ionicons name="open-outline" size={is(18)} color={Colors.light.white} />
+              <Text style={[styles.setupLinkText, { fontSize: fs(15) }]}>Visit basiq.io</Text>
             </Pressable>
           </View>
         )}
@@ -240,13 +243,13 @@ export default function BanksScreen() {
           <View style={styles.summarySection}>
             <View style={styles.summaryRow}>
               <View style={[styles.summaryCard, { backgroundColor: Colors.light.budget + "10" }]}>
-                <Text style={styles.summaryLabel}>Total Balance</Text>
-                <Text style={[styles.summaryVal, { color: Colors.light.budget }]}>{fmt(totalBalance)}</Text>
+                <Text style={[styles.summaryLabel, { fontSize: fs(12) }]}>Total Balance</Text>
+                <Text style={[styles.summaryVal, { fontSize: fs(22), color: Colors.light.budget }]}>{fmt(totalBalance)}</Text>
               </View>
               {totalDebt > 0 && (
                 <View style={[styles.summaryCard, { backgroundColor: Colors.light.expense + "10" }]}>
-                  <Text style={styles.summaryLabel}>Total Debt</Text>
-                  <Text style={[styles.summaryVal, { color: Colors.light.expense }]}>{fmt(totalDebt)}</Text>
+                  <Text style={[styles.summaryLabel, { fontSize: fs(12) }]}>Total Debt</Text>
+                  <Text style={[styles.summaryVal, { fontSize: fs(22), color: Colors.light.expense }]}>{fmt(totalDebt)}</Text>
                 </View>
               )}
             </View>
@@ -257,7 +260,7 @@ export default function BanksScreen() {
           <View style={styles.accountsSection}>
             {Object.entries(groupedByType).map(([type, accs]) => (
               <View key={type} style={styles.accountGroup}>
-                <Text style={styles.groupTitle}>{typeLabels[type] || type}</Text>
+                <Text style={[styles.groupTitle, { fontSize: fs(12) }]}>{typeLabels[type] || type}</Text>
                 {accs.map(a => <AccountCard key={a.id} account={a} />)}
               </View>
             ))}
@@ -266,30 +269,30 @@ export default function BanksScreen() {
 
         {!isLoading && isConfigured && connections.length === 0 && (
           <View style={styles.emptyConnections}>
-            <Ionicons name="link-outline" size={40} color={Colors.light.gray300} />
-            <Text style={styles.emptyText}>No banks connected</Text>
-            <Text style={styles.emptySubtext}>Connect your bank to see live balances and transactions</Text>
+            <Ionicons name="link-outline" size={is(40)} color={Colors.light.gray300} />
+            <Text style={[styles.emptyText, { fontSize: fs(16) }]}>No banks connected</Text>
+            <Text style={[styles.emptySubtext, { fontSize: fs(13) }]}>Connect your bank to see live balances and transactions</Text>
             <Pressable
               style={({ pressed }) => [styles.connectBtn, pressed && { opacity: 0.9 }]}
               onPress={() => router.push("/connect-bank")}
             >
-              <Ionicons name="add" size={20} color={Colors.light.white} />
-              <Text style={styles.connectBtnText}>Connect a Bank</Text>
+              <Ionicons name="add" size={is(20)} color={Colors.light.white} />
+              <Text style={[styles.connectBtnText, { fontSize: fs(15) }]}>Connect a Bank</Text>
             </Pressable>
           </View>
         )}
 
         {!isLoading && isConfigured && connections.length > 0 && (
           <View style={styles.connectionsSection}>
-            <Text style={styles.sectionTitle}>Connected Banks</Text>
+            <Text style={[styles.sectionTitle, { fontSize: fs(16) }]}>Connected Banks</Text>
             {connections.map(c => (
               <View key={c.id} style={styles.connectionCard}>
                 <View style={[styles.connectionIcon, { backgroundColor: Colors.light.tint + "15" }]}>
-                  <Ionicons name="business" size={20} color={Colors.light.tint} />
+                  <Ionicons name="business" size={is(20)} color={Colors.light.tint} />
                 </View>
                 <View style={styles.connectionInfo}>
-                  <Text style={styles.connectionName}>Bank Connection</Text>
-                  <Text style={[styles.connectionStatus, c.status === "active" && { color: Colors.light.income }]}>
+                  <Text style={[styles.connectionName, { fontSize: fs(14) }]}>Bank Connection</Text>
+                  <Text style={[styles.connectionStatus, { fontSize: fs(12) }, c.status === "active" && { color: Colors.light.income }]}>
                     {c.status === "active" ? "Connected" : c.status}
                   </Text>
                 </View>
@@ -300,7 +303,7 @@ export default function BanksScreen() {
                   ])}
                   hitSlop={12}
                 >
-                  <Ionicons name="close-circle" size={24} color={Colors.light.expense} />
+                  <Ionicons name="close-circle" size={is(24)} color={Colors.light.expense} />
                 </Pressable>
               </View>
             ))}
@@ -313,9 +316,9 @@ export default function BanksScreen() {
               onPress={() => router.push("/bank-transactions")}
               style={({ pressed }) => [styles.importBtn, pressed && { opacity: 0.9 }]}
             >
-              <Ionicons name="download-outline" size={20} color={Colors.light.tint} />
-              <Text style={styles.importBtnText}>View Bank Transactions</Text>
-              <Ionicons name="chevron-forward" size={18} color={Colors.light.textMuted} />
+              <Ionicons name="download-outline" size={is(20)} color={Colors.light.tint} />
+              <Text style={[styles.importBtnText, { fontSize: fs(14) }]}>View Bank Transactions</Text>
+              <Ionicons name="chevron-forward" size={is(18)} color={Colors.light.textMuted} />
             </Pressable>
           </View>
         )}

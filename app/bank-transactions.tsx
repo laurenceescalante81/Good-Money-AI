@@ -6,6 +6,7 @@ import { router } from "expo-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import Colors from "@/constants/colors";
 import { useFinance } from "@/contexts/FinanceContext";
+import { useAccessibility } from '@/contexts/AccessibilityContext';
 
 function goBack() {
   if (router.canGoBack()) { router.back(); } else { router.replace("/(tabs)/banks"); }
@@ -35,6 +36,7 @@ function formatDate(d: string): string {
 }
 
 function TransactionItem({ tx, onImport }: { tx: BankTransaction; onImport: () => void }) {
+  const { fs, is } = useAccessibility();
   const isDebit = tx.direction === "debit" || tx.amount < 0;
   const merchant = tx.enrich?.merchant?.businessName || tx.description;
   const category = tx.enrich?.category || tx.category || "Other";
@@ -58,18 +60,18 @@ function TransactionItem({ tx, onImport }: { tx: BankTransaction; onImport: () =
   return (
     <View style={styles.txRow}>
       <View style={[styles.txIcon, { backgroundColor: color + "12" }]}>
-        <Ionicons name={icon as any} size={18} color={color} />
+        <Ionicons name={icon as any} size={is(18)} color={color} />
       </View>
       <View style={styles.txInfo}>
-        <Text style={styles.txMerchant} numberOfLines={1}>{merchant}</Text>
-        <Text style={styles.txMeta}>{category} · {formatDate(tx.postDate || tx.transactionDate)}</Text>
+        <Text style={[styles.txMerchant, { fontSize: fs(14) }]} numberOfLines={1}>{merchant}</Text>
+        <Text style={[styles.txMeta, { fontSize: fs(11) }]}>{category} · {formatDate(tx.postDate || tx.transactionDate)}</Text>
       </View>
       <View style={{ alignItems: "flex-end" as const, gap: 4 }}>
-        <Text style={[styles.txAmount, { color }]}>
+        <Text style={[styles.txAmount, { color, fontSize: fs(14) }]}>
           {isDebit ? "-" : "+"}{fmt(Math.abs(tx.amount))}
         </Text>
         <Pressable onPress={onImport} hitSlop={8}>
-          <Ionicons name="add-circle-outline" size={20} color={Colors.light.tint} />
+          <Ionicons name="add-circle-outline" size={is(20)} color={Colors.light.tint} />
         </Pressable>
       </View>
     </View>
@@ -83,6 +85,7 @@ export default function BankTransactionsScreen() {
   const { addTransaction } = useFinance();
   const [filter, setFilter] = useState<"all" | "debit" | "credit">("all");
   const [importedIds, setImportedIds] = useState<Set<string>>(new Set());
+  const { fs, is } = useAccessibility();
 
   const txQuery = useQuery<{ transactions: BankTransaction[]; count: number }>({
     queryKey: ["/api/basiq/transactions"],
@@ -154,18 +157,18 @@ export default function BankTransactionsScreen() {
     <View style={styles.container}>
       <View style={[styles.header, { paddingTop: topInset + 12 }]}>
         <Pressable onPress={goBack} hitSlop={12}>
-          <Ionicons name="arrow-back" size={24} color={Colors.light.text} />
+          <Ionicons name="arrow-back" size={is(24)} color={Colors.light.text} />
         </Pressable>
-        <Text style={styles.headerTitle}>Bank Transactions</Text>
+        <Text style={[styles.headerTitle, { fontSize: fs(18) }]}>Bank Transactions</Text>
         <Pressable onPress={handleImportAll} hitSlop={12}>
-          <Ionicons name="download" size={24} color={Colors.light.tint} />
+          <Ionicons name="download" size={is(24)} color={Colors.light.tint} />
         </Pressable>
       </View>
 
       {txQuery.isLoading && (
         <View style={styles.loadingState}>
           <ActivityIndicator size="large" color={Colors.light.tint} />
-          <Text style={styles.loadingText}>Fetching transactions...</Text>
+          <Text style={[styles.loadingText, { fontSize: fs(13) }]}>Fetching transactions...</Text>
         </View>
       )}
 
@@ -173,12 +176,12 @@ export default function BankTransactionsScreen() {
         <>
           <View style={styles.summaryRow}>
             <View style={[styles.summaryCard, { backgroundColor: Colors.light.income + "10" }]}>
-              <Text style={styles.summaryLabel}>Received</Text>
-              <Text style={[styles.summaryVal, { color: Colors.light.income }]}>{fmt(totalReceived)}</Text>
+              <Text style={[styles.summaryLabel, { fontSize: fs(12) }]}>Received</Text>
+              <Text style={[styles.summaryVal, { color: Colors.light.income, fontSize: fs(18) }]}>{fmt(totalReceived)}</Text>
             </View>
             <View style={[styles.summaryCard, { backgroundColor: Colors.light.expense + "10" }]}>
-              <Text style={styles.summaryLabel}>Spent</Text>
-              <Text style={[styles.summaryVal, { color: Colors.light.expense }]}>{fmt(totalSpent)}</Text>
+              <Text style={[styles.summaryLabel, { fontSize: fs(12) }]}>Spent</Text>
+              <Text style={[styles.summaryVal, { color: Colors.light.expense, fontSize: fs(18) }]}>{fmt(totalSpent)}</Text>
             </View>
           </View>
 
@@ -189,7 +192,7 @@ export default function BankTransactionsScreen() {
                 onPress={() => setFilter(f)}
                 style={[styles.filterChip, filter === f && styles.filterActive]}
               >
-                <Text style={[styles.filterText, filter === f && styles.filterActiveText]}>
+                <Text style={[styles.filterText, filter === f && styles.filterActiveText, { fontSize: fs(13) }]}>
                   {f === "all" ? "All" : f === "credit" ? "Income" : "Expenses"}
                 </Text>
               </Pressable>
@@ -224,9 +227,9 @@ export default function BankTransactionsScreen() {
         ListEmptyComponent={
           !txQuery.isLoading ? (
             <View style={styles.emptyState}>
-              <Ionicons name="receipt-outline" size={36} color={Colors.light.gray300} />
-              <Text style={styles.emptyText}>No transactions found</Text>
-              <Text style={styles.emptySubtext}>Connect a bank account to see your transactions here</Text>
+              <Ionicons name="receipt-outline" size={is(36)} color={Colors.light.gray300} />
+              <Text style={[styles.emptyText, { fontSize: fs(15) }]}>No transactions found</Text>
+              <Text style={[styles.emptySubtext, { fontSize: fs(12) }]}>Connect a bank account to see your transactions here</Text>
             </View>
           ) : null
         }

@@ -10,6 +10,7 @@ import * as Haptics from 'expo-haptics';
 import Colors from '@/constants/colors';
 import { useFinance, InvestorProfile } from '@/contexts/FinanceContext';
 import CoinHeader from '@/components/CoinHeader';
+import { useAccessibility } from '@/contexts/AccessibilityContext';
 
 interface QuestionOption {
   value: string;
@@ -312,6 +313,7 @@ export default function InvestorScreen() {
   const isWeb = Platform.OS === 'web';
   const { investorProfile, updateInvestorProfile } = useFinance();
   const { width: screenWidth } = useWindowDimensions();
+  const { fs, is } = useAccessibility();
 
   const [answers, setAnswers] = useState<Record<string, string>>(investorProfile.answers || {});
   const [currentQ, setCurrentQ] = useState(0);
@@ -388,66 +390,66 @@ export default function InvestorScreen() {
             style={styles.resultHero}
           >
             <View style={styles.resultIconCircle}>
-              <Ionicons name={profileData.icon as any} size={40} color="#fff" />
+              <Ionicons name={profileData.icon as any} size={is(40)} color="#fff" />
             </View>
-            <Text style={styles.resultTitle}>Your Investor Profile</Text>
-            <Text style={styles.resultProfile}>{profileData.label}</Text>
-            <Text style={styles.resultScore}>Score: {score} / {totalQ * 5}</Text>
+            <Text style={[styles.resultTitle, { fontSize: fs(14) }]}>Your Investor Profile</Text>
+            <Text style={[styles.resultProfile, { fontSize: fs(28) }]}>{profileData.label}</Text>
+            <Text style={[styles.resultScore, { fontSize: fs(14) }]}>Score: {score} / {totalQ * 5}</Text>
           </LinearGradient>
 
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Profile Summary</Text>
+            <Text style={[styles.sectionTitle, { fontSize: fs(18) }]}>Profile Summary</Text>
             <View style={styles.card}>
-              <Text style={styles.cardText}>{profileData.description}</Text>
+              <Text style={[styles.cardText, { fontSize: fs(14) }]}>{profileData.description}</Text>
             </View>
           </View>
 
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Suggested Asset Allocation</Text>
+            <Text style={[styles.sectionTitle, { fontSize: fs(18) }]}>Suggested Asset Allocation</Text>
             <View style={styles.card}>
               <View style={styles.allocBar}>
                 <View style={[styles.allocGrowth, { flex: profileData.allocation.growth }]}>
-                  <Text style={styles.allocLabel}>{profileData.allocation.growth}%</Text>
-                  <Text style={styles.allocSub}>Growth</Text>
+                  <Text style={[styles.allocLabel, { fontSize: fs(16) }]}>{profileData.allocation.growth}%</Text>
+                  <Text style={[styles.allocSub, { fontSize: fs(10) }]}>Growth</Text>
                 </View>
                 <View style={[styles.allocDefensive, { flex: profileData.allocation.defensive }]}>
-                  <Text style={styles.allocLabel}>{profileData.allocation.defensive}%</Text>
-                  <Text style={styles.allocSub}>Defensive</Text>
+                  <Text style={[styles.allocLabel, { fontSize: fs(16) }]}>{profileData.allocation.defensive}%</Text>
+                  <Text style={[styles.allocSub, { fontSize: fs(10) }]}>Defensive</Text>
                 </View>
               </View>
               <View style={styles.allocLegend}>
                 <View style={styles.legendItem}>
                   <View style={[styles.legendDot, { backgroundColor: '#EF4444' }]} />
-                  <Text style={styles.legendText}>Growth (Shares, Property, Alternatives)</Text>
+                  <Text style={[styles.legendText, { fontSize: fs(12) }]}>Growth (Shares, Property, Alternatives)</Text>
                 </View>
                 <View style={styles.legendItem}>
                   <View style={[styles.legendDot, { backgroundColor: '#3B82F6' }]} />
-                  <Text style={styles.legendText}>Defensive (Cash, Fixed Interest, Bonds)</Text>
+                  <Text style={[styles.legendText, { fontSize: fs(12) }]}>Defensive (Cash, Fixed Interest, Bonds)</Text>
                 </View>
               </View>
             </View>
           </View>
 
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>All Profiles</Text>
+            <Text style={[styles.sectionTitle, { fontSize: fs(18) }]}>All Profiles</Text>
             {(Object.entries(PROFILES) as [ProfileType, typeof profileData][]).map(([key, p]) => {
               const isActive = key === profileKey;
               return (
                 <View key={key} style={[styles.profileCard, isActive && { borderColor: p.color, borderWidth: 2 }]}>
                   <View style={[styles.profileDot, { backgroundColor: p.color }]}>
-                    <Ionicons name={p.icon as any} size={18} color="#fff" />
+                    <Ionicons name={p.icon as any} size={is(18)} color="#fff" />
                   </View>
                   <View style={{ flex: 1 }}>
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                      <Text style={styles.profileName}>{p.label}</Text>
+                      <Text style={[styles.profileName, { fontSize: fs(15) }]}>{p.label}</Text>
                       {isActive && (
                         <View style={[styles.youBadge, { backgroundColor: p.color }]}>
-                          <Text style={styles.youBadgeText}>You</Text>
+                          <Text style={[styles.youBadgeText, { fontSize: fs(10) }]}>You</Text>
                         </View>
                       )}
                     </View>
-                    <Text style={styles.profileRange}>Score range: {p.range}%</Text>
-                    <Text style={styles.profileAlloc}>{p.allocation.growth}% Growth / {p.allocation.defensive}% Defensive</Text>
+                    <Text style={[styles.profileRange, { fontSize: fs(12) }]}>Score range: {p.range}%</Text>
+                    <Text style={[styles.profileAlloc, { fontSize: fs(12) }]}>{p.allocation.growth}% Growth / {p.allocation.defensive}% Defensive</Text>
                   </View>
                 </View>
               );
@@ -455,22 +457,22 @@ export default function InvestorScreen() {
           </View>
 
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Your Answers</Text>
+            <Text style={[styles.sectionTitle, { fontSize: fs(18) }]}>Your Answers</Text>
             {CATEGORIES.map(cat => {
               const catQs = QUESTIONS.filter(q => q.category === cat.key);
               return (
                 <View key={cat.key} style={styles.answerCat}>
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                    <Ionicons name={cat.icon as any} size={16} color={cat.color} />
-                    <Text style={[styles.answerCatTitle, { color: cat.color }]}>{cat.label}</Text>
+                    <Ionicons name={cat.icon as any} size={is(16)} color={cat.color} />
+                    <Text style={[styles.answerCatTitle, { color: cat.color, fontSize: fs(14) }]}>{cat.label}</Text>
                   </View>
                   {catQs.map(q => {
                     const selectedVal = answers[q.id];
                     const selectedOpt = q.options.find(o => o.value === selectedVal);
                     return (
                       <View key={q.id} style={styles.answerRow}>
-                        <Text style={styles.answerQ} numberOfLines={2}>{q.question}</Text>
-                        <Text style={styles.answerA}>{selectedOpt?.label || 'Not answered'}</Text>
+                        <Text style={[styles.answerQ, { fontSize: fs(13) }]} numberOfLines={2}>{q.question}</Text>
+                        <Text style={[styles.answerA, { fontSize: fs(12) }]}>{selectedOpt?.label || 'Not answered'}</Text>
                       </View>
                     );
                   })}
@@ -480,13 +482,13 @@ export default function InvestorScreen() {
           </View>
 
           <TouchableOpacity style={styles.retakeBtn} onPress={handleRetake}>
-            <Ionicons name="refresh-outline" size={18} color="#fff" />
-            <Text style={styles.retakeBtnText}>Retake Questionnaire</Text>
+            <Ionicons name="refresh-outline" size={is(18)} color="#fff" />
+            <Text style={[styles.retakeBtnText, { fontSize: fs(15) }]}>Retake Questionnaire</Text>
           </TouchableOpacity>
 
           <View style={styles.disclaimer}>
-            <Ionicons name="information-circle-outline" size={16} color={Colors.light.gray400} />
-            <Text style={styles.disclaimerText}>
+            <Ionicons name="information-circle-outline" size={is(16)} color={Colors.light.gray400} />
+            <Text style={[styles.disclaimerText, { fontSize: fs(11) }]}>
               This is a general guide only and does not constitute personal financial advice. Consult a licensed financial adviser before making investment decisions.
             </Text>
           </View>
@@ -502,10 +504,10 @@ export default function InvestorScreen() {
   return (
     <View style={[styles.container, { paddingTop: 0 }]}>
       <CoinHeader title="Investor Profile" />
-      <Text style={styles.pageDesc}>Discover your risk profile and ideal investment strategy.</Text>
+      <Text style={[styles.pageDesc, { fontSize: fs(14) }]}>Discover your risk profile and ideal investment strategy.</Text>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Investor Profile</Text>
-        <Text style={styles.headerSub}>Answer {totalQ} questions to discover your risk profile</Text>
+        <Text style={[styles.headerTitle, { fontSize: fs(26) }]}>Investor Profile</Text>
+        <Text style={[styles.headerSub, { fontSize: fs(14) }]}>Answer {totalQ} questions to discover your risk profile</Text>
         <View style={styles.progressRow}>
           <View style={styles.progressTrack}>
             <Animated.View
@@ -515,7 +517,7 @@ export default function InvestorScreen() {
               ]}
             />
           </View>
-          <Text style={styles.progressText}>{answeredCount}/{totalQ}</Text>
+          <Text style={[styles.progressText, { fontSize: fs(13) }]}>{answeredCount}/{totalQ}</Text>
         </View>
       </View>
 
@@ -529,7 +531,7 @@ export default function InvestorScreen() {
           style={[styles.catChip, !activeCat && styles.catChipActive]}
           onPress={() => setActiveCat(null)}
         >
-          <Text style={[styles.catChipText, !activeCat && styles.catChipTextActive]}>All</Text>
+          <Text style={[styles.catChipText, !activeCat && styles.catChipTextActive, { fontSize: fs(12) }]}>All</Text>
         </TouchableOpacity>
         {CATEGORIES.map(cat => {
           const catQs = QUESTIONS.filter(q => q.category === cat.key);
@@ -541,10 +543,10 @@ export default function InvestorScreen() {
               style={[styles.catChip, isActive && { backgroundColor: cat.color }]}
               onPress={() => setActiveCat(cat.key)}
             >
-              <Ionicons name={cat.icon as any} size={14} color={isActive ? '#fff' : cat.color} />
-              <Text style={[styles.catChipText, isActive && styles.catChipTextActive]}>{cat.label}</Text>
+              <Ionicons name={cat.icon as any} size={is(14)} color={isActive ? '#fff' : cat.color} />
+              <Text style={[styles.catChipText, isActive && styles.catChipTextActive, { fontSize: fs(12) }]}>{cat.label}</Text>
               <View style={[styles.catCount, { backgroundColor: isActive ? 'rgba(255,255,255,0.3)' : `${cat.color}20` }]}>
-                <Text style={[styles.catCountText, { color: isActive ? '#fff' : cat.color }]}>{catAnswered}/{catQs.length}</Text>
+                <Text style={[styles.catCountText, { color: isActive ? '#fff' : cat.color, fontSize: fs(10) }]}>{catAnswered}/{catQs.length}</Text>
               </View>
             </TouchableOpacity>
           );
@@ -565,14 +567,14 @@ export default function InvestorScreen() {
             <View key={q.id} style={styles.qCard}>
               <View style={styles.qHeader}>
                 <View style={[styles.qNum, { backgroundColor: `${catMeta?.color || '#999'}20` }]}>
-                  <Text style={[styles.qNumText, { color: catMeta?.color }]}>{globalIdx + 1}</Text>
+                  <Text style={[styles.qNumText, { color: catMeta?.color, fontSize: fs(14) }]}>{globalIdx + 1}</Text>
                 </View>
                 <View style={{ flex: 1 }}>
-                  <Text style={styles.qText}>{q.question}</Text>
-                  {q.description && <Text style={styles.qDesc}>{q.description}</Text>}
+                  <Text style={[styles.qText, { fontSize: fs(15) }]}>{q.question}</Text>
+                  {q.description && <Text style={[styles.qDesc, { fontSize: fs(12) }]}>{q.description}</Text>}
                 </View>
                 {selected && (
-                  <Ionicons name="checkmark-circle" size={22} color="#10B981" />
+                  <Ionicons name="checkmark-circle" size={is(22)} color="#10B981" />
                 )}
               </View>
               <View style={styles.optionsList}>
@@ -588,7 +590,7 @@ export default function InvestorScreen() {
                       <View style={[styles.optionRadio, isSelected && { borderColor: catMeta?.color || '#0D9488' }]}>
                         {isSelected && <View style={[styles.optionRadioFill, { backgroundColor: catMeta?.color || '#0D9488' }]} />}
                       </View>
-                      <Text style={[styles.optionText, isSelected && { color: '#111827', fontWeight: '600' }]} numberOfLines={2}>{opt.label}</Text>
+                      <Text style={[styles.optionText, isSelected && { color: '#111827', fontWeight: '600' }, { fontSize: fs(14) }]} numberOfLines={2}>{opt.label}</Text>
                     </TouchableOpacity>
                   );
                 })}
@@ -600,16 +602,16 @@ export default function InvestorScreen() {
         {allAnswered && (
           <TouchableOpacity style={styles.submitBtn} onPress={handleComplete} activeOpacity={0.8}>
             <LinearGradient colors={['#0D9488', '#0F766E']} style={styles.submitGrad} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
-              <Ionicons name="checkmark-done" size={20} color="#fff" />
-              <Text style={styles.submitText}>View My Investor Profile</Text>
+              <Ionicons name="checkmark-done" size={is(20)} color="#fff" />
+              <Text style={[styles.submitText, { fontSize: fs(16) }]}>View My Investor Profile</Text>
             </LinearGradient>
           </TouchableOpacity>
         )}
 
         {!allAnswered && (
           <View style={styles.incompleteHint}>
-            <Ionicons name="information-circle-outline" size={18} color={Colors.light.gray400} />
-            <Text style={styles.incompleteText}>
+            <Ionicons name="information-circle-outline" size={is(18)} color={Colors.light.gray400} />
+            <Text style={[styles.incompleteText, { fontSize: fs(13) }]}>
               Answer all {totalQ} questions to see your investor risk profile. {totalQ - answeredCount} remaining.
             </Text>
           </View>

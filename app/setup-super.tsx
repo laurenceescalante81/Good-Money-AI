@@ -8,6 +8,7 @@ import * as Haptics from "expo-haptics";
 function goBack() { if (router.canGoBack()) router.back(); else router.replace("/(tabs)/super"); }
 import Colors from "@/constants/colors";
 import { useFinance } from "@/contexts/FinanceContext";
+import { useAccessibility } from '@/contexts/AccessibilityContext';
 
 const INVESTMENT_OPTIONS = ["Balanced", "Growth", "High Growth", "Conservative", "Cash"];
 
@@ -18,6 +19,7 @@ export default function SetupSuperScreen() {
   const topInset = Platform.OS === "web" ? 67 : insets.top;
   const bottomInset = Platform.OS === "web" ? 34 : insets.bottom;
   const { superDetails, setSuperDetails } = useFinance();
+  const { fs, is } = useAccessibility();
 
   const [balance, setBalance] = useState(superDetails?.balance?.toString() || "");
   const [fund, setFund] = useState(superDetails?.fund || "");
@@ -46,55 +48,55 @@ export default function SetupSuperScreen() {
   return (
     <View style={[styles.container, { paddingTop: topInset }]}>
       <View style={styles.topBar}>
-        <Pressable onPress={goBack} hitSlop={12}><Ionicons name="close" size={26} color={Colors.light.text} /></Pressable>
-        <Text style={styles.topTitle}>{superDetails ? "Edit Super" : "Set Up Super"}</Text>
-        <Pressable onPress={handleSave} disabled={!canSave} hitSlop={12}><Ionicons name="checkmark" size={26} color={canSave ? Colors.light.super : Colors.light.gray300} /></Pressable>
+        <Pressable onPress={goBack} hitSlop={12}><Ionicons name="close" size={is(26)} color={Colors.light.text} /></Pressable>
+        <Text style={[styles.topTitle, { fontSize: fs(17) }]}>{superDetails ? "Edit Super" : "Set Up Super"}</Text>
+        <Pressable onPress={handleSave} disabled={!canSave} hitSlop={12}><Ionicons name="checkmark" size={is(26)} color={canSave ? Colors.light.super : Colors.light.gray300} /></Pressable>
       </View>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: bottomInset + 20 }}>
         <View style={styles.section}>
-          <Text style={styles.label}>Current Balance</Text>
+          <Text style={[styles.label, { fontSize: fs(13) }]}>Current Balance</Text>
           <View style={styles.amountRow}>
-            <Text style={styles.dollar}>$</Text>
-            <TextInput style={styles.amountInput} placeholder="85000" placeholderTextColor={Colors.light.gray300} keyboardType="decimal-pad" value={balance} onChangeText={setBalance} autoFocus />
+            <Text style={[styles.dollar, { fontSize: fs(32) }]}>$</Text>
+            <TextInput style={[styles.amountInput, { fontSize: fs(32) }]} placeholder="85000" placeholderTextColor={Colors.light.gray300} keyboardType="decimal-pad" value={balance} onChangeText={setBalance} autoFocus />
           </View>
         </View>
         <View style={styles.section}>
-          <Text style={styles.label}>Super Fund</Text>
+          <Text style={[styles.label, { fontSize: fs(13) }]}>Super Fund</Text>
           <View style={styles.fundGrid}>
             {POPULAR_FUNDS.map(f => (
               <Pressable key={f} onPress={() => setFund(f)} style={[styles.fundBtn, fund === f && styles.fundBtnActive]}>
-                <Text style={[styles.fundText, fund === f && styles.fundTextActive]}>{f}</Text>
+                <Text style={[styles.fundText, fund === f && styles.fundTextActive, { fontSize: fs(13) }]}>{f}</Text>
               </Pressable>
             ))}
           </View>
           {fund === "Other" && (
-            <TextInput style={[styles.input, { marginTop: 10 }]} placeholder="Fund name" placeholderTextColor={Colors.light.textMuted} value={customFund} onChangeText={setCustomFund} />
+            <TextInput style={[styles.input, { marginTop: 10, fontSize: fs(16) }]} placeholder="Fund name" placeholderTextColor={Colors.light.textMuted} value={customFund} onChangeText={setCustomFund} />
           )}
         </View>
         <View style={styles.section}>
-          <Text style={styles.label}>Annual Salary (before tax)</Text>
+          <Text style={[styles.label, { fontSize: fs(13) }]}>Annual Salary (before tax)</Text>
           <View style={styles.amountRow}>
-            <Text style={styles.dollarSm}>$</Text>
-            <TextInput style={styles.inputSm} placeholder="85000" placeholderTextColor={Colors.light.gray300} keyboardType="decimal-pad" value={salary} onChangeText={setSalary} />
+            <Text style={[styles.dollarSm, { fontSize: fs(20) }]}>$</Text>
+            <TextInput style={[styles.inputSm, { fontSize: fs(20) }]} placeholder="85000" placeholderTextColor={Colors.light.gray300} keyboardType="decimal-pad" value={salary} onChangeText={setSalary} />
           </View>
         </View>
         <View style={styles.section}>
-          <Text style={styles.label}>Employer SG Rate (%)</Text>
+          <Text style={[styles.label, { fontSize: fs(13) }]}>Employer SG Rate (%)</Text>
           <View style={styles.rateRow}>
             {["11", "11.5", "12", "15"].map(r => (
               <Pressable key={r} onPress={() => setEmployerRate(r)} style={[styles.rateBtn, employerRate === r && styles.rateBtnActive]}>
-                <Text style={[styles.rateText, employerRate === r && styles.rateTextActive]}>{r}%</Text>
+                <Text style={[styles.rateText, employerRate === r && styles.rateTextActive, { fontSize: fs(14) }]}>{r}%</Text>
               </Pressable>
             ))}
           </View>
-          <Text style={styles.hint}>Current SG rate is 11.5% (rising to 12% from July 2025)</Text>
+          <Text style={[styles.hint, { fontSize: fs(12) }]}>Current SG rate is 11.5% (rising to 12% from July 2025)</Text>
         </View>
         <View style={styles.section}>
-          <Text style={styles.label}>Investment Option</Text>
+          <Text style={[styles.label, { fontSize: fs(13) }]}>Investment Option</Text>
           <View style={styles.fundGrid}>
             {INVESTMENT_OPTIONS.map(o => (
               <Pressable key={o} onPress={() => setInvestOption(o)} style={[styles.optBtn, investOption === o && styles.optBtnActive]}>
-                <Text style={[styles.fundText, investOption === o && styles.fundTextActive]}>{o}</Text>
+                <Text style={[styles.fundText, investOption === o && styles.fundTextActive, { fontSize: fs(13) }]}>{o}</Text>
               </Pressable>
             ))}
           </View>

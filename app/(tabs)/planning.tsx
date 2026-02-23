@@ -9,6 +9,7 @@ import Colors from "@/constants/colors";
 import { useFinance } from "@/contexts/FinanceContext";
 import { useRewards } from "@/contexts/RewardsContext";
 import CoinHeader from '@/components/CoinHeader';
+import { useAccessibility } from '@/contexts/AccessibilityContext';
 
 function fmt(n: number): string { return "$" + Math.abs(n).toLocaleString("en-AU", { minimumFractionDigits: 0, maximumFractionDigits: 0 }); }
 function fmtK(n: number): string {
@@ -33,6 +34,7 @@ export default function PlanningScreen() {
   const { getFactFindProgress } = useRewards();
   const factFindProgress = getFactFindProgress();
   const isFactFindComplete = factFindProgress.percentage >= 100;
+  const { fs, is } = useAccessibility();
 
   const screenW = Math.min(Dimensions.get("window").width - 40, 500);
 
@@ -103,18 +105,18 @@ export default function PlanningScreen() {
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
         <CoinHeader title="Planning" />
 
-        <Text style={styles.pageDesc}>Visualise your wealth growth and financial projections.</Text>
+        <Text style={[styles.pageDesc, { fontSize: fs(14) }]}>Visualise your wealth growth and financial projections.</Text>
 
         <View style={styles.summaryRow}>
           <View style={[styles.summaryCard, { backgroundColor: Colors.light.tint + "12" }]}>
-            <Text style={styles.summaryLabel}>Net Wealth</Text>
-            <Text style={[styles.summaryVal, { color: Colors.light.tint }]}>
+            <Text style={[styles.summaryLabel, { fontSize: fs(11) }]}>Net Wealth</Text>
+            <Text style={[styles.summaryVal, { color: Colors.light.tint, fontSize: fs(20) }]}>
               {fmt(wealthProjection[0]?.wealth || 0)}
             </Text>
           </View>
           <View style={[styles.summaryCard, { backgroundColor: Colors.light.income + "12" }]}>
-            <Text style={styles.summaryLabel}>Monthly Savings</Text>
-            <Text style={[styles.summaryVal, { color: monthlySavings >= 0 ? Colors.light.income : Colors.light.expense }]}>
+            <Text style={[styles.summaryLabel, { fontSize: fs(11) }]}>Monthly Savings</Text>
+            <Text style={[styles.summaryVal, { color: monthlySavings >= 0 ? Colors.light.income : Colors.light.expense, fontSize: fs(20) }]}>
               {monthlySavings >= 0 ? "+" : "-"}{fmt(Math.abs(monthlySavings))}
             </Text>
           </View>
@@ -123,7 +125,7 @@ export default function PlanningScreen() {
         <View style={{ position: 'relative' }}>
           <View style={!isFactFindComplete ? { opacity: 0.25 } : undefined} pointerEvents={isFactFindComplete ? 'auto' : 'none'}>
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Net Wealth Projection</Text>
+              <Text style={[styles.sectionTitle, { fontSize: fs(16) }]}>Net Wealth Projection</Text>
               <View style={styles.horizonRow}>
                 {HORIZONS.map(h => (
                   <Pressable
@@ -131,7 +133,7 @@ export default function PlanningScreen() {
                     onPress={() => setSelectedHorizon(h.key)}
                     style={[styles.horizonBtn, selectedHorizon === h.key && styles.horizonBtnActive]}
                   >
-                    <Text style={[styles.horizonBtnText, selectedHorizon === h.key && styles.horizonBtnTextActive]}>
+                    <Text style={[styles.horizonBtnText, selectedHorizon === h.key && styles.horizonBtnTextActive, { fontSize: fs(12) }]}>
                       {h.label}
                     </Text>
                   </Pressable>
@@ -145,14 +147,14 @@ export default function PlanningScreen() {
                 <LegendDot color={Colors.light.income} label="Savings" />
               </View>
               <View style={styles.projectedCard}>
-                <Text style={styles.projectedLabel}>Projected in {horizonYears} years</Text>
-                <Text style={styles.projectedVal}>{fmt(wealthProjection[wealthProjection.length - 1]?.wealth || 0)}</Text>
+                <Text style={[styles.projectedLabel, { fontSize: fs(13) }]}>Projected in {horizonYears} years</Text>
+                <Text style={[styles.projectedVal, { fontSize: fs(20) }]}>{fmt(wealthProjection[wealthProjection.length - 1]?.wealth || 0)}</Text>
               </View>
             </View>
 
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Income vs Expenses</Text>
-              <Text style={styles.sectionSubtitle}>Last 6 months</Text>
+              <Text style={[styles.sectionTitle, { fontSize: fs(16) }]}>Income vs Expenses</Text>
+              <Text style={[styles.sectionSubtitle, { fontSize: fs(12) }]}>Last 6 months</Text>
               <IncomeExpenseChart data={incomeExpenseData} width={screenW} />
               <View style={styles.legendRow}>
                 <LegendDot color={Colors.light.income} label="Income" />
@@ -165,21 +167,21 @@ export default function PlanningScreen() {
             <View style={styles.ctaOverlay}>
               <View style={styles.ctaCard}>
                 <Image source={require('@/assets/images/logo.jpeg')} style={styles.ctaLogo} />
-                <Text style={styles.ctaTitle}>Complete the Fact Find</Text>
-                <Text style={styles.ctaSub}>Finish your financial profile to unlock personalised wealth projections and planning insights</Text>
+                <Text style={[styles.ctaTitle, { fontSize: fs(20) }]}>Complete the Fact Find</Text>
+                <Text style={[styles.ctaSub, { fontSize: fs(13) }]}>Finish your financial profile to unlock personalised wealth projections and planning insights</Text>
                 <View style={styles.ctaProgressRow}>
                   <View style={styles.ctaProgressBg}>
                     <View style={[styles.ctaProgressFill, { width: `${factFindProgress.percentage}%` }]} />
                   </View>
-                  <Text style={styles.ctaProgressText}>{factFindProgress.percentage}%</Text>
+                  <Text style={[styles.ctaProgressText, { fontSize: fs(13) }]}>{factFindProgress.percentage}%</Text>
                 </View>
                 <View style={styles.ctaRewardRow}>
-                  <View style={styles.ctaCoinIcon}><Text style={styles.ctaCoinText}>$</Text></View>
-                  <Text style={styles.ctaRewardText}>Earn 5,450 Good Coins (worth $54.50 AUD)</Text>
+                  <View style={styles.ctaCoinIcon}><Text style={[styles.ctaCoinText, { fontSize: fs(10) }]}>$</Text></View>
+                  <Text style={[styles.ctaRewardText, { fontSize: fs(13) }]}>Earn 5,450 Good Coins (worth $54.50 AUD)</Text>
                 </View>
                 <Pressable style={styles.ctaBtn} onPress={() => router.push('/(tabs)/fact-find' as any)}>
-                  <Ionicons name="document-text" size={18} color="#fff" />
-                  <Text style={styles.ctaBtnText}>Start Fact Find Challenge</Text>
+                  <Ionicons name="document-text" size={is(18)} color="#fff" />
+                  <Text style={[styles.ctaBtnText, { fontSize: fs(15) }]}>Start Fact Find Challenge</Text>
                 </Pressable>
               </View>
             </View>
@@ -187,7 +189,7 @@ export default function PlanningScreen() {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Wealth Breakdown</Text>
+          <Text style={[styles.sectionTitle, { fontSize: fs(16) }]}>Wealth Breakdown</Text>
           <View style={styles.breakdownList}>
             <BreakdownRow icon="home-outline" label="Property Equity" value={wealthProjection[0]?.property || 0} color={Colors.light.mortgage} />
             <BreakdownRow icon="trending-up-outline" label="Superannuation" value={wealthProjection[0]?.super_ || 0} color={Colors.light.super} />
@@ -202,22 +204,24 @@ export default function PlanningScreen() {
 }
 
 function LegendDot({ color, label }: { color: string; label: string }) {
+  const { fs } = useAccessibility();
   return (
     <View style={styles.legendItem}>
       <View style={[styles.legendDot, { backgroundColor: color }]} />
-      <Text style={styles.legendLabel}>{label}</Text>
+      <Text style={[styles.legendLabel, { fontSize: fs(11) }]}>{label}</Text>
     </View>
   );
 }
 
 function BreakdownRow({ icon, label, value, color }: { icon: string; label: string; value: number; color: string }) {
+  const { fs, is } = useAccessibility();
   return (
     <View style={styles.breakdownRow}>
       <View style={[styles.breakdownIcon, { backgroundColor: color + "15" }]}>
-        <Ionicons name={icon as any} size={18} color={color} />
+        <Ionicons name={icon as any} size={is(18)} color={color} />
       </View>
-      <Text style={styles.breakdownLabel}>{label}</Text>
-      <Text style={[styles.breakdownVal, { color: value >= 0 ? Colors.light.text : Colors.light.expense }]}>
+      <Text style={[styles.breakdownLabel, { fontSize: fs(14) }]}>{label}</Text>
+      <Text style={[styles.breakdownVal, { color: value >= 0 ? Colors.light.text : Colors.light.expense, fontSize: fs(15) }]}>
         {value < 0 ? "-" : ""}{fmt(Math.abs(value))}
       </Text>
     </View>
@@ -225,6 +229,7 @@ function BreakdownRow({ icon, label, value, color }: { icon: string; label: stri
 }
 
 function NetWealthChart({ data, width }: { data: { year: number; wealth: number; property: number; super_: number; savings: number }[]; width: number }) {
+  const { fs } = useAccessibility();
   const chartH = 220;
   const padL = 55;
   const padR = 15;
@@ -236,7 +241,7 @@ function NetWealthChart({ data, width }: { data: { year: number; wealth: number;
   if (data.length < 2) {
     return (
       <View style={[styles.chartContainer, { height: chartH, width }]}>
-        <Text style={styles.chartEmpty}>Add mortgage, super, or savings data to see projections</Text>
+        <Text style={[styles.chartEmpty, { fontSize: fs(13) }]}>Add mortgage, super, or savings data to see projections</Text>
       </View>
     );
   }
@@ -272,7 +277,7 @@ function NetWealthChart({ data, width }: { data: { year: number; wealth: number;
         {gridVals.map((v, i) => (
           <React.Fragment key={i}>
             <Line x1={padL} y1={toY(v)} x2={width - padR} y2={toY(v)} stroke={Colors.light.gray200} strokeWidth={1} strokeDasharray="4,4" />
-            <SvgText x={padL - 6} y={toY(v) + 4} fontSize={10} fill={Colors.light.textMuted} textAnchor="end" fontFamily="DMSans_500Medium">{fmtK(v)}</SvgText>
+            <SvgText x={padL - 6} y={toY(v) + 4} fontSize={fs(10)} fill={Colors.light.textMuted} textAnchor="end" fontFamily="DMSans_500Medium">{fmtK(v)}</SvgText>
           </React.Fragment>
         ))}
         <Path d={makeAreaPath("wealth")} fill="url(#wealthFill)" />
@@ -286,7 +291,7 @@ function NetWealthChart({ data, width }: { data: { year: number; wealth: number;
         {data.filter((_, i) => i % Math.max(1, Math.floor(data.length / 6)) === 0 || i === data.length - 1).map((d, idx, arr) => {
           const origIdx = idx === arr.length - 1 && data.length > 1 ? data.length - 1 : idx * Math.max(1, Math.floor(data.length / 6));
           return (
-            <SvgText key={idx} x={toX(origIdx)} y={chartH - 6} fontSize={10} fill={Colors.light.textMuted} textAnchor="middle" fontFamily="DMSans_500Medium">
+            <SvgText key={idx} x={toX(origIdx)} y={chartH - 6} fontSize={fs(10)} fill={Colors.light.textMuted} textAnchor="middle" fontFamily="DMSans_500Medium">
               Yr {d.year}
             </SvgText>
           );
@@ -297,6 +302,7 @@ function NetWealthChart({ data, width }: { data: { year: number; wealth: number;
 }
 
 function IncomeExpenseChart({ data, width }: { data: { months: string[]; incomes: number[]; expenses: number[] }; width: number }) {
+  const { fs } = useAccessibility();
   const chartH = 180;
   const padL = 55;
   const padR = 15;
@@ -311,7 +317,7 @@ function IncomeExpenseChart({ data, width }: { data: { months: string[]; incomes
   if (maxVal === 0) {
     return (
       <View style={[styles.chartContainer, { height: chartH, width }]}>
-        <Text style={styles.chartEmpty}>Add income and expense transactions to see trends</Text>
+        <Text style={[styles.chartEmpty, { fontSize: fs(13) }]}>Add income and expense transactions to see trends</Text>
       </View>
     );
   }
@@ -330,7 +336,7 @@ function IncomeExpenseChart({ data, width }: { data: { months: string[]; incomes
         {gridVals.map((v, i) => (
           <React.Fragment key={i}>
             <Line x1={padL} y1={toY(v)} x2={width - padR} y2={toY(v)} stroke={Colors.light.gray200} strokeWidth={1} strokeDasharray="4,4" />
-            <SvgText x={padL - 6} y={toY(v) + 4} fontSize={10} fill={Colors.light.textMuted} textAnchor="end" fontFamily="DMSans_500Medium">{fmtK(v)}</SvgText>
+            <SvgText x={padL - 6} y={toY(v) + 4} fontSize={fs(10)} fill={Colors.light.textMuted} textAnchor="end" fontFamily="DMSans_500Medium">{fmtK(v)}</SvgText>
           </React.Fragment>
         ))}
         {data.months.map((month, i) => {
@@ -341,7 +347,7 @@ function IncomeExpenseChart({ data, width }: { data: { months: string[]; incomes
             <React.Fragment key={i}>
               <Rect x={cx - barW - gap / 2} y={padT + innerH - incH} width={barW} height={Math.max(incH, 1)} rx={4} fill={Colors.light.income} opacity={0.8} />
               <Rect x={cx + gap / 2} y={padT + innerH - expH} width={barW} height={Math.max(expH, 1)} rx={4} fill={Colors.light.expense} opacity={0.8} />
-              <SvgText x={cx} y={chartH - 6} fontSize={10} fill={Colors.light.textMuted} textAnchor="middle" fontFamily="DMSans_500Medium">{month}</SvgText>
+              <SvgText x={cx} y={chartH - 6} fontSize={fs(10)} fill={Colors.light.textMuted} textAnchor="middle" fontFamily="DMSans_500Medium">{month}</SvgText>
             </React.Fragment>
           );
         })}
