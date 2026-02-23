@@ -189,6 +189,106 @@ function configureExpoAndLanding(app: express.Application) {
     log("Web build found in dist/ — serving Expo web app");
   }
 
+  const BOT_UA = /bot|crawl|spider|slurp|facebookexternalhit|linkedinbot|twitterbot|whatsapp|telegram|discord|slack|preview|fetch|curl|wget|GPTBot|ChatGPT|Claude|Anthropic|Google-Extended|CCBot|PerplexityBot|Bytespider|Baiduspider|YandexBot|DuckDuckBot|archive\.org|Applebot|bingbot|Googlebot/i;
+
+  const BOT_ACCESS_KEY = process.env.BOT_ACCESS_KEY || "pzt2uvkunF2oUNmRi109XkAA9WD7cbxc";
+
+  function isBot(req: Request): boolean {
+    const ua = req.header("user-agent") || "";
+    return BOT_UA.test(ua);
+  }
+
+  function hasBotAccess(req: Request): boolean {
+    const key = (req.query as any).key || req.header("x-bot-key") || "";
+    return key === BOT_ACCESS_KEY;
+  }
+
+  function getBaseUrl(req: Request): string {
+    const proto = req.header("x-forwarded-proto") || req.protocol || "https";
+    const host = req.header("x-forwarded-host") || req.get("host") || "goodmoneyai.app";
+    return `${proto}://${host}`;
+  }
+
+  function serveBotHtml(req: Request, res: Response) {
+    const baseUrl = getBaseUrl(req);
+    const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Good Money – Australian Financial Planning App</title>
+<meta name="description" content="Good Money is a personal financial planning app built for Australians. Track your mortgage, superannuation, insurance, budget, and savings goals — all in one place. Earn rewards while building your financial future." />
+<meta name="keywords" content="Australian finance app, mortgage tracker, superannuation, budget planner, savings goals, insurance management, financial planning Australia, AUD, retirement planning" />
+<link rel="canonical" href="${baseUrl}/" />
+
+<meta property="og:type" content="website" />
+<meta property="og:url" content="${baseUrl}/" />
+<meta property="og:title" content="Good Money – Australian Financial Planning App" />
+<meta property="og:description" content="Track mortgage, super, insurance, budget & savings. Earn rewards while planning your financial future. Built for Australians." />
+<meta property="og:image" content="${baseUrl}/assets/images/logo.jpeg" />
+<meta property="og:site_name" content="Good Money" />
+<meta property="og:locale" content="en_AU" />
+
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:title" content="Good Money – Australian Financial Planning App" />
+<meta name="twitter:description" content="Track mortgage, super, insurance, budget & savings. Earn rewards while planning your financial future." />
+<meta name="twitter:image" content="${baseUrl}/assets/images/logo.jpeg" />
+
+<meta name="robots" content="index, follow" />
+</head>
+<body>
+<h1>Good Money – Australian Financial Planning App</h1>
+<p>Good Money is a comprehensive personal financial planning app built specifically for Australians. It helps you take control of your finances across four key pillars.</p>
+
+<h2>Key Features</h2>
+<ul>
+<li><strong>Mortgage Tracker</strong> – Track your home loan, see P&amp;I or interest-only repayments, monitor LVR and equity, and calculate the impact of extra repayments.</li>
+<li><strong>Superannuation</strong> – Monitor your super balance, employer SG contributions (currently 11.5%), and see retirement projections to age 67.</li>
+<li><strong>Insurance Management</strong> – Manage all your policies (home, car, health, life, income protection), track premiums, and get renewal reminders.</li>
+<li><strong>Budget &amp; Savings</strong> – Track income and expenses in Australian categories (groceries, petrol, rent, utilities), set savings goals, and monitor spending trends.</li>
+<li><strong>Open Banking</strong> – Connect Australian bank accounts via Basiq to see live balances and import transactions.</li>
+<li><strong>Investor Risk Profile</strong> – Complete a 20-question questionnaire based on Australian fact find standards to discover your risk profile (Defensive to High Growth).</li>
+<li><strong>Wealth Projections</strong> – Visualise your net wealth growth over 5, 10, 20, or 30 years across property equity, super, and savings.</li>
+<li><strong>Rewards &amp; Gamification</strong> – Earn Good Coins by completing financial missions, daily check-ins, and building streaks. Redeem for cashback and gift cards.</li>
+</ul>
+
+<h2>For Financial Advisers</h2>
+<p>Good Money includes a dedicated adviser portal for managing clients, viewing engagement reports, and accessing comprehensive fact find data.</p>
+
+<h2>Australian-Specific</h2>
+<p>All currency in AUD. Supports major Australian super funds (AustralianSuper, Rest, UniSuper, Hostplus, HESTA, Cbus), major banks (CBA, ANZ, NAB, Westpac, Macquarie), and Australian insurance and budget categories.</p>
+
+<p>Visit <a href="${baseUrl}/">${baseUrl}</a> to get started.</p>
+</body>
+</html>`;
+    res.setHeader("Content-Type", "text/html; charset=utf-8");
+    res.status(200).send(html);
+  }
+
+  app.get("/robots.txt", (_req: Request, res: Response) => {
+    const baseUrl = getBaseUrl(_req);
+    res.setHeader("Content-Type", "text/plain");
+    res.send(`User-agent: *
+Disallow: /api/
+Disallow: /admin
+Disallow: /adviser
+Allow: /
+
+Sitemap: ${baseUrl}/sitemap.xml
+`);
+  });
+
+  app.get("/sitemap.xml", (req: Request, res: Response) => {
+    const baseUrl = getBaseUrl(req);
+    const now = new Date().toISOString().split("T")[0];
+    res.setHeader("Content-Type", "application/xml");
+    res.send(`<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>${baseUrl}/</loc><lastmod>${now}</lastmod><changefreq>weekly</changefreq><priority>1.0</priority></url>
+  <url><loc>${baseUrl}/adviser</loc><lastmod>${now}</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+</urlset>`);
+  });
+
   app.use((req: Request, res: Response, next: NextFunction) => {
     if (req.path.startsWith("/api")) {
       return next();
@@ -203,6 +303,14 @@ function configureExpoAndLanding(app: express.Application) {
 
     if (req.path !== "/" && req.path !== "/manifest") {
       return next();
+    }
+
+    if (req.path === "/" && (isBot(req) || (req.query as any).key)) {
+      if (!hasBotAccess(req)) {
+        res.setHeader("Content-Type", "text/html; charset=utf-8");
+        return res.status(403).send("<!DOCTYPE html><html><head><title>Access Denied</title></head><body><h1>403 – Access Denied</h1><p>A valid access key is required to view this content. Append <code>?key=YOUR_KEY</code> to the URL.</p></body></html>");
+      }
+      return serveBotHtml(req, res);
     }
 
     if (req.path === "/" && hasWebBuild) {
