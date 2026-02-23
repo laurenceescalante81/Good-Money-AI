@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, Image, Platform, Pressable } from 'react-native
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRewards } from '@/contexts/RewardsContext';
+import { useAccessibility } from '@/contexts/AccessibilityContext';
 import { router } from 'expo-router';
 
 interface CoinHeaderProps {
@@ -16,27 +17,28 @@ export default function CoinHeader({ title, subtitle, rightElement, transparent 
   const insets = useSafeAreaInsets();
   const topInset = Platform.OS === 'web' ? 67 : Math.max(insets.top, 50);
   const { state } = useRewards();
+  const { fs, is } = useAccessibility();
 
   return (
     <View style={[styles.container, { paddingTop: topInset + 20 }, transparent && styles.transparent]}>
       <Pressable onPress={() => router.push('/(tabs)/index')} style={styles.leftSection}>
-        <Image source={require('@/assets/images/logo.jpeg')} style={styles.logo} />
+        <Image source={require('@/assets/images/logo.jpeg')} style={[styles.logo, { width: is(34), height: is(34) }]} />
         {title ? (
           <View style={styles.titleWrap}>
-            <Text style={styles.title} numberOfLines={1}>{title}</Text>
-            {subtitle && <Text style={styles.subtitle} numberOfLines={1}>{subtitle}</Text>}
+            <Text style={[styles.title, { fontSize: fs(17) }]} numberOfLines={1}>{title}</Text>
+            {subtitle && <Text style={[styles.subtitle, { fontSize: fs(11) }]} numberOfLines={1}>{subtitle}</Text>}
           </View>
         ) : (
-          <Text style={styles.brandName}>Good Money</Text>
+          <Text style={[styles.brandName, { fontSize: fs(18) }]}>Good Money</Text>
         )}
       </Pressable>
 
       <View style={styles.rightSection}>
         <Pressable onPress={() => router.push('/(tabs)/index')} style={styles.coinPill}>
-          <View style={styles.coinIcon}>
-            <Ionicons name="star" size={12} color="#0C1B2A" />
+          <View style={[styles.coinIcon, { width: is(20), height: is(20), borderRadius: is(10) }]}>
+            <Ionicons name="star" size={is(12)} color="#0C1B2A" />
           </View>
-          <Text style={styles.coinCount}>{state.points.toLocaleString()}</Text>
+          <Text style={[styles.coinCount, { fontSize: fs(13) }]}>{state.points.toLocaleString()}</Text>
         </Pressable>
         {rightElement}
       </View>

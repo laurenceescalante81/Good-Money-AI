@@ -15,6 +15,7 @@ import React from "react";
 import Colors from "@/constants/colors";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import type { BottomTabBarProps } from "@react-navigation/bottom-tabs";
+import { useAccessibility } from "@/contexts/AccessibilityContext";
 
 const TAB_META: Record<string, { active: string; inactive: string; color: string }> = {
   index: { active: "star", inactive: "star-outline", color: "#F59E0B" },
@@ -38,9 +39,11 @@ function TwoRowTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   const isWeb = Platform.OS === "web";
   const isIOS = Platform.OS === "ios";
   const insets = useSafeAreaInsets();
+  const { fs, is, spacingScale } = useAccessibility();
 
   const bottomPad = isWeb ? 34 : insets.bottom;
-  const barHeight = 96 + bottomPad;
+  const rowH = Math.round(44 * spacingScale);
+  const barHeight = (rowH * 2) + 8 + bottomPad;
 
   const row1 = state.routes.slice(0, ROW_SIZE);
   const row2 = state.routes.slice(ROW_SIZE);
@@ -63,17 +66,17 @@ function TwoRowTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
         style={styles.tab}
         activeOpacity={0.7}
       >
-        <View style={[styles.iconWrap, isFocused && { backgroundColor: `${meta.color}18` }]}>
+        <View style={[styles.iconWrap, { width: is(32), height: is(24) }, isFocused && { backgroundColor: `${meta.color}18` }]}>
           <Ionicons
             name={(isFocused ? meta.active : meta.inactive) as any}
-            size={18}
+            size={is(18)}
             color={isFocused ? meta.color : Colors.light.tabIconDefault}
           />
         </View>
         <Text
           style={[
             styles.label,
-            { color: isFocused ? meta.color : Colors.light.tabIconDefault, fontWeight: isFocused ? "600" : "500" },
+            { fontSize: fs(9), color: isFocused ? meta.color : Colors.light.tabIconDefault, fontWeight: isFocused ? "600" : "500" },
           ]}
           numberOfLines={1}
         >
@@ -93,11 +96,11 @@ function TwoRowTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
       <View style={[styles.topBorder, { borderTopColor: isDark ? "#333" : Colors.light.border }]} />
 
       <View style={[styles.rowsWrap, { paddingBottom: bottomPad }]}>
-        <View style={styles.tabRow}>
+        <View style={[styles.tabRow, { height: rowH }]}>
           {row1.map((route, i) => renderTab(route, i))}
         </View>
         {row2.length > 0 && (
-          <View style={styles.tabRow}>
+          <View style={[styles.tabRow, { height: rowH }]}>
             {row2.map((route, i) => renderTab(route, ROW_SIZE + i))}
           </View>
         )}
