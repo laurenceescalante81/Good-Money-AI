@@ -623,7 +623,7 @@ export default function InvestorScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.light.background },
-  pageDesc: { fontFamily: 'DMSans_400Regular', fontSize: 14, color: Colors.light.textSecondary, paddingHorizontal: 20, marginBottom: 4 },
+  pageDesc: { fontFamily: 'DMSans_400Regular', fontSize: 14, color: Colors.light.textSecondary, paddingHorizontal: 20, marginTop: 8, marginBottom: 4 },
   scroll: { flex: 1 },
   header: { paddingHorizontal: 20, paddingTop: 4, paddingBottom: 8 },
   headerTitle: { fontFamily: 'DMSans_700Bold', fontSize: 26, color: Colors.light.navy },

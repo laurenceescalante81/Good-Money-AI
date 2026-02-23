@@ -400,7 +400,7 @@ const styles = StyleSheet.create({
   headerTitle: { fontFamily: "DMSans_700Bold", fontSize: 26, color: Colors.light.text },
   headerDate: { fontFamily: "DMSans_400Regular", fontSize: 13, color: Colors.light.textMuted, marginTop: 2 },
   settingsBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: Colors.light.gray100, alignItems: "center", justifyContent: "center" },
-  body: { paddingHorizontal: 20, paddingTop: 16 },
+  body: { paddingHorizontal: 20, paddingTop: 24 },
   sectionTitle: { fontFamily: "DMSans_700Bold", fontSize: 18, color: Colors.light.text, marginBottom: 14 },
   pillarGrid: { flexDirection: "row", flexWrap: "wrap", gap: 12, marginBottom: 24 },
   pillarCard: { width: "48%", backgroundColor: Colors.light.card, borderRadius: 16, padding: 16, flexGrow: 1, flexBasis: "45%" },

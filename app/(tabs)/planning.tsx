@@ -358,7 +358,7 @@ function IncomeExpenseChart({ data, width }: { data: { months: string[]; incomes
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.light.background },
-  pageDesc: { fontFamily: 'DMSans_400Regular', fontSize: 14, color: Colors.light.textSecondary, paddingHorizontal: 20, marginBottom: 16 },
+  pageDesc: { fontFamily: 'DMSans_400Regular', fontSize: 14, color: Colors.light.textSecondary, paddingHorizontal: 20, marginTop: 8, marginBottom: 16 },
   header: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingHorizontal: 20, marginBottom: 16 },
   title: { fontFamily: "DMSans_700Bold", fontSize: 28, color: Colors.light.text },
   headerRight: { width: 36, height: 36, borderRadius: 12, backgroundColor: Colors.light.tint + "12", alignItems: "center", justifyContent: "center" },
