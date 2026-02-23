@@ -121,6 +121,12 @@ export interface CentrelinkDetails {
   dvaBenefits: 'yes' | 'no' | '';
 }
 
+export interface FinancialGoal {
+  description: string;
+  targetDate: string;
+  amount: string;
+}
+
 export interface PersonalDetails {
   firstName: string;
   lastName: string;
@@ -155,6 +161,7 @@ export interface PersonalDetails {
   assets: AssetDetails;
   liabilities: LiabilityDetails;
   estatePlanning: EstatePlanningDetails;
+  financialGoals: FinancialGoal[];
   riskProfile: RiskProfileDetails;
   retirement: RetirementDetails;
   health: HealthDetails;
@@ -224,6 +231,7 @@ const DEFAULT_PERSONAL: PersonalDetails = {
   postalAddress: { street: '', suburb: '', state: '', postcode: '' },
   tfn: '', bsb: '', accountNumber: '', bankName: '',
   dependents: [],
+  financialGoals: [],
   employment: { ...DEFAULT_EMPLOYMENT },
   partnerEmployment: { ...DEFAULT_EMPLOYMENT },
   income: { rentalIncome: '', investmentIncome: '', dividendIncome: '', governmentBenefits: '', childSupport: '', otherIncome: '' },
@@ -331,7 +339,7 @@ export function FinanceProvider({ children }: { children: ReactNode }) {
       const pdData = await AsyncStorage.getItem(KEYS.personalDetails);
       if (pdData) {
         const parsed = JSON.parse(pdData);
-        setPersonalDetailsState({ ...DEFAULT_PERSONAL, ...parsed, address: { ...DEFAULT_PERSONAL.address, ...(parsed.address || {}) }, postalAddress: { ...DEFAULT_PERSONAL.postalAddress, ...(parsed.postalAddress || {}) }, employment: { ...DEFAULT_EMPLOYMENT, ...(parsed.employment || {}) }, partnerEmployment: { ...DEFAULT_EMPLOYMENT, ...(parsed.partnerEmployment || {}) }, income: { ...DEFAULT_PERSONAL.income, ...(parsed.income || {}) }, assets: { ...DEFAULT_PERSONAL.assets, ...(parsed.assets || {}) }, liabilities: { ...DEFAULT_PERSONAL.liabilities, ...(parsed.liabilities || {}) }, estatePlanning: { ...DEFAULT_PERSONAL.estatePlanning, ...(parsed.estatePlanning || {}) }, riskProfile: { ...DEFAULT_PERSONAL.riskProfile, ...(parsed.riskProfile || {}) }, retirement: { ...DEFAULT_PERSONAL.retirement, ...(parsed.retirement || {}) }, health: { ...DEFAULT_PERSONAL.health, ...(parsed.health || {}) }, centrelink: { ...DEFAULT_PERSONAL.centrelink, ...(parsed.centrelink || {}) } });
+        setPersonalDetailsState({ ...DEFAULT_PERSONAL, ...parsed, address: { ...DEFAULT_PERSONAL.address, ...(parsed.address || {}) }, postalAddress: { ...DEFAULT_PERSONAL.postalAddress, ...(parsed.postalAddress || {}) }, employment: { ...DEFAULT_EMPLOYMENT, ...(parsed.employment || {}) }, partnerEmployment: { ...DEFAULT_EMPLOYMENT, ...(parsed.partnerEmployment || {}) }, income: { ...DEFAULT_PERSONAL.income, ...(parsed.income || {}) }, assets: { ...DEFAULT_PERSONAL.assets, ...(parsed.assets || {}) }, liabilities: { ...DEFAULT_PERSONAL.liabilities, ...(parsed.liabilities || {}) }, estatePlanning: { ...DEFAULT_PERSONAL.estatePlanning, ...(parsed.estatePlanning || {}) }, financialGoals: parsed.financialGoals || [], riskProfile: { ...DEFAULT_PERSONAL.riskProfile, ...(parsed.riskProfile || {}) }, retirement: { ...DEFAULT_PERSONAL.retirement, ...(parsed.retirement || {}) }, health: { ...DEFAULT_PERSONAL.health, ...(parsed.health || {}) }, centrelink: { ...DEFAULT_PERSONAL.centrelink, ...(parsed.centrelink || {}) } });
       }
     } catch (e) {
       console.error('Load error', e);
@@ -409,6 +417,7 @@ export function FinanceProvider({ children }: { children: ReactNode }) {
         assets: { ...prev.assets, ...(details.assets || {}) },
         liabilities: { ...prev.liabilities, ...(details.liabilities || {}) },
         estatePlanning: { ...prev.estatePlanning, ...(details.estatePlanning || {}) },
+        financialGoals: details.financialGoals !== undefined ? details.financialGoals : prev.financialGoals,
         riskProfile: { ...prev.riskProfile, ...(details.riskProfile || {}) },
         retirement: { ...prev.retirement, ...(details.retirement || {}) },
         health: { ...prev.health, ...(details.health || {}) },
