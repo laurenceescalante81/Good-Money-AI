@@ -232,7 +232,7 @@ export default function InsuranceScreen() {
   const { fs, is } = useAccessibility();
   const { isMobile, contentWidth, sidePadding } = useResponsive();
   const insets = useSafeAreaInsets();
-  const topInset = Platform.OS === "web" ? 67 : insets.top;
+  const topInset = Platform.OS === "web" ? 16 : insets.top;
   const { insurancePolicies, getTotalInsuranceCost } = useFinance();
   const [expandedCategory, setExpandedCategory] = useState<CategoryKey | null>(null);
 

@@ -18,7 +18,7 @@ interface CoinHeaderProps {
 
 export default function CoinHeader({ title, subtitle, rightElement, transparent, darkMode }: CoinHeaderProps) {
   const insets = useSafeAreaInsets();
-  const topInset = Platform.OS === 'web' ? 67 : Math.max(insets.top, 50);
+  const topInset = Platform.OS === 'web' ? 16 : Math.max(insets.top, 50);
   const { state } = useRewards();
   const { fs, is } = useAccessibility();
   const { isDark, colors: tc } = useTheme();

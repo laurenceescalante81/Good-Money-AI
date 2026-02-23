@@ -232,7 +232,7 @@ function BadgeItem({ badge }: { badge: { id: string; title: string; description:
 export default function RewardsScreen() {
   const { fs, is } = useAccessibility();
   const insets = useSafeAreaInsets();
-  const topInset = Platform.OS === 'web' ? 67 : insets.top;
+  const topInset = Platform.OS === 'web' ? 16 : insets.top;
   const { state, missions, badges, rewards, checkIn, redeemReward, convertPointsToTokens, getFactFindProgress, canSpin, canScratch, is2xWeekend, xpForLevel, TOKEN_RATE } = useRewards();
   const [activeTab, setActiveTab] = useState<TabKey>('hub');
   const [checkedIn, setCheckedIn] = useState(false);

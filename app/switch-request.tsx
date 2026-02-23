@@ -23,7 +23,7 @@ interface SwitchOption {
 
 export default function SwitchRequestScreen() {
   const insets = useSafeAreaInsets();
-  const topInset = Platform.OS === "web" ? 67 : insets.top;
+  const topInset = Platform.OS === "web" ? 16 : insets.top;
   const bottomInset = Platform.OS === "web" ? 34 : insets.bottom;
   const { personalDetails, mortgage, superDetails, insurancePolicies } = useFinance();
   const [selectedType, setSelectedType] = useState<SwitchType | null>(null);

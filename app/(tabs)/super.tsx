@@ -26,7 +26,7 @@ function StatRow({ label, value, color }: { label: string; value: string; color?
 
 export default function SuperScreen() {
   const insets = useSafeAreaInsets();
-  const topInset = Platform.OS === "web" ? 67 : insets.top;
+  const topInset = Platform.OS === "web" ? 16 : insets.top;
   const { superDetails, calculateSuperProjection, clearSuper } = useFinance();
   const { state: rewardsState, missions, completeMission } = useRewards();
   const { fs, is } = useAccessibility();

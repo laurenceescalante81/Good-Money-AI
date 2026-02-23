@@ -48,7 +48,7 @@ function DesktopSidebar({ state, descriptors, navigation }: BottomTabBarProps) {
   const { fs, is } = useAccessibility();
   const { isDark, colors: tc } = useTheme();
   const insets = useSafeAreaInsets();
-  const topInset = Platform.OS === 'web' ? 67 : insets.top;
+  const topInset = Platform.OS === 'web' ? 16 : insets.top;
 
   return (
     <View style={[dStyles.sidebar, { backgroundColor: tc.card, borderRightColor: tc.border, paddingTop: topInset }]}>

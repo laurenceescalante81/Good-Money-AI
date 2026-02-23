@@ -28,7 +28,7 @@ const FREQUENCIES: { value: InsurancePolicy["premiumFrequency"]; label: string }
 
 export default function AddInsuranceScreen() {
   const insets = useSafeAreaInsets();
-  const topInset = Platform.OS === "web" ? 67 : insets.top;
+  const topInset = Platform.OS === "web" ? 16 : insets.top;
   const bottomInset = Platform.OS === "web" ? 34 : insets.bottom;
   const { addInsurance, insurancePolicies, deleteInsurance } = useFinance();
   const { fs, is } = useAccessibility();

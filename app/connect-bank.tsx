@@ -57,7 +57,7 @@ function InstitutionRow({ inst, onPress }: { inst: Institution; onPress: () => v
 
 export default function ConnectBankScreen() {
   const insets = useSafeAreaInsets();
-  const topInset = Platform.OS === "web" ? 67 : insets.top;
+  const topInset = Platform.OS === "web" ? 16 : insets.top;
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [connecting, setConnecting] = useState(false);

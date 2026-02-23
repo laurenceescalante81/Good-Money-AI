@@ -12,7 +12,7 @@ import { useAccessibility } from '@/contexts/AccessibilityContext';
 
 export default function SetupMortgageScreen() {
   const insets = useSafeAreaInsets();
-  const topInset = Platform.OS === "web" ? 67 : insets.top;
+  const topInset = Platform.OS === "web" ? 16 : insets.top;
   const bottomInset = Platform.OS === "web" ? 34 : insets.bottom;
   const { mortgage, setMortgage } = useFinance();
   const { fs, is } = useAccessibility();

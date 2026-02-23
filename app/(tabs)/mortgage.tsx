@@ -27,7 +27,7 @@ function StatRow({ label, value, color }: { label: string; value: string; color?
 
 export default function MortgageScreen() {
   const insets = useSafeAreaInsets();
-  const topInset = Platform.OS === "web" ? 67 : insets.top;
+  const topInset = Platform.OS === "web" ? 16 : insets.top;
   const { mortgage, calculateMortgageRepayment, clearMortgage } = useFinance();
   const { state: rewardsState, missions, completeMission } = useRewards();
   const { fs, is } = useAccessibility();

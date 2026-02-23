@@ -143,7 +143,7 @@ function BankAccountCard({ account }: { account: BankAccount }) {
 export default function BudgetScreen() {
   const { fs, is } = useAccessibility();
   const insets = useSafeAreaInsets();
-  const topInset = Platform.OS === "web" ? 67 : insets.top;
+  const topInset = Platform.OS === "web" ? 16 : insets.top;
   const queryClient = useQueryClient();
   const { transactions, deleteTransaction, getTotalIncome, getTotalExpenses, getMonthlyTransactions, goals, updateGoalAmount, deleteGoal } = useFinance();
   const { state: rewardsState, missions, completeMission } = useRewards();

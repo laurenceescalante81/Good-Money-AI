@@ -29,7 +29,7 @@ const HORIZONS: { key: TimeHorizon; label: string; years: number }[] = [
 
 export default function PlanningScreen() {
   const insets = useSafeAreaInsets();
-  const topInset = Platform.OS === "web" ? 67 : insets.top;
+  const topInset = Platform.OS === "web" ? 16 : insets.top;
   const [selectedHorizon, setSelectedHorizon] = useState<TimeHorizon>("10yr");
   const { mortgage, superDetails, transactions, goals, insurancePolicies, getTotalIncome, getTotalExpenses, getTotalInsuranceCost, calculateMortgageRepayment, calculateSuperProjection } = useFinance();
   const { getFactFindProgress } = useRewards();

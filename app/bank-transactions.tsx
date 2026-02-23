@@ -80,7 +80,7 @@ function TransactionItem({ tx, onImport }: { tx: BankTransaction; onImport: () =
 
 export default function BankTransactionsScreen() {
   const insets = useSafeAreaInsets();
-  const topInset = Platform.OS === "web" ? 67 : insets.top;
+  const topInset = Platform.OS === "web" ? 16 : insets.top;
   const queryClient = useQueryClient();
   const { addTransaction } = useFinance();
   const [filter, setFilter] = useState<"all" | "debit" | "credit">("all");

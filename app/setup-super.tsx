@@ -16,7 +16,7 @@ const POPULAR_FUNDS = ["AustralianSuper", "Rest Super", "Sunsuper", "UniSuper", 
 
 export default function SetupSuperScreen() {
   const insets = useSafeAreaInsets();
-  const topInset = Platform.OS === "web" ? 67 : insets.top;
+  const topInset = Platform.OS === "web" ? 16 : insets.top;
   const bottomInset = Platform.OS === "web" ? 34 : insets.bottom;
   const { superDetails, setSuperDetails } = useFinance();
   const { fs, is } = useAccessibility();

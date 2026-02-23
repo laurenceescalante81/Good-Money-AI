@@ -20,7 +20,7 @@ const SIZE_OPTIONS = [
 
 export default function SettingsScreen() {
   const insets = useSafeAreaInsets();
-  const topInset = Platform.OS === "web" ? 67 : insets.top;
+  const topInset = Platform.OS === "web" ? 16 : insets.top;
   const { profileMode, setProfileMode, partnerName, setPartnerName } = useFinance();
   const { displaySize, setDisplaySize, fs, is } = useAccessibility();
   const { isDark, toggleTheme, colors: tc } = useTheme();
