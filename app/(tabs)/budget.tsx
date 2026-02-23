@@ -12,6 +12,7 @@ import { useFinance, Transaction } from "@/contexts/FinanceContext";
 import { useRewards } from "@/contexts/RewardsContext";
 import { MessageOverlay } from "@/contexts/AppMessagesContext";
 import CoinHeader from '@/components/CoinHeader';
+import { useResponsive } from '@/hooks/useResponsive';
 import { getApiUrl } from "@/lib/query-client";
 
 const CATS: Record<string, { icon: string; color: string }> = {
@@ -147,6 +148,7 @@ export default function BudgetScreen() {
   const { transactions, deleteTransaction, getTotalIncome, getTotalExpenses, getMonthlyTransactions, goals, updateGoalAmount, deleteGoal } = useFinance();
   const { state: rewardsState, missions, completeMission } = useRewards();
   const budgetMission = missions.find(m => m.id === 'add_transaction' && !m.completed);
+  const { isMobile, contentWidth, sidePadding } = useResponsive();
   const [filter, setFilter] = useState<Filter>("all");
   const [goalModalVisible, setGoalModalVisible] = useState(false);
   const [selectedGoalId, setSelectedGoalId] = useState<string | null>(null);
@@ -389,7 +391,7 @@ export default function BudgetScreen() {
       <FlatList
         data={filtered}
         keyExtractor={item => item.id}
-        contentContainerStyle={{ paddingBottom: 100 }}
+        contentContainerStyle={{ paddingBottom: isMobile ? 100 : 60 }}
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.light.tint} />}
         ListHeaderComponent={
@@ -403,6 +405,7 @@ export default function BudgetScreen() {
               }
             />
 
+            <View style={{ alignSelf: 'center', width: '100%', maxWidth: contentWidth, paddingHorizontal: sidePadding }}>
             <Text style={[styles.pageDesc, { fontSize: fs(14) }]}>Monitor your income, expenses, and savings goals.</Text>
 
             <View style={styles.summaryRow}>
@@ -585,6 +588,7 @@ export default function BudgetScreen() {
                 ))}
               </View>
             </View>
+            </View>
           </View>
         }
         ListEmptyComponent={
@@ -622,14 +626,14 @@ export default function BudgetScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.light.background },
-  pageDesc: { fontFamily: 'DMSans_400Regular', fontSize: 14, color: Colors.light.textSecondary, paddingHorizontal: 20, marginTop: 8, marginBottom: 16 },
-  header: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingHorizontal: 20, marginBottom: 16 },
+  pageDesc: { fontFamily: 'DMSans_400Regular', fontSize: 14, color: Colors.light.textSecondary, marginTop: 8, marginBottom: 16 },
+  header: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 16 },
   title: { fontFamily: "DMSans_700Bold", fontSize: 28, color: Colors.light.text },
-  summaryRow: { flexDirection: "row", paddingHorizontal: 20, gap: 12, marginBottom: 20 },
+  summaryRow: { flexDirection: "row", gap: 12, marginBottom: 20 },
   summaryCard: { flex: 1, borderRadius: 14, padding: 14 },
   summaryLabel: { fontFamily: "DMSans_500Medium", fontSize: 12, color: Colors.light.textSecondary },
   summaryVal: { fontFamily: "DMSans_700Bold", fontSize: 20, marginTop: 4 },
-  catSection: { paddingHorizontal: 20, marginBottom: 20 },
+  catSection: { marginBottom: 20 },
   catTitle: { fontFamily: "DMSans_700Bold", fontSize: 16, color: Colors.light.text, marginBottom: 10 },
   catList: { backgroundColor: Colors.light.card, borderRadius: 16, padding: 14, gap: 14 },
   catItem: { flexDirection: "row", alignItems: "center", gap: 10 },
@@ -639,7 +643,7 @@ const styles = StyleSheet.create({
   catBarBg: { height: 5, backgroundColor: Colors.light.gray100, borderRadius: 3, overflow: "hidden" },
   catBarFill: { height: 5, borderRadius: 3 },
   catAmount: { fontFamily: "DMSans_600SemiBold", fontSize: 13, color: Colors.light.text },
-  goalsSection: { paddingHorizontal: 20, marginBottom: 20 },
+  goalsSection: { marginBottom: 20 },
   goalsHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 10 },
   goalCard: { backgroundColor: Colors.light.card, borderRadius: 14, padding: 14, marginBottom: 8 },
   goalRow: { flexDirection: "row", alignItems: "center", gap: 10, marginBottom: 10 },
@@ -652,9 +656,9 @@ const styles = StyleSheet.create({
   goalBarFill: { height: 6, borderRadius: 3, backgroundColor: Colors.light.budget },
   addFundsBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 4, backgroundColor: Colors.light.budget, paddingVertical: 8, borderRadius: 8, marginTop: 10 },
   addFundsText: { fontFamily: "DMSans_600SemiBold", fontSize: 12, color: Colors.light.white },
-  addGoalBanner: { flexDirection: "row", alignItems: "center", gap: 10, marginHorizontal: 20, backgroundColor: Colors.light.card, borderRadius: 14, padding: 14, marginBottom: 20 },
+  addGoalBanner: { flexDirection: "row", alignItems: "center", gap: 10, backgroundColor: Colors.light.card, borderRadius: 14, padding: 14, marginBottom: 20 },
   addGoalText: { fontFamily: "DMSans_500Medium", fontSize: 14, color: Colors.light.text, flex: 1 },
-  txHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingHorizontal: 20, marginBottom: 10 },
+  txHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 10 },
   filterRow: { flexDirection: "row", gap: 6 },
   filterBtn: { paddingVertical: 6, paddingHorizontal: 14, borderRadius: 16, backgroundColor: Colors.light.gray100 },
   filterBtnActive: { backgroundColor: Colors.light.navy },
@@ -668,7 +672,7 @@ const styles = StyleSheet.create({
   txAmount: { fontFamily: "DMSans_600SemiBold", fontSize: 14 },
   txDate: { fontFamily: "DMSans_400Regular", fontSize: 11, color: Colors.light.textMuted, marginTop: 2 },
   separator: { height: 1, backgroundColor: Colors.light.gray100, marginLeft: 72 },
-  valueBanner: { marginHorizontal: 20, borderRadius: 20, padding: 20, marginBottom: 16 },
+  valueBanner: { borderRadius: 20, padding: 20, marginBottom: 16 },
   valueBannerHeader: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 8 },
   valueBannerTitle: { fontFamily: "DMSans_700Bold", fontSize: 18, color: "#fff" },
   valueBannerSubtitle: { fontFamily: "DMSans_500Medium", fontSize: 13, color: "rgba(255,255,255,0.75)", marginBottom: 12 },
@@ -696,7 +700,7 @@ const styles = StyleSheet.create({
   modalCancelText: { fontFamily: "DMSans_600SemiBold", fontSize: 14, color: Colors.light.textSecondary },
   modalConfirm: { flex: 1, paddingVertical: 12, borderRadius: 10, backgroundColor: Colors.light.budget, alignItems: "center" },
   modalConfirmText: { fontFamily: "DMSans_600SemiBold", fontSize: 14, color: Colors.light.white },
-  missionBanner: { marginHorizontal: 20, marginBottom: 16, backgroundColor: Colors.light.card, borderRadius: 16, padding: 14 },
+  missionBanner: { marginBottom: 16, backgroundColor: Colors.light.card, borderRadius: 16, padding: 14 },
   missionBannerTop: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 8 },
   missionPtsCircle: { flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: "#D4AF3715", borderRadius: 10, paddingHorizontal: 10, paddingVertical: 5 },
   missionPtsNum: { fontFamily: "DMSans_700Bold", fontSize: 13, color: "#D4AF37" },

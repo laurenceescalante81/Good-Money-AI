@@ -9,6 +9,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import Colors from '@/constants/colors';
 import CoinHeader from '@/components/CoinHeader';
+import { useResponsive } from '@/hooks/useResponsive';
 import { useAccessibility } from '@/contexts/AccessibilityContext';
 
 const SECTIONS = [
@@ -30,6 +31,7 @@ export default function HomeScreen() {
   const isWeb = Platform.OS === 'web';
   const router = useRouter();
   const { fs, is } = useAccessibility();
+  const { isMobile, contentWidth, sidePadding } = useResponsive();
   const { width: screenWidth } = useWindowDimensions();
 
   const bottomPad = isWeb ? 34 : insets.bottom;
@@ -47,9 +49,10 @@ export default function HomeScreen() {
     <View style={styles.container}>
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: bottomPad + 120 }}
+        contentContainerStyle={{ paddingBottom: isMobile ? (bottomPad + 120) : 60 }}
       >
         <CoinHeader />
+        <View style={{ alignSelf: 'center', width: '100%', maxWidth: contentWidth, paddingHorizontal: sidePadding }}>
         <Text style={[styles.subtitle, { fontSize: fs(14) }]}>Your Australian Finance Hub</Text>
 
         <View style={[styles.cardContainer, { marginHorizontal: cardHPad }]}>
@@ -84,6 +87,7 @@ export default function HomeScreen() {
             ))}
           </View>
         </View>
+        </View>
       </ScrollView>
     </View>
   );
@@ -100,7 +104,7 @@ const styles = StyleSheet.create({
     color: Colors.light.textSecondary,
     marginTop: 8,
     marginBottom: 24,
-    paddingHorizontal: 24,
+    paddingHorizontal: 0,
   },
   cardContainer: {
     backgroundColor: '#fff',

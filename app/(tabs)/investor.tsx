@@ -11,6 +11,7 @@ import Colors from '@/constants/colors';
 import { useFinance, InvestorProfile } from '@/contexts/FinanceContext';
 import CoinHeader from '@/components/CoinHeader';
 import { useAccessibility } from '@/contexts/AccessibilityContext';
+import { useResponsive } from '@/hooks/useResponsive';
 
 interface QuestionOption {
   value: string;
@@ -314,6 +315,7 @@ export default function InvestorScreen() {
   const { investorProfile, updateInvestorProfile } = useFinance();
   const { width: screenWidth } = useWindowDimensions();
   const { fs, is } = useAccessibility();
+  const { isMobile, contentWidth, sidePadding } = useResponsive();
 
   const [answers, setAnswers] = useState<Record<string, string>>(investorProfile.answers || {});
   const [currentQ, setCurrentQ] = useState(0);
@@ -381,9 +383,10 @@ export default function InvestorScreen() {
         <ScrollView
           ref={scrollRef}
           style={styles.scroll}
-          contentContainerStyle={{ paddingBottom: bottomInset + 100 }}
+          contentContainerStyle={{ paddingBottom: isMobile ? (bottomInset + 100) : 60 }}
           showsVerticalScrollIndicator={false}
         >
+          <View style={{ alignSelf: 'center', width: '100%', maxWidth: contentWidth, paddingHorizontal: sidePadding }}>
           <LinearGradient
             colors={[profileData.color, `${profileData.color}CC`, '#0C1B2A']}
             start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
@@ -492,6 +495,7 @@ export default function InvestorScreen() {
               This is a general guide only and does not constitute personal financial advice. Consult a licensed financial adviser before making investment decisions.
             </Text>
           </View>
+          </View>
         </ScrollView>
       </View>
     );
@@ -504,6 +508,7 @@ export default function InvestorScreen() {
   return (
     <View style={[styles.container, { paddingTop: 0 }]}>
       <CoinHeader title="Investor Profile" />
+      <View style={{ alignSelf: 'center', width: '100%', maxWidth: contentWidth, paddingHorizontal: sidePadding, flex: 1 }}>
       <Text style={[styles.pageDesc, { fontSize: fs(14) }]}>Discover your risk profile and ideal investment strategy.</Text>
       <View style={styles.header}>
         <Text style={[styles.headerTitle, { fontSize: fs(26) }]}>Investor Profile</Text>
@@ -556,7 +561,7 @@ export default function InvestorScreen() {
       <ScrollView
         ref={scrollRef}
         style={styles.scroll}
-        contentContainerStyle={{ paddingBottom: bottomInset + 120 }}
+        contentContainerStyle={{ paddingBottom: isMobile ? (bottomInset + 120) : 60 }}
         showsVerticalScrollIndicator={false}
       >
         {catFilter.map((q, idx) => {
@@ -617,15 +622,16 @@ export default function InvestorScreen() {
           </View>
         )}
       </ScrollView>
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.light.background },
-  pageDesc: { fontFamily: 'DMSans_400Regular', fontSize: 14, color: Colors.light.textSecondary, paddingHorizontal: 20, marginTop: 8, marginBottom: 4 },
+  pageDesc: { fontFamily: 'DMSans_400Regular', fontSize: 14, color: Colors.light.textSecondary, marginTop: 8, marginBottom: 4 },
   scroll: { flex: 1 },
-  header: { paddingHorizontal: 20, paddingTop: 4, paddingBottom: 8 },
+  header: { paddingTop: 4, paddingBottom: 8 },
   headerTitle: { fontFamily: 'DMSans_700Bold', fontSize: 26, color: Colors.light.navy },
   headerSub: { fontFamily: 'DMSans_400Regular', fontSize: 14, color: Colors.light.gray500, marginTop: 4 },
   progressRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 12 },

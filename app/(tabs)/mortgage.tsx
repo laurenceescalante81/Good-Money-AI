@@ -10,6 +10,7 @@ import { useRewards } from "@/contexts/RewardsContext";
 import { MessageOverlay } from "@/contexts/AppMessagesContext";
 import CoinHeader from '@/components/CoinHeader';
 import { useAccessibility } from '@/contexts/AccessibilityContext';
+import { useResponsive } from '@/hooks/useResponsive';
 
 function fmt(n: number): string { return "$" + n.toLocaleString("en-AU", { minimumFractionDigits: 0, maximumFractionDigits: 0 }); }
 function fmtDec(n: number): string { return "$" + n.toLocaleString("en-AU", { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
@@ -30,6 +31,7 @@ export default function MortgageScreen() {
   const { mortgage, calculateMortgageRepayment, clearMortgage } = useFinance();
   const { state: rewardsState, missions, completeMission } = useRewards();
   const { fs, is } = useAccessibility();
+  const { isMobile, contentWidth, sidePadding } = useResponsive();
   const mortgageMission = missions.find(m => m.id === 'run_valuation' && !m.completed);
 
   if (!mortgage) {
@@ -69,8 +71,9 @@ export default function MortgageScreen() {
 
   return (
     <View style={styles.container}>
-      <ScrollView contentInsetAdjustmentBehavior="automatic" showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
+      <ScrollView contentInsetAdjustmentBehavior="automatic" showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: isMobile ? 100 : 60 }}>
         <CoinHeader title="Mortgage" />
+        <View style={{ alignSelf: 'center', width: '100%', maxWidth: contentWidth, paddingHorizontal: sidePadding }}>
         <Text style={[styles.pageDesc, { fontSize: fs(14) }]}>Track your home loan and see the impact of extra repayments.</Text>
         <View style={[styles.header]}>
           <View />
@@ -305,6 +308,7 @@ export default function MortgageScreen() {
           </View>
         </Pressable>
 
+        </View>
       </ScrollView>
       <MessageOverlay screen="mortgage" />
     </View>
@@ -313,15 +317,15 @@ export default function MortgageScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.light.background },
-  pageDesc: { fontFamily: 'DMSans_400Regular', fontSize: 14, color: Colors.light.textSecondary, paddingHorizontal: 20, marginTop: 8, marginBottom: 16 },
-  header: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingHorizontal: 20, marginBottom: 20 },
+  pageDesc: { fontFamily: 'DMSans_400Regular', fontSize: 14, color: Colors.light.textSecondary, marginTop: 8, marginBottom: 16 },
+  header: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 20 },
   headerBtns: { flexDirection: "row", gap: 16 },
   title: { fontFamily: "DMSans_700Bold", fontSize: 28, color: Colors.light.text },
-  heroCard: { marginHorizontal: 20, backgroundColor: Colors.light.mortgage, borderRadius: 20, padding: 24, alignItems: "center", marginBottom: 8 },
+  heroCard: { backgroundColor: Colors.light.mortgage, borderRadius: 20, padding: 24, alignItems: "center", marginBottom: 8 },
   heroLabel: { fontFamily: "DMSans_500Medium", fontSize: 14, color: "rgba(255,255,255,0.7)" },
   heroAmount: { fontFamily: "DMSans_700Bold", fontSize: 36, color: Colors.light.white, marginTop: 4 },
   heroExtra: { fontFamily: "DMSans_400Regular", fontSize: 13, color: "rgba(255,255,255,0.6)", marginTop: 4 },
-  section: { paddingHorizontal: 20, marginTop: 20 },
+  section: { marginTop: 20 },
   sectionTitle: { fontFamily: "DMSans_700Bold", fontSize: 16, color: Colors.light.text, marginBottom: 10 },
   card: { backgroundColor: Colors.light.card, borderRadius: 16, padding: 16, gap: 12 },
   statRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
@@ -331,7 +335,7 @@ const styles = StyleSheet.create({
   lvrBarFill: { height: 8, borderRadius: 4 },
   savingBadge: { flexDirection: "row", alignItems: "center", gap: 8, backgroundColor: Colors.light.income + "10", borderRadius: 10, padding: 12, marginTop: 4 },
   savingText: { fontFamily: "DMSans_500Medium", fontSize: 13, color: Colors.light.income, flex: 1 },
-  valueBanner: { marginHorizontal: 20, borderRadius: 20, padding: 20, marginBottom: 16 },
+  valueBanner: { borderRadius: 20, padding: 20, marginBottom: 16 },
   valueBannerHeader: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 8 },
   valueBannerTitle: { fontFamily: "DMSans_700Bold", fontSize: 18, color: "#fff" },
   valueBannerSubtitle: { fontFamily: "DMSans_500Medium", fontSize: 13, color: "rgba(255,255,255,0.75)", marginBottom: 12 },
@@ -354,7 +358,7 @@ const styles = StyleSheet.create({
   emptySubtext: { fontFamily: "DMSans_400Regular", fontSize: 14, color: Colors.light.textSecondary, textAlign: "center", lineHeight: 22, marginBottom: 24 },
   setupBtn: { flexDirection: "row", alignItems: "center", gap: 8, backgroundColor: Colors.light.mortgage, paddingVertical: 14, paddingHorizontal: 28, borderRadius: 14 },
   setupBtnText: { fontFamily: "DMSans_600SemiBold", fontSize: 15, color: Colors.light.white },
-  missionBanner: { marginHorizontal: 20, marginTop: 20, backgroundColor: Colors.light.card, borderRadius: 16, padding: 14 },
+  missionBanner: { marginTop: 20, backgroundColor: Colors.light.card, borderRadius: 16, padding: 14 },
   missionBannerTop: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 8 },
   missionPtsCircle: { flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: "#D4AF3715", borderRadius: 10, paddingHorizontal: 10, paddingVertical: 5 },
   missionPtsNum: { fontFamily: "DMSans_700Bold", fontSize: 13, color: "#D4AF37" },

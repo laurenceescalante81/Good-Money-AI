@@ -11,6 +11,7 @@ import { useFinance } from "@/contexts/FinanceContext";
 import { useRewards } from "@/contexts/RewardsContext";
 import { MessageOverlay } from "@/contexts/AppMessagesContext";
 import CoinHeader from '@/components/CoinHeader';
+import { useResponsive } from '@/hooks/useResponsive';
 
 const DEFAULT_CTAS: Record<string, string> = {
   mortgage: "Get a free rate review",
@@ -38,8 +39,9 @@ function PillarCard({ icon, iconColor, bgColor, title, value, subtitle, cta, onP
   icon: string; iconColor: string; bgColor: string; title: string; value: string; subtitle: string; cta: string; onPress: () => void;
 }) {
   const { fs, is } = useAccessibility();
+  const { isDesktop } = useResponsive();
   return (
-    <Pressable onPress={onPress} style={({ pressed }) => [styles.pillarCard, pressed && { opacity: 0.95, transform: [{ scale: 0.98 }] }]}>
+    <Pressable onPress={onPress} style={({ pressed }) => [styles.pillarCard, isDesktop && { width: '30%' as any, flexBasis: '30%' as any }, pressed && { opacity: 0.95, transform: [{ scale: 0.98 }] }]}>
       <View style={[styles.pillarIcon, { backgroundColor: bgColor }]}>
         <Ionicons name={icon as any} size={is(22)} color={iconColor} />
       </View>
@@ -56,6 +58,7 @@ function PillarCard({ icon, iconColor, bgColor, title, value, subtitle, cta, onP
 
 export default function DashboardScreen() {
   const { fs, is } = useAccessibility();
+  const { isMobile, contentWidth, sidePadding } = useResponsive();
   const insets = useSafeAreaInsets();
   const topInset = Platform.OS === "web" ? 67 : insets.top;
   const {
@@ -165,14 +168,14 @@ export default function DashboardScreen() {
     <View style={styles.container}>
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 120 }}
+        contentContainerStyle={{ paddingBottom: isMobile ? 120 : 60 }}
       >
         <CoinHeader
           title="Overview"
           subtitle={new Date().toLocaleDateString("en-AU", { month: "long", year: "numeric" })}
         />
 
-        <View style={styles.body}>
+        <View style={[styles.body, { alignSelf: 'center', width: '100%', maxWidth: contentWidth, paddingHorizontal: sidePadding }]}>
           <Text style={[styles.sectionTitle, { fontSize: fs(18) }]}>Financial Snapshot</Text>
           <View style={styles.pillarGrid}>
             <PillarCard
@@ -393,7 +396,7 @@ const styles = StyleSheet.create({
   headerTitle: { fontFamily: "DMSans_700Bold", fontSize: 26, color: Colors.light.text },
   headerDate: { fontFamily: "DMSans_400Regular", fontSize: 13, color: Colors.light.textMuted, marginTop: 2 },
   settingsBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: Colors.light.gray100, alignItems: "center", justifyContent: "center" },
-  body: { paddingHorizontal: 20, paddingTop: 24 },
+  body: { paddingTop: 24 },
   sectionTitle: { fontFamily: "DMSans_700Bold", fontSize: 18, color: Colors.light.text, marginBottom: 14 },
   pillarGrid: { flexDirection: "row", flexWrap: "wrap", gap: 12, marginBottom: 24 },
   pillarCard: { width: "48%", backgroundColor: Colors.light.card, borderRadius: 16, padding: 16, flexGrow: 1, flexBasis: "45%" },

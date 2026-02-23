@@ -8,6 +8,7 @@ import Colors from "@/constants/colors";
 import { useAccessibility } from "@/contexts/AccessibilityContext";
 import { useFinance } from "@/contexts/FinanceContext";
 import CoinHeader from '@/components/CoinHeader';
+import { useResponsive } from '@/hooks/useResponsive';
 
 type CategoryKey = "car" | "home" | "life";
 
@@ -229,6 +230,7 @@ function annualCost(p: { premium: number; premiumFrequency: string }): number {
 
 export default function InsuranceScreen() {
   const { fs, is } = useAccessibility();
+  const { isMobile, contentWidth, sidePadding } = useResponsive();
   const insets = useSafeAreaInsets();
   const topInset = Platform.OS === "web" ? 67 : insets.top;
   const { insurancePolicies, getTotalInsuranceCost } = useFinance();
@@ -249,7 +251,7 @@ export default function InsuranceScreen() {
 
   return (
     <View style={styles.container}>
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 120 }}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: isMobile ? 120 : 60 }}>
         <CoinHeader
           title="Insurance"
           rightElement={
@@ -259,6 +261,7 @@ export default function InsuranceScreen() {
           }
         />
 
+        <View style={{ alignSelf: 'center', width: '100%', maxWidth: contentWidth, paddingHorizontal: sidePadding }}>
         <Text style={[styles.pageDesc, { fontSize: fs(14) }]}>Track and manage all your insurance policies in one place.</Text>
 
         {insurancePolicies.length > 0 && (
@@ -395,6 +398,7 @@ export default function InsuranceScreen() {
             <Text style={[styles.addPolicyBtnText, { fontSize: fs(14) }]}>Add a Policy</Text>
           </Pressable>
         </View>
+        </View>
       </ScrollView>
     </View>
   );
@@ -402,14 +406,14 @@ export default function InsuranceScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.light.background },
-  pageDesc: { fontFamily: 'DMSans_400Regular', fontSize: 14, color: Colors.light.textSecondary, paddingHorizontal: 20, marginTop: 8, marginBottom: 16 },
-  header: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingHorizontal: 20, marginBottom: 16 },
+  pageDesc: { fontFamily: 'DMSans_400Regular', fontSize: 14, color: Colors.light.textSecondary, marginTop: 8, marginBottom: 16 },
+  header: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 16 },
   title: { fontFamily: "DMSans_700Bold", fontSize: 28, color: Colors.light.text },
-  summaryRow: { flexDirection: "row", paddingHorizontal: 20, gap: 10, marginBottom: 20 },
+  summaryRow: { flexDirection: "row", gap: 10, marginBottom: 20 },
   summaryCard: { flex: 1, borderRadius: 14, padding: 12, alignItems: "center" as const },
   summaryLabel: { fontFamily: "DMSans_500Medium", fontSize: 11, color: Colors.light.textSecondary },
   summaryVal: { fontFamily: "DMSans_700Bold", fontSize: 18, marginTop: 4 },
-  categorySection: { marginHorizontal: 20, marginBottom: 12 },
+  categorySection: { marginBottom: 12 },
   categoryHeader: { borderRadius: 16, padding: 16, flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
   categoryHeaderLeft: { flexDirection: "row", alignItems: "center", gap: 12, flex: 1 },
   categoryIconCircle: { width: 44, height: 44, borderRadius: 14, backgroundColor: "rgba(255,255,255,0.18)", alignItems: "center", justifyContent: "center" },
@@ -444,7 +448,7 @@ const styles = StyleSheet.create({
   tipText: { fontFamily: "DMSans_400Regular", fontSize: 13, color: "#78350F", lineHeight: 19, flex: 1 },
   optimiseCard: { backgroundColor: "#D1FAE5", borderRadius: 14, padding: 14, marginBottom: 6 },
   optCheckCircle: { width: 16, height: 16, borderRadius: 8, backgroundColor: "#10B98120", alignItems: "center", justifyContent: "center", marginTop: 2 },
-  otherSection: { marginHorizontal: 20, marginTop: 8, backgroundColor: Colors.light.card, borderRadius: 16, padding: 20, alignItems: "center" as const },
+  otherSection: { marginTop: 8, backgroundColor: Colors.light.card, borderRadius: 16, padding: 20, alignItems: "center" as const },
   otherTitle: { fontFamily: "DMSans_700Bold", fontSize: 16, color: Colors.light.text, marginBottom: 6 },
   otherSubtext: { fontFamily: "DMSans_400Regular", fontSize: 13, color: Colors.light.textSecondary, textAlign: "center", lineHeight: 20, marginBottom: 14 },
   addPolicyBtn: { flexDirection: "row", alignItems: "center", gap: 6, borderWidth: 1.5, borderColor: Colors.light.tint, borderRadius: 12, paddingVertical: 10, paddingHorizontal: 20 },
