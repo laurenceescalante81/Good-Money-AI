@@ -35,8 +35,20 @@ function fmtK(n: number): string {
   return "$" + n.toFixed(0);
 }
 
-function PillarCard({ icon, iconColor, bgColor, title, value, subtitle, cta, onPress }: {
-  icon: string; iconColor: string; bgColor: string; title: string; value: string; subtitle: string; cta: string; onPress: () => void;
+function SetupWithCoin({ fontSize }: { fontSize: number }) {
+  const coinSize = Math.round(fontSize * 0.9);
+  return (
+    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
+      <Text style={[styles.pillarValue, { fontSize, color: Colors.light.tint }]}>Setup</Text>
+      <View style={{ width: coinSize, height: coinSize, borderRadius: coinSize / 2, backgroundColor: '#D4AF37', alignItems: 'center', justifyContent: 'center', borderWidth: 1.5, borderColor: '#E8C84A' }}>
+        <Text style={{ fontFamily: 'DMSans_700Bold', fontSize: coinSize * 0.55, color: '#fff', marginTop: -0.5 }}>G</Text>
+      </View>
+    </View>
+  );
+}
+
+function PillarCard({ icon, iconColor, bgColor, title, value, subtitle, cta, onPress, isSetup }: {
+  icon: string; iconColor: string; bgColor: string; title: string; value: string; subtitle: string; cta: string; onPress: () => void; isSetup?: boolean;
 }) {
   const { fs, is } = useAccessibility();
   const { isDesktop } = useResponsive();
@@ -46,7 +58,11 @@ function PillarCard({ icon, iconColor, bgColor, title, value, subtitle, cta, onP
         <Ionicons name={icon as any} size={is(22)} color={iconColor} />
       </View>
       <Text style={[styles.pillarTitle, { fontSize: fs(13) }]}>{title}</Text>
-      <Text style={[styles.pillarValue, { color: iconColor, fontSize: fs(18) }]}>{value}</Text>
+      {isSetup ? (
+        <SetupWithCoin fontSize={fs(18)} />
+      ) : (
+        <Text style={[styles.pillarValue, { color: iconColor, fontSize: fs(18) }]}>{value}</Text>
+      )}
       <Text style={[styles.pillarSubtitle, { fontSize: fs(11) }]}>{subtitle}</Text>
       <View style={[styles.pillarCta, { backgroundColor: iconColor + '12' }]}>
         <Text style={[styles.pillarCtaText, { color: iconColor, fontSize: fs(10) }]}>{cta}</Text>
@@ -183,7 +199,8 @@ export default function DashboardScreen() {
               iconColor={Colors.light.mortgage}
               bgColor={Colors.light.mortgage + "15"}
               title="Mortgage"
-              value={mortgage ? fmt(mortgageCalc.monthly) + "/mo" : "Not set"}
+              value={mortgage ? fmt(mortgageCalc.monthly) + "/mo" : ""}
+              isSetup={!mortgage}
               subtitle={mortgage ? fmt(mortgage.loanAmount) + " loan" : "Set up your home loan"}
               cta={ctaTexts.mortgage}
               onPress={() => mortgage ? router.push("/(tabs)/mortgage") : router.push("/setup-mortgage")}
@@ -193,7 +210,8 @@ export default function DashboardScreen() {
               iconColor={Colors.light.super}
               bgColor={Colors.light.super + "15"}
               title="Super"
-              value={superDetails ? fmt(superDetails.balance) : "Not set"}
+              value={superDetails ? fmt(superDetails.balance) : ""}
+              isSetup={!superDetails}
               subtitle={superDetails ? fmt(Math.round(superProj.atRetirement)) + " at 67" : "Track your super"}
               cta={ctaTexts.super}
               onPress={() => superDetails ? router.push("/(tabs)/super") : router.push("/setup-super")}
@@ -203,7 +221,8 @@ export default function DashboardScreen() {
               iconColor={Colors.light.insurance}
               bgColor={Colors.light.insurance + "15"}
               title="Insurance"
-              value={insurancePolicies.length > 0 ? fmt(insuranceCost) + "/yr" : "None"}
+              value={insurancePolicies.length > 0 ? fmt(insuranceCost) + "/yr" : ""}
+              isSetup={insurancePolicies.length === 0}
               subtitle={insurancePolicies.length > 0 ? `${insurancePolicies.length} ${insurancePolicies.length === 1 ? 'policy' : 'policies'}` : "Add your policies"}
               cta={ctaTexts.insurance}
               onPress={() => router.push("/add-insurance")}
@@ -213,7 +232,8 @@ export default function DashboardScreen() {
               iconColor={Colors.light.budget}
               bgColor={Colors.light.budget + "15"}
               title="Savings"
-              value={goals.length > 0 ? fmt(totalGoalSaved) : "No goals"}
+              value={goals.length > 0 ? fmt(totalGoalSaved) : ""}
+              isSetup={goals.length === 0}
               subtitle={goals.length > 0 ? `of ${fmt(totalGoalTarget)} target` : "Set a savings goal"}
               cta={ctaTexts.savings}
               onPress={() => router.push("/add-goal")}
@@ -223,7 +243,8 @@ export default function DashboardScreen() {
               iconColor="#6366F1"
               bgColor="#6366F115"
               title="Budget"
-              value={income > 0 || expenses > 0 ? (balance >= 0 ? "+" : "") + fmt(balance) + "/mo" : "Not set"}
+              value={income > 0 || expenses > 0 ? (balance >= 0 ? "+" : "") + fmt(balance) + "/mo" : ""}
+              isSetup={!(income > 0 || expenses > 0)}
               subtitle={income > 0 ? fmt(income) + " in, " + fmt(expenses) + " out" : "Track your cash flow"}
               cta={ctaTexts.budget}
               onPress={() => router.push("/(tabs)/budget")}
