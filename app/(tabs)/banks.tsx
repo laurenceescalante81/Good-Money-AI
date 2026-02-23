@@ -197,6 +197,8 @@ export default function BanksScreen() {
           ) : undefined}
         />
 
+        <Text style={styles.pageDesc}>Connect your Australian bank accounts via Open Banking.</Text>
+
         {isLoading && (
           <View style={styles.loadingState}>
             <ActivityIndicator size="large" color={Colors.light.tint} />
@@ -324,6 +326,7 @@ export default function BanksScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.light.background },
+  pageDesc: { fontFamily: 'DMSans_400Regular', fontSize: 14, color: Colors.light.textSecondary, paddingHorizontal: 20, marginBottom: 16 },
   header: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingHorizontal: 20, marginBottom: 20 },
   title: { fontFamily: "DMSans_700Bold", fontSize: 28, color: Colors.light.text },
   loadingState: { alignItems: "center", paddingVertical: 80, gap: 16 },

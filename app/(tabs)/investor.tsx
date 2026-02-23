@@ -502,6 +502,7 @@ export default function InvestorScreen() {
   return (
     <View style={[styles.container, { paddingTop: 0 }]}>
       <CoinHeader title="Investor Profile" />
+      <Text style={styles.pageDesc}>Discover your risk profile and ideal investment strategy.</Text>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Investor Profile</Text>
         <Text style={styles.headerSub}>Answer {totalQ} questions to discover your risk profile</Text>
@@ -620,8 +621,9 @@ export default function InvestorScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.light.background },
+  pageDesc: { fontFamily: 'DMSans_400Regular', fontSize: 14, color: Colors.light.textSecondary, paddingHorizontal: 20, marginBottom: 4 },
   scroll: { flex: 1 },
-  header: { paddingHorizontal: 20, paddingTop: 12, paddingBottom: 8 },
+  header: { paddingHorizontal: 20, paddingTop: 4, paddingBottom: 8 },
   headerTitle: { fontFamily: 'DMSans_700Bold', fontSize: 26, color: Colors.light.navy },
   headerSub: { fontFamily: 'DMSans_400Regular', fontSize: 14, color: Colors.light.gray500, marginTop: 4 },
   progressRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 12 },

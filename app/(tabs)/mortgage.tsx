@@ -33,6 +33,7 @@ export default function MortgageScreen() {
     return (
       <View style={styles.container}>
         <CoinHeader title="Mortgage" />
+        <Text style={styles.pageDesc}>Track your home loan and see the impact of extra repayments.</Text>
         <View style={styles.emptyState}>
           <View style={[styles.emptyIcon, { backgroundColor: Colors.light.mortgage + "15" }]}>
             <Ionicons name="home-outline" size={48} color={Colors.light.mortgage} />
@@ -67,6 +68,7 @@ export default function MortgageScreen() {
     <View style={styles.container}>
       <ScrollView contentInsetAdjustmentBehavior="automatic" showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
         <CoinHeader title="Mortgage" />
+        <Text style={styles.pageDesc}>Track your home loan and see the impact of extra repayments.</Text>
         <View style={[styles.header]}>
           <View />
           <View style={styles.headerBtns}>
@@ -268,6 +270,7 @@ export default function MortgageScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.light.background },
+  pageDesc: { fontFamily: 'DMSans_400Regular', fontSize: 14, color: Colors.light.textSecondary, paddingHorizontal: 20, marginBottom: 16 },
   header: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingHorizontal: 20, marginBottom: 20 },
   headerBtns: { flexDirection: "row", gap: 16 },
   title: { fontFamily: "DMSans_700Bold", fontSize: 28, color: Colors.light.text },
