@@ -33,8 +33,10 @@ export default function HomeScreen() {
   const { width: screenWidth } = useWindowDimensions();
 
   const bottomPad = isWeb ? 34 : insets.bottom;
-  const gridPadding = 32;
-  const itemWidth = (screenWidth - gridPadding * 2) / COLS;
+  const cardHPad = 20;
+  const cardInnerPad = 16;
+  const cardWidth = screenWidth - cardHPad * 2;
+  const itemWidth = (cardWidth - cardInnerPad * 2) / COLS;
 
   const rows: typeof SECTIONS[] = [];
   for (let i = 0; i < SECTIONS.length; i += COLS) {
@@ -50,37 +52,37 @@ export default function HomeScreen() {
         <CoinHeader />
         <Text style={[styles.subtitle, { fontSize: fs(14) }]}>Your Australian Finance Hub</Text>
 
-        <View style={[styles.gridWrap, { paddingHorizontal: gridPadding }]}>
-          {rows.map((row, ri) => (
-            <View key={ri} style={styles.gridRow}>
-              {row.map((section) => (
-                <TouchableOpacity
-                  key={section.route}
-                  style={[styles.gridItem, { width: itemWidth }]}
-                  activeOpacity={0.7}
-                  onPress={() => router.push(section.route as any)}
-                >
-                  <View style={styles.iconOuter}>
-                    <LinearGradient
-                      colors={section.gradient}
-                      start={{ x: 0, y: 0 }}
-                      end={{ x: 1, y: 1 }}
-                      style={[styles.gridIconCircle, { width: is(64), height: is(64), borderRadius: is(20) }]}
-                    >
-                      <View style={[styles.iconInner, { width: is(38), height: is(38), borderRadius: is(12) }]}>
-                        <Ionicons name={section.icon as any} size={is(22)} color="#fff" />
-                      </View>
-                    </LinearGradient>
-                    <View style={[styles.iconShine, { width: is(64), borderRadius: is(20) }]} />
-                  </View>
-                  <Text style={[styles.gridLabel, { fontSize: fs(12) }]} numberOfLines={1}>{section.label}</Text>
-                </TouchableOpacity>
-              ))}
-              {row.length < COLS && Array.from({ length: COLS - row.length }).map((_, fi) => (
-                <View key={`filler-${fi}`} style={{ width: itemWidth }} />
-              ))}
-            </View>
-          ))}
+        <View style={[styles.cardContainer, { marginHorizontal: cardHPad }]}>
+          <View style={[styles.gridWrap, { padding: cardInnerPad }]}>
+            {rows.map((row, ri) => (
+              <View key={ri} style={[styles.gridRow, ri < rows.length - 1 && { marginBottom: 24 }]}>
+                {row.map((section) => (
+                  <TouchableOpacity
+                    key={section.route}
+                    style={[styles.gridItem, { width: itemWidth }]}
+                    activeOpacity={0.7}
+                    onPress={() => router.push(section.route as any)}
+                  >
+                    <View style={styles.iconOuter}>
+                      <LinearGradient
+                        colors={section.gradient}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 1 }}
+                        style={[styles.gridIconCircle, { width: is(68), height: is(68), borderRadius: is(18) }]}
+                      >
+                        <Ionicons name={section.icon as any} size={is(28)} color="#fff" />
+                      </LinearGradient>
+                      <View style={[styles.iconShine, { width: is(68), borderRadius: is(18) }]} />
+                    </View>
+                    <Text style={[styles.gridLabel, { fontSize: fs(13) }]} numberOfLines={1}>{section.label}</Text>
+                  </TouchableOpacity>
+                ))}
+                {row.length < COLS && Array.from({ length: COLS - row.length }).map((_, fi) => (
+                  <View key={`filler-${fi}`} style={{ width: itemWidth }} />
+                ))}
+              </View>
+            ))}
+          </View>
         </View>
       </ScrollView>
     </View>
@@ -90,22 +92,32 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.light.background,
+    backgroundColor: '#F3F4F6',
   },
   subtitle: {
     fontFamily: 'DMSans_400Regular',
     fontSize: 14,
     color: Colors.light.textSecondary,
-    marginBottom: 30,
-    paddingHorizontal: 32,
+    marginBottom: 24,
+    paddingHorizontal: 24,
+  },
+  cardContainer: {
+    backgroundColor: '#fff',
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 12,
+    elevation: 3,
   },
   gridWrap: {
-    alignItems: 'center',
+    paddingVertical: 24,
   },
   gridRow: {
     flexDirection: 'row',
     justifyContent: 'center',
-    marginBottom: 28,
   },
   gridItem: {
     alignItems: 'center',
@@ -115,39 +127,31 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   gridIconCircle: {
-    width: 64,
-    height: 64,
-    borderRadius: 20,
+    width: 68,
+    height: 68,
+    borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.18,
-    shadowRadius: 8,
-    elevation: 6,
-  },
-  iconInner: {
-    width: 38,
-    height: 38,
-    borderRadius: 12,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    alignItems: 'center',
-    justifyContent: 'center',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+    elevation: 5,
   },
   iconShine: {
     position: 'absolute',
     top: 0,
     left: 0,
-    width: 64,
-    height: '45%',
-    borderRadius: 20,
-    backgroundColor: 'rgba(255,255,255,0.12)',
-    borderBottomLeftRadius: 30,
-    borderBottomRightRadius: 30,
+    width: 68,
+    height: '40%',
+    borderRadius: 18,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    borderBottomLeftRadius: 28,
+    borderBottomRightRadius: 28,
   },
   gridLabel: {
     fontFamily: 'DMSans_600SemiBold',
-    fontSize: 12,
+    fontSize: 13,
     color: Colors.light.text,
     textAlign: 'center',
   },
