@@ -30,7 +30,7 @@ app/
     index.tsx            # Overview/Dashboard
     mortgage.tsx         # Mortgage tracker
     super.tsx            # Superannuation tracker
-    budget.tsx           # Budget & savings
+    budget.tsx           # Budget, savings & connected banks (includes Basiq Open Banking section)
     investor.tsx         # Investor tab: 20-question scored risk profile questionnaire
     fact-find.tsx        # Fact Find tab: comprehensive Australian financial fact find (19 sections incl. Financial Goals)
   add-transaction.tsx    # Modal: new transaction
@@ -41,7 +41,6 @@ app/
   settings.tsx           # Modal: settings
   connect-bank.tsx       # Modal: institution picker + auth link
   bank-transactions.tsx  # Modal: view & import bank transactions
-  (tabs)/banks.tsx       # Banks tab: connected accounts + balances
 server/
   basiq.ts               # Basiq Open Banking API integration
   routes.ts              # Express API routes (Basiq endpoints)
@@ -121,7 +120,7 @@ constants/
 - **Display Sizes**: `default` (1.15x font, 1.05x icons), `large` (1.35x font, 1.2x icons), `extra-large` (1.55x font, 1.35x icons)
 - **Settings**: Display Size picker in Settings modal with live preview ("Aa" samples)
 - **Usage**: `const { fs, is } = useAccessibility()` — `fs(baseFontSize)` scales fonts, `is(baseIconSize)` scales icons
-- **Coverage**: Applied to CoinHeader, tab bar, all 11 tab screens, and all 7 modal screens
+- **Coverage**: Applied to CoinHeader, tab bar, all 10 tab screens, and all 7 modal screens
 - **Default baseline**: Already 15% larger than original sizes for better readability out of the box
 
 ## Recent Changes
@@ -130,7 +129,8 @@ constants/
 - Feb 2026: Added customizable tooltips, marketing popups, and FTUE system with back office management
 - Feb 2026: Built Good Money Adviser portal — separate web app for advisers with client profiles, reports, role-based access
 - Feb 2026: Added comprehensive rewards/gamification system with points, levels, missions, spin wheel, scratch cards, badges, and redeem store
-- Feb 2026: Added Basiq Open Banking integration with Banks tab, connect-bank flow, transaction import
+- Feb 2026: Merged Banks content into Budget tab, removed standalone Banks tab (now 10 tabs, 5 per row)
+- Feb 2026: Added Basiq Open Banking integration with connect-bank flow, transaction import
 - Complete rebuild focusing on four Australian finance pillars
 - Added insurance policy management with renewal tracking
 - Added savings goals with funding capability
