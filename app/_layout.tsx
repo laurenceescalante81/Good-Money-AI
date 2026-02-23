@@ -11,6 +11,7 @@ import { RewardsProvider } from "@/contexts/RewardsContext";
 import { AppMessagesProvider } from "@/contexts/AppMessagesContext";
 import { AccessibilityProvider } from "@/contexts/AccessibilityContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
+import { FSVProvider } from "@/contexts/FSVContext";
 import { useFonts, DMSans_400Regular, DMSans_500Medium, DMSans_600SemiBold, DMSans_700Bold } from "@expo-google-fonts/dm-sans";
 
 SplashScreen.preventAutoHideAsync();
@@ -57,9 +58,11 @@ export default function RootLayout() {
               <AccessibilityProvider>
                 <FinanceProvider>
                   <RewardsProvider>
-                    <AppMessagesProvider>
-                      <RootLayoutNav />
-                    </AppMessagesProvider>
+                    <FSVProvider>
+                      <AppMessagesProvider>
+                        <RootLayoutNav />
+                      </AppMessagesProvider>
+                    </FSVProvider>
                   </RewardsProvider>
                 </FinanceProvider>
               </AccessibilityProvider>
