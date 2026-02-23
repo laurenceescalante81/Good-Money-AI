@@ -291,7 +291,7 @@ export default function FactFindTabScreen() {
 
   const filteredSections = factFindSections.filter(s => SUB_TAB_SECTIONS[activeSubTab].includes(s.id));
 
-  const renderTextInput = (fieldId: string, label: string, value: string, setter: (v: string) => void, updater: Record<string, any>, opts?: { placeholder?: string; keyboardType?: 'default' | 'email-address' | 'phone-pad' | 'number-pad'; maxLength?: number; isCurrency?: boolean }) => {
+  const renderTextInput = (fieldId: string, label: string, value: string, setter: (v: string) => void, updater: Record<string, any>, opts?: { placeholder?: string; keyboardType?: 'default' | 'email-address' | 'phone-pad' | 'number-pad'; maxLength?: number; isCurrency?: boolean; autoComplete?: string; textContentType?: string }) => {
     const done = isFieldComplete(fieldId);
     const field = factFindSections.flatMap(s => s.fields).find(f => f.id === fieldId);
     return (
@@ -318,6 +318,8 @@ export default function FactFindTabScreen() {
             maxLength={opts?.maxLength}
             onBlur={() => saveField(fieldId, label, value, updater)}
             editable={!done}
+            autoComplete={opts?.autoComplete as any}
+            textContentType={opts?.textContentType as any}
           />
         </View>
       </View>
@@ -364,9 +366,9 @@ export default function FactFindTabScreen() {
       case 'personal_basics':
         return (
           <View>
-            {renderTextInput('ff_firstName', 'First Name', firstName, setFirstName, { firstName: firstName.trim() })}
-            {renderTextInput('ff_lastName', 'Last Name', lastName, setLastName, { lastName: lastName.trim() })}
-            {renderTextInput('ff_dob', 'Date of Birth', dob, setDob, { dob: dob.trim() }, { placeholder: 'DD/MM/YYYY' })}
+            {renderTextInput('ff_firstName', 'First Name', firstName, setFirstName, { firstName: firstName.trim() }, { autoComplete: 'given-name', textContentType: 'givenName' })}
+            {renderTextInput('ff_lastName', 'Last Name', lastName, setLastName, { lastName: lastName.trim() }, { autoComplete: 'family-name', textContentType: 'familyName' })}
+            {renderTextInput('ff_dob', 'Date of Birth', dob, setDob, { dob: dob.trim() }, { placeholder: 'DD/MM/YYYY', autoComplete: 'birthdate-full', textContentType: 'none' })}
             {renderChipSelector('ff_gender', 'Gender', gender, setGender, GENDER_OPTIONS, (v) => ({ gender: v }))}
             {renderChipSelector('ff_maritalStatus', 'Marital Status', maritalStatus, setMaritalStatus, MARITAL_OPTIONS, (v) => ({ maritalStatus: v }))}
             {renderChipSelector('ff_residencyStatus', 'Residency Status', residencyStatus, setResidencyStatus, RESIDENCY_OPTIONS, (v) => ({ residencyStatus: v }))}
@@ -375,18 +377,18 @@ export default function FactFindTabScreen() {
       case 'contact_details':
         return (
           <View>
-            {renderTextInput('ff_email', 'Email Address', email, setEmail, { email: email.trim() }, { placeholder: 'you@example.com', keyboardType: 'email-address' })}
-            {renderTextInput('ff_phone', 'Phone Number', phone, setPhone, { phone: phone.trim() }, { placeholder: '04XX XXX XXX', keyboardType: 'phone-pad' })}
+            {renderTextInput('ff_email', 'Email Address', email, setEmail, { email: email.trim() }, { placeholder: 'you@example.com', keyboardType: 'email-address', autoComplete: 'email', textContentType: 'emailAddress' })}
+            {renderTextInput('ff_phone', 'Phone Number', phone, setPhone, { phone: phone.trim() }, { placeholder: '04XX XXX XXX', keyboardType: 'phone-pad', autoComplete: 'tel', textContentType: 'telephoneNumber' })}
             {renderChipSelector('ff_preferredContact', 'Preferred Contact', preferredContact, setPreferredContact, CONTACT_OPTIONS, (v) => ({ preferredContact: v }))}
           </View>
         );
       case 'address':
         return (
           <View>
-            {renderTextInput('ff_street', 'Street Address', street, setStreet, { address: { street: street.trim() } }, { placeholder: '123 Example St' })}
-            {renderTextInput('ff_suburb', 'Suburb', suburb, setSuburb, { address: { suburb: suburb.trim() } }, { placeholder: 'e.g. Parramatta' })}
+            {renderTextInput('ff_street', 'Street Address', street, setStreet, { address: { street: street.trim() } }, { placeholder: '123 Example St', autoComplete: 'street-address', textContentType: 'streetAddressLine1' })}
+            {renderTextInput('ff_suburb', 'Suburb', suburb, setSuburb, { address: { suburb: suburb.trim() } }, { placeholder: 'e.g. Parramatta', autoComplete: 'address-level2', textContentType: 'addressCity' })}
             {renderChipSelector('ff_state', 'State', addrState, setAddrState, AU_STATES.map(s => ({ value: s, label: s })), (v) => ({ address: { state: v } }))}
-            {renderTextInput('ff_postcode', 'Postcode', postcode, setPostcode, { address: { postcode: postcode.trim() } }, { placeholder: 'e.g. 2150', keyboardType: 'number-pad', maxLength: 4 })}
+            {renderTextInput('ff_postcode', 'Postcode', postcode, setPostcode, { address: { postcode: postcode.trim() } }, { placeholder: 'e.g. 2150', keyboardType: 'number-pad', maxLength: 4, autoComplete: 'postal-code', textContentType: 'postalCode' })}
           </View>
         );
       case 'dependents':
@@ -479,8 +481,8 @@ export default function FactFindTabScreen() {
         return (
           <View>
             {renderChipSelector('ff_empStatus', 'Employment Status', empStatus, setEmpStatus, EMPLOYMENT_OPTIONS, (v) => ({ employment: { status: v } }))}
-            {renderTextInput('ff_employer', 'Employer Name', employer, setEmployer, { employment: { employer: employer.trim() } })}
-            {renderTextInput('ff_occupation', 'Occupation', occupation, setOccupation, { employment: { occupation: occupation.trim() } })}
+            {renderTextInput('ff_employer', 'Employer Name', employer, setEmployer, { employment: { employer: employer.trim() } }, { autoComplete: 'organization', textContentType: 'organizationName' })}
+            {renderTextInput('ff_occupation', 'Occupation', occupation, setOccupation, { employment: { occupation: occupation.trim() } }, { autoComplete: 'organization-title', textContentType: 'jobTitle' })}
             {renderTextInput('ff_industry', 'Industry', industry, setIndustry, { employment: { industry: industry.trim() } })}
             {renderTextInput('ff_yearsInRole', 'Years in Role', yearsInRole, setYearsInRole, { employment: { yearsInRole: yearsInRole.trim() } }, { keyboardType: 'number-pad' })}
             {renderTextInput('ff_baseSalary', 'Base Salary', baseSalary, setBaseSalary, { employment: { baseSalary: baseSalary.trim() } }, { isCurrency: true, placeholder: 'e.g. 85000' })}
