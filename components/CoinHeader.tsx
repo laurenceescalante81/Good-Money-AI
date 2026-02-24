@@ -7,7 +7,6 @@ import { useAccessibility } from '@/contexts/AccessibilityContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useFSV } from '@/contexts/FSVContext';
 import { router } from 'expo-router';
-import { LinearGradient } from 'expo-linear-gradient';
 import Colors from '@/constants/colors';
 
 interface CoinHeaderProps {
@@ -50,18 +49,8 @@ export default function CoinHeader({ title, subtitle, rightElement, transparent,
       </Pressable>
 
       <Pressable onPress={() => router.push('/fsv-missions')} style={[styles.goodScorePill, { backgroundColor: scorePillBg }]}>
-        <LinearGradient
-          colors={['#0D9488', '#065F46']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={[styles.scoreCircle, { width: is(28), height: is(28), borderRadius: is(14) }]}
-        >
-          <Text style={[styles.scoreNumber, { fontSize: fs(12) }]}>{fsvScore}</Text>
-        </LinearGradient>
-        <View style={styles.scoreLabel}>
-          <Text style={[styles.scoreText, { fontSize: fs(11), color: scorePillText }]}>Good</Text>
-          <Text style={[styles.scoreSubtext, { fontSize: fs(9), color: scorePillText }]}>/100</Text>
-        </View>
+        <Text style={[styles.scoreInlineText, { fontSize: fs(13), color: scorePillText }]}>Good Score</Text>
+        <Text style={[styles.scoreInlineValue, { fontSize: fs(13), color: scorePillText }]}>{fsvScore} / 100</Text>
       </Pressable>
 
       <View style={styles.rightSection}>
@@ -181,30 +170,15 @@ const styles = StyleSheet.create({
   goodScorePill: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    paddingLeft: 8,
-    paddingRight: 12,
+    gap: 6,
+    paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 16,
   },
-  scoreCircle: {
-    alignItems: 'center',
-    justifyContent: 'center',
+  scoreInlineText: {
+    fontFamily: 'DMSans_500Medium',
   },
-  scoreNumber: {
+  scoreInlineValue: {
     fontFamily: 'DMSans_700Bold',
-    color: '#fff',
-    marginTop: -1,
-  },
-  scoreLabel: {
-    alignItems: 'flex-start',
-  },
-  scoreText: {
-    fontFamily: 'DMSans_700Bold',
-  },
-  scoreSubtext: {
-    fontFamily: 'DMSans_400Regular',
-    opacity: 0.7,
-    marginTop: -1,
   },
 });
