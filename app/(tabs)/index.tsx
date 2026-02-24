@@ -44,33 +44,75 @@ const QUEST_SECTIONS = [
   { key: 'retention', title: 'Retention', icon: 'refresh-outline', color: '#06B6D4' },
 ] as const;
 
+const QUEST_ROUTES: Record<string, string> = {
+  profile_complete: '/(tabs)/fact-find',
+  cashflow_complete: '/add-transaction',
+  assets_liabilities_complete: '/setup-mortgage',
+  risk_protection_complete: '/add-insurance',
+  goals_investor_complete: '/(tabs)/investor',
+  buffer_1week: '/add-goal',
+  buffer_1month: '/add-goal',
+  buffer_3month: '/add-goal',
+  buffer_6month: '/add-goal',
+  cc_below_50: '/(tabs)/budget',
+  cc_below_30: '/(tabs)/budget',
+  no_consumer_debt: '/(tabs)/budget',
+  lvr_below_80: '/(tabs)/mortgage',
+  lvr_below_70: '/(tabs)/mortgage',
+  insurance_25: '/add-insurance',
+  insurance_50: '/add-insurance',
+  income_protected: '/add-insurance',
+  estate_planned: '/(tabs)/fact-find',
+  first_investment: '/(tabs)/fact-find',
+  super_review: '/setup-super',
+  reduce_concentration: '/(tabs)/planning',
+  weekly_stability: '/(tabs)/overview',
+  monthly_review: '/fsv-missions',
+  mortgage_rate_recheck: '/(tabs)/mortgage',
+  insurance_review_confirm: '/(tabs)/insurance',
+  ff_profile: '/(tabs)/fact-find',
+  ff_expenses: '/(tabs)/fact-find',
+  ff_assets_debts: '/(tabs)/fact-find',
+  ff_insurance_health: '/(tabs)/fact-find',
+  ff_goals_risk: '/(tabs)/fact-find',
+};
+
 function QuestCard({ quest, fs, is }: { quest: FSVQuest; fs: (n: number) => number; is: (n: number) => number }) {
+  const route = QUEST_ROUTES[quest.id];
   return (
-    <View style={[s.questCard, quest.completed && s.questCardDone]}>
-      <View style={[s.questIcon, { backgroundColor: quest.iconColor + '18' }]}>
-        <Ionicons name={quest.icon as any} size={is(20)} color={quest.iconColor} />
-      </View>
-      <View style={s.questContent}>
-        <Text style={[s.questTitle, { fontSize: fs(13) }]} numberOfLines={1}>{quest.title}</Text>
-        <Text style={[s.questDesc, { fontSize: fs(11) }]} numberOfLines={2}>{quest.description}</Text>
-        <View style={s.questRewards}>
-          <View style={s.questCoinPill}>
-            <View style={s.miniCoin}><Text style={s.miniCoinText}>G</Text></View>
-            <Text style={[s.questCoinText, { fontSize: fs(11) }]}>+{quest.coinReward}</Text>
+    <Pressable
+      onPress={() => { if (route) router.push(route as any); }}
+      style={({ pressed }) => [pressed && { opacity: 0.85, transform: [{ scale: 0.98 }] }]}
+    >
+      <View style={[s.questCard, quest.completed && s.questCardDone]}>
+        <View style={[s.questIcon, { backgroundColor: quest.iconColor + '18' }]}>
+          <Ionicons name={quest.icon as any} size={is(20)} color={quest.iconColor} />
+        </View>
+        <View style={s.questContent}>
+          <Text style={[s.questTitle, { fontSize: fs(13) }]} numberOfLines={1}>{quest.title}</Text>
+          <Text style={[s.questDesc, { fontSize: fs(11) }]} numberOfLines={2}>{quest.description}</Text>
+          <View style={s.questRewards}>
+            <View style={s.questCoinPill}>
+              <View style={s.miniCoin}><Text style={s.miniCoinText}>G</Text></View>
+              <Text style={[s.questCoinText, { fontSize: fs(11) }]}>+{quest.coinReward}</Text>
+            </View>
+            {quest.fsvWeight > 0 && (
+              <Text style={[s.questFsvText, { fontSize: fs(10) }]}>+{quest.fsvWeight} Score</Text>
+            )}
           </View>
-          {quest.fsvWeight > 0 && (
-            <Text style={[s.questFsvText, { fontSize: fs(10) }]}>+{quest.fsvWeight} Score</Text>
+        </View>
+        <View style={s.questNavArrow}>
+          <Ionicons name="chevron-forward" size={is(16)} color={quest.completed ? Colors.light.gray300 : Colors.light.gray400} />
+        </View>
+        <View style={[s.questStatus, quest.completed ? s.questStatusDone : s.questStatusPending]}>
+          {quest.completed ? (
+            <Ionicons name="checkmark" size={is(14)} color="#fff" />
+          ) : (
+            <View style={s.questStatusDot} />
           )}
         </View>
       </View>
-      <View style={[s.questStatus, quest.completed ? s.questStatusDone : s.questStatusPending]}>
-        {quest.completed ? (
-          <Ionicons name="checkmark" size={is(14)} color="#fff" />
-        ) : (
-          <View style={s.questStatusDot} />
-        )}
-      </View>
-    </View>
+    </Pressable>
   );
 }
 
@@ -573,6 +615,9 @@ const s = StyleSheet.create({
     fontFamily: 'DMSans_600SemiBold',
     color: '#0D9488',
     fontSize: 10,
+  },
+  questNavArrow: {
+    marginRight: 4,
   },
   questStatus: {
     width: 26,
