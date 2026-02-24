@@ -1,0 +1,155 @@
+Add the following mission categories:
+
+A) FACT FIND MISSIONS
+
+- Complete Profile
+Reward: +50 Coins
+Badge: Known Entity
+
+- Complete Expense Breakdown
+Reward: +75 Coins + $1 Stablecoin (verified)
+Badge: Cashflow Mapped
+
+- Add All Assets & Debts
+Reward: +100 Coins
+Unlock Good Score full calculation
+Badge: Balance Sheet Built
+
+- Add Insurance + Health Inputs
+Reward: +150 Coins + $2 Stablecoin
+Badge: Risk Exposed
+
+- Complete Goals & Risk Profile
+Reward: +100 Coins
+Reveal full Good Score
+Badge: Strategic Planner
+
+
+B) GOOD SCORE BUILDING MISSIONS
+
+LIQUIDITY
+- Build 1-week buffer
+- Build 1-month buffer
+- Build 3-month buffer
+- Build 6-month buffer
+
+Badges:
+Buffer Beginner
+Liquidity Builder
+Resilience Core
+
+DEBT
+- Reduce credit utilisation below 50%
+- Reduce below 30%
+- Eliminate consumer debt
+- Reduce LVR below 80%
+- Reduce LVR below 70%
+
+Badges:
+Debt Tamer
+Equity Builder
+Low-Leverage Household
+
+RISK
+- Close 25% insurance gap
+- Close 50%
+- Fully protect income
+
+Badges:
+Protected Earner
+Family Guardian
+
+DIVERSIFICATION
+- First non-property investment
+- Reduce concentration risk
+
+Badges:
+Diversified Investor
+Balanced Strategist
+
+
+C) RETENTION MISSIONS
+
+Weekly Stability Check
+Monthly Good Score Review
+Mortgage Rate Recheck
+Insurance Review Confirmation
+
+Reward:
+Small Coin Drop
+Wheel Multiplier Boost
+
+------------------------------------------------------------
+3) MODIFY DAILY WHEEL
+------------------------------------------------------------
+
+Spin only unlocks AFTER completing a Daily Stability Action.
+
+Replace segments with:
+
++10 Coins
++25 Coins
++50 Coins
+2x Coin Multiplier
++0.2 Temporary Good Score Boost (requires completed action)
+$0.50 Stablecoin
+Good Score Insight Reveal
+
+High value rewards gated behind completed daily action.
+
+------------------------------------------------------------
+4) MODIFY DAILY SCRATCH
+------------------------------------------------------------
+
+Replace with 3-tier structure:
+
+Tier 1:
+Small Coin Reward
+
+Tier 2:
+Good Score Insight Reveal
+
+Tier 3:
+Micro Good Score Boost (requires action completion)
+
+Rare:
+$1–$2 Stablecoin
+
+------------------------------------------------------------
+5) BADGE SYSTEM UPDATE
+------------------------------------------------------------
+
+Add Tier Levels:
+
+Bronze
+Silver
+Gold
+Platinum
+Sovereign
+
+Sovereign requires:
+6+ month buffer
+Low debt stress
+Insurance gap <10%
+Diversified assets
+
+Remove leaderboard functionality.
+
+------------------------------------------------------------
+6) REWARD RULES UPDATE
+------------------------------------------------------------
+
+Coins = engagement currency.
+
+Stablecoin = only awarded for:
+- Verified structural improvements
+- Major milestones
+
+Good Score (FSV) = primary prestige metric.
+
+Cap Good Score increases per month to prevent gaming.
+
+------------------------------------------------------------
+
+END OF CHANGE LIST
+------------------------------------------------------------

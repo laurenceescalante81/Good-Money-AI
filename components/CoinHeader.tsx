@@ -5,7 +5,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRewards } from '@/contexts/RewardsContext';
 import { useAccessibility } from '@/contexts/AccessibilityContext';
 import { useTheme } from '@/contexts/ThemeContext';
+import { useFSV } from '@/contexts/FSVContext';
 import { router } from 'expo-router';
+import { LinearGradient } from 'expo-linear-gradient';
 import Colors from '@/constants/colors';
 
 interface CoinHeaderProps {
@@ -22,6 +24,7 @@ export default function CoinHeader({ title, subtitle, rightElement, transparent,
   const { state } = useRewards();
   const { fs, is } = useAccessibility();
   const { isDark, colors: tc } = useTheme();
+  const { fsvScore } = useFSV();
 
   const forceDark = darkMode || isDark;
   const textColor = forceDark ? '#fff' : tc.text;
@@ -29,6 +32,8 @@ export default function CoinHeader({ title, subtitle, rightElement, transparent,
   const bgColor = transparent ? 'transparent' : (isDark ? tc.headerBg : Colors.light.background);
   const settingsBg = forceDark ? 'rgba(255,255,255,0.1)' : tc.gray100;
   const settingsColor = forceDark ? 'rgba(255,255,255,0.6)' : tc.textSecondary;
+  const scorePillBg = forceDark ? 'rgba(13,148,136,0.2)' : 'rgba(13,148,136,0.12)';
+  const scorePillText = forceDark ? '#fff' : '#065F46';
 
   return (
     <View style={[styles.container, { paddingTop: topInset + 8, backgroundColor: bgColor }, transparent && styles.transparent]}>
@@ -42,6 +47,21 @@ export default function CoinHeader({ title, subtitle, rightElement, transparent,
         ) : (
           <Text style={[styles.brandName, { fontSize: fs(18), color: textColor }]}>Good Money</Text>
         )}
+      </Pressable>
+
+      <Pressable onPress={() => router.push('/fsv-missions')} style={[styles.goodScorePill, { backgroundColor: scorePillBg }]}>
+        <LinearGradient
+          colors={['#0D9488', '#065F46']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={[styles.scoreCircle, { width: is(28), height: is(28), borderRadius: is(14) }]}
+        >
+          <Text style={[styles.scoreNumber, { fontSize: fs(12) }]}>{fsvScore}</Text>
+        </LinearGradient>
+        <View style={styles.scoreLabel}>
+          <Text style={[styles.scoreText, { fontSize: fs(11), color: scorePillText }]}>Good</Text>
+          <Text style={[styles.scoreSubtext, { fontSize: fs(9), color: scorePillText }]}>/100</Text>
+        </View>
       </Pressable>
 
       <View style={styles.rightSection}>
@@ -157,5 +177,34 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  goodScorePill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingLeft: 8,
+    paddingRight: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+  },
+  scoreCircle: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  scoreNumber: {
+    fontFamily: 'DMSans_700Bold',
+    color: '#fff',
+    marginTop: -1,
+  },
+  scoreLabel: {
+    alignItems: 'flex-start',
+  },
+  scoreText: {
+    fontFamily: 'DMSans_700Bold',
+  },
+  scoreSubtext: {
+    fontFamily: 'DMSans_400Regular',
+    opacity: 0.7,
+    marginTop: -1,
   },
 });

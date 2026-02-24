@@ -3,11 +3,13 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFinance } from '@/contexts/FinanceContext';
 import { useRewards } from '@/contexts/RewardsContext';
 
+export type BadgeTierLevel = 'bronze' | 'silver' | 'gold' | 'platinum' | 'sovereign';
+
 export interface FSVQuest {
   id: string;
   title: string;
   description: string;
-  category: 'onboarding' | 'liquidity' | 'debt' | 'risk' | 'diversification';
+  category: 'onboarding' | 'liquidity' | 'debt' | 'risk' | 'diversification' | 'retention' | 'factfind';
   coinReward: number;
   fsvWeight: number;
   badgeId?: string;
@@ -24,6 +26,7 @@ export interface FSVBadge {
   color: string;
   unlocked: boolean;
   unlockedAt?: string;
+  tier?: BadgeTierLevel;
 }
 
 interface FSVState {
@@ -31,6 +34,8 @@ interface FSVState {
   completedQuestIds: string[];
   unlockedBadgeIds: string[];
   provisionalBonus: number;
+  monthlyScoreGains: number;
+  lastScoreMonth: string;
 }
 
 interface FSVContextValue {
@@ -41,6 +46,8 @@ interface FSVContextValue {
   debtQuests: FSVQuest[];
   riskQuests: FSVQuest[];
   diversificationQuests: FSVQuest[];
+  retentionQuests: FSVQuest[];
+  factFindQuests: FSVQuest[];
   allQuests: FSVQuest[];
   checkAndCompleteQuests: () => void;
   onboardingProgress: { completed: number; total: number };
@@ -56,13 +63,15 @@ const DEFAULT_STATE: FSVState = {
   completedQuestIds: [],
   unlockedBadgeIds: [],
   provisionalBonus: 0,
+  monthlyScoreGains: 0,
+  lastScoreMonth: '',
 };
 
 interface QuestDef {
   id: string;
   title: string;
   description: string;
-  category: 'onboarding' | 'liquidity' | 'debt' | 'risk' | 'diversification';
+  category: 'onboarding' | 'liquidity' | 'debt' | 'risk' | 'diversification' | 'retention' | 'factfind';
   coinReward: number;
   fsvWeight: number;
   badgeId?: string;
@@ -107,12 +116,29 @@ const DIVERSIFICATION_QUESTS: QuestDef[] = [
   { id: 'reduce_concentration', title: 'Reduce Concentration Risk', description: 'Hold 2 or more different asset types for better diversification', category: 'diversification', coinReward: 100, fsvWeight: 2, badgeId: 'fsv_balanced_strategist', badgeTitle: 'Balanced Strategist', icon: 'apps-outline', iconColor: '#D97706' },
 ];
 
+const RETENTION_QUESTS: QuestDef[] = [
+  { id: 'weekly_stability', title: 'Weekly Stability Check', description: 'Open the app and review your finances each week', category: 'retention', coinReward: 15, fsvWeight: 0, icon: 'calendar-outline', iconColor: '#06B6D4' },
+  { id: 'monthly_review', title: 'Monthly Good Score Review', description: 'Check your Good Score progress monthly', category: 'retention', coinReward: 25, fsvWeight: 0, icon: 'analytics-outline', iconColor: '#8B5CF6' },
+  { id: 'mortgage_rate_recheck', title: 'Mortgage Rate Recheck', description: 'Review your mortgage rate against current market', category: 'retention', coinReward: 20, fsvWeight: 0, icon: 'home-outline', iconColor: '#3B82F6' },
+  { id: 'insurance_review_confirm', title: 'Insurance Review Confirmation', description: 'Confirm your insurance policies are up to date', category: 'retention', coinReward: 20, fsvWeight: 0, icon: 'shield-checkmark-outline', iconColor: '#F59E0B' },
+];
+
+const FACT_FIND_QUESTS: QuestDef[] = [
+  { id: 'ff_profile', title: 'Complete Profile', description: 'Fill in your personal details in the Fact Find', category: 'factfind', coinReward: 50, fsvWeight: 3, badgeId: 'fsv_ff_known_entity', badgeTitle: 'Known Entity', icon: 'person-circle-outline', iconColor: '#3B82F6' },
+  { id: 'ff_expenses', title: 'Complete Expense Breakdown', description: 'Map all your regular expenses in the Fact Find', category: 'factfind', coinReward: 75, fsvWeight: 4, badgeId: 'fsv_ff_cashflow_mapped', badgeTitle: 'Cashflow Mapped', icon: 'cash-outline', iconColor: '#10B981' },
+  { id: 'ff_assets_debts', title: 'Add All Assets & Debts', description: 'Complete the assets and liabilities sections', category: 'factfind', coinReward: 100, fsvWeight: 5, badgeId: 'fsv_ff_balance_sheet', badgeTitle: 'Balance Sheet Built', icon: 'stats-chart-outline', iconColor: '#F59E0B' },
+  { id: 'ff_insurance_health', title: 'Add Insurance & Health', description: 'Complete insurance and health sections in Fact Find', category: 'factfind', coinReward: 150, fsvWeight: 5, badgeId: 'fsv_ff_risk_exposed', badgeTitle: 'Risk Exposed', icon: 'medkit-outline', iconColor: '#EF4444' },
+  { id: 'ff_goals_risk', title: 'Complete Goals & Risk Profile', description: 'Set your financial goals and risk tolerance', category: 'factfind', coinReward: 100, fsvWeight: 5, badgeId: 'fsv_ff_strategic_planner', badgeTitle: 'Strategic Planner', icon: 'flag-outline', iconColor: '#8B5CF6' },
+];
+
 const ALL_QUEST_DEFS: QuestDef[] = [
   ...ONBOARDING_QUESTS,
   ...LIQUIDITY_QUESTS,
   ...DEBT_QUESTS,
   ...RISK_QUESTS,
   ...DIVERSIFICATION_QUESTS,
+  ...RETENTION_QUESTS,
+  ...FACT_FIND_QUESTS,
 ];
 
 const ALL_BADGE_DEFS = ALL_QUEST_DEFS
@@ -123,6 +149,11 @@ const ALL_BADGE_DEFS = ALL_QUEST_DEFS
     icon: q.icon,
     color: q.iconColor,
   }));
+
+function getCurrentMonth(): string {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+}
 
 export function FSVProvider({ children }: { children: ReactNode }) {
   const finance = useFinance();
@@ -265,12 +296,38 @@ export function FSVProvider({ children }: { children: ReactNode }) {
         return assetTypeCount >= 2;
       }
 
+      case 'weekly_stability':
+      case 'monthly_review':
+      case 'mortgage_rate_recheck':
+      case 'insurance_review_confirm':
+        return false;
+
+      case 'ff_profile':
+        return pd.firstName !== '' && pd.lastName !== '' && pd.dob !== '';
+
+      case 'ff_expenses':
+        return transactions.filter(t => t.type === 'expense').length >= 5;
+
+      case 'ff_assets_debts': {
+        const hasAnyAsset = Object.entries(assets).some(([k, v]) => k !== 'otherAssetsDescription' && k !== 'investmentPropertyAddress' && v !== '' && v !== '0' && parseFloat(v as string) > 0);
+        const hasAnyLiability = Object.entries(liabilities).some(([_k, v]) => v !== '' && v !== '0');
+        return hasAnyAsset && hasAnyLiability;
+      }
+
+      case 'ff_insurance_health':
+        return insurancePolicies.length >= 1 && pd.health.smoker !== '';
+
+      case 'ff_goals_risk': {
+        const hasProfileFF = investorProfile.completedAt !== '' || pd.riskProfile.riskTolerance !== '';
+        return goals.length >= 1 && hasProfileFF;
+      }
+
       default:
         return false;
     }
   }, [finance]);
 
-  const calculateFSV = useCallback((completedIds: string[], bonus: number): number => {
+  const calculateFSV = useCallback((completedIds: string[], bonus: number, prevState: FSVState): { score: number; monthlyScoreGains: number; lastScoreMonth: string } => {
     let score = 0;
     for (const def of ALL_QUEST_DEFS) {
       if (completedIds.includes(def.id)) {
@@ -278,7 +335,21 @@ export function FSVProvider({ children }: { children: ReactNode }) {
       }
     }
     score += bonus;
-    return Math.min(100, Math.max(0, score));
+    score = Math.min(100, Math.max(0, score));
+
+    const currentMonth = getCurrentMonth();
+    let monthlyGains = prevState.lastScoreMonth === currentMonth ? prevState.monthlyScoreGains : 0;
+    const prevScore = prevState.fsvScore;
+    const gain = score - prevScore;
+
+    if (gain > 0) {
+      const allowedGain = Math.max(0, 20 - monthlyGains);
+      const cappedGain = Math.min(gain, allowedGain);
+      score = prevScore + cappedGain;
+      monthlyGains += cappedGain;
+    }
+
+    return { score, monthlyScoreGains: monthlyGains, lastScoreMonth: currentMonth };
   }, []);
 
   const checkAndCompleteQuests = useCallback(() => {
@@ -302,13 +373,15 @@ export function FSVProvider({ children }: { children: ReactNode }) {
         addPoints(coinsToAward);
       }
 
-      const newScore = calculateFSV(newCompleted, prev.provisionalBonus);
+      const { score: newScore, monthlyScoreGains, lastScoreMonth } = calculateFSV(newCompleted, prev.provisionalBonus, prev);
 
       return {
         ...prev,
         completedQuestIds: newCompleted,
         unlockedBadgeIds: newBadges,
         fsvScore: newScore,
+        monthlyScoreGains,
+        lastScoreMonth,
       };
     });
   }, [updateState, isQuestMet, calculateFSV, addPoints]);
@@ -334,6 +407,8 @@ export function FSVProvider({ children }: { children: ReactNode }) {
   const debtQuests = useMemo(() => buildQuests(DEBT_QUESTS, state.completedQuestIds), [buildQuests, state.completedQuestIds]);
   const riskQuests = useMemo(() => buildQuests(RISK_QUESTS, state.completedQuestIds), [buildQuests, state.completedQuestIds]);
   const diversificationQuests = useMemo(() => buildQuests(DIVERSIFICATION_QUESTS, state.completedQuestIds), [buildQuests, state.completedQuestIds]);
+  const retentionQuests = useMemo(() => buildQuests(RETENTION_QUESTS, state.completedQuestIds), [buildQuests, state.completedQuestIds]);
+  const factFindQuests = useMemo(() => buildQuests(FACT_FIND_QUESTS, state.completedQuestIds), [buildQuests, state.completedQuestIds]);
 
   const allQuests = useMemo(() => [
     ...onboardingQuests,
@@ -341,7 +416,9 @@ export function FSVProvider({ children }: { children: ReactNode }) {
     ...debtQuests,
     ...riskQuests,
     ...diversificationQuests,
-  ], [onboardingQuests, liquidityQuests, debtQuests, riskQuests, diversificationQuests]);
+    ...retentionQuests,
+    ...factFindQuests,
+  ], [onboardingQuests, liquidityQuests, debtQuests, riskQuests, diversificationQuests, retentionQuests, factFindQuests]);
 
   const onboardingProgress = useMemo(() => {
     const completed = onboardingQuests.filter(q => q.completed).length;
@@ -356,6 +433,7 @@ export function FSVProvider({ children }: { children: ReactNode }) {
       color: def.color,
       unlocked: state.unlockedBadgeIds.includes(def.id),
       unlockedAt: state.unlockedBadgeIds.includes(def.id) ? new Date().toISOString() : undefined,
+      tier: 'bronze' as BadgeTierLevel,
     }));
   }, [state.unlockedBadgeIds]);
 
@@ -367,11 +445,13 @@ export function FSVProvider({ children }: { children: ReactNode }) {
     debtQuests,
     riskQuests,
     diversificationQuests,
+    retentionQuests,
+    factFindQuests,
     allQuests,
     checkAndCompleteQuests,
     onboardingProgress,
     fsvBadges,
-  }), [state.fsvScore, state.completedQuestIds, onboardingQuests, liquidityQuests, debtQuests, riskQuests, diversificationQuests, allQuests, checkAndCompleteQuests, onboardingProgress, fsvBadges]);
+  }), [state.fsvScore, state.completedQuestIds, onboardingQuests, liquidityQuests, debtQuests, riskQuests, diversificationQuests, retentionQuests, factFindQuests, allQuests, checkAndCompleteQuests, onboardingProgress, fsvBadges]);
 
   return <FSVContext.Provider value={value}>{children}</FSVContext.Provider>;
 }
