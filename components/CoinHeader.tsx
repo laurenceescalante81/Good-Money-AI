@@ -6,7 +6,7 @@ import { useRewards } from '@/contexts/RewardsContext';
 import { useAccessibility } from '@/contexts/AccessibilityContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useFSV } from '@/contexts/FSVContext';
-import { router } from 'expo-router';
+import { router, useNavigation } from 'expo-router';
 import Colors from '@/constants/colors';
 
 interface CoinHeaderProps {
@@ -15,15 +15,18 @@ interface CoinHeaderProps {
   rightElement?: React.ReactNode;
   transparent?: boolean;
   darkMode?: boolean;
+  showBack?: boolean;
 }
 
-export default function CoinHeader({ title, subtitle, rightElement, transparent, darkMode }: CoinHeaderProps) {
+export default function CoinHeader({ title, subtitle, rightElement, transparent, darkMode, showBack }: CoinHeaderProps) {
   const insets = useSafeAreaInsets();
   const topInset = Platform.OS === 'web' ? 16 : Math.max(insets.top, 50);
   const { state } = useRewards();
   const { fs, is } = useAccessibility();
   const { isDark, colors: tc } = useTheme();
   const { fsvScore } = useFSV();
+  const canGoBack = router.canGoBack();
+  const displayBack = showBack !== undefined ? showBack : canGoBack;
 
   const forceDark = darkMode || isDark;
   const textColor = forceDark ? '#fff' : tc.text;
@@ -31,6 +34,7 @@ export default function CoinHeader({ title, subtitle, rightElement, transparent,
   const bgColor = transparent ? 'transparent' : (isDark ? tc.headerBg : Colors.light.background);
   const settingsBg = forceDark ? 'rgba(255,255,255,0.1)' : tc.gray100;
   const settingsColor = forceDark ? 'rgba(255,255,255,0.6)' : tc.textSecondary;
+  const backColor = forceDark ? 'rgba(255,255,255,0.6)' : tc.textSecondary;
 
   const scoreColor = fsvScore < 30 ? '#EF4444' : fsvScore < 60 ? '#F59E0B' : '#10B981';
   const scoreBg = forceDark ? 'rgba(13,148,136,0.15)' : 'rgba(13,148,136,0.08)';
@@ -41,6 +45,11 @@ export default function CoinHeader({ title, subtitle, rightElement, transparent,
   return (
     <View style={[styles.container, { paddingTop: topInset + 8, backgroundColor: bgColor }, transparent && styles.transparent]}>
       <View style={styles.row1}>
+        {displayBack && (
+          <Pressable onPress={() => router.back()} hitSlop={12} style={[styles.backBtn, { backgroundColor: settingsBg, width: is(34), height: is(34), borderRadius: is(12) }]}>
+            <Ionicons name="chevron-back" size={is(20)} color={backColor} />
+          </Pressable>
+        )}
         <Pressable onPress={() => router.push('/(tabs)/rewards')} style={styles.leftSection}>
           <Image source={require('@/assets/images/logo.jpeg')} style={{ width: is(34), height: is(34), borderRadius: is(6) }} />
           {title ? (
@@ -93,6 +102,11 @@ const styles = StyleSheet.create({
   },
   transparent: {
     backgroundColor: 'transparent',
+  },
+  backBtn: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 6,
   },
   row1: {
     flexDirection: 'row',
