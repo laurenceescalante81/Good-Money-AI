@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, Pressable, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -9,7 +9,7 @@ import { useAccessibility } from '@/contexts/AccessibilityContext';
 import { useResponsive } from '@/hooks/useResponsive';
 import { useFinance } from '@/contexts/FinanceContext';
 import { useRewards } from '@/contexts/RewardsContext';
-import { useFSV } from '@/contexts/FSVContext';
+import { useFSV, FSVQuest } from '@/contexts/FSVContext';
 import { MessageOverlay } from '@/contexts/AppMessagesContext';
 
 const fmt = (n: number) => '$' + n.toLocaleString('en-AU', { maximumFractionDigits: 0 });
@@ -34,25 +34,74 @@ const PILLARS = [
   { key: 'budget', title: 'Budget', icon: 'wallet-outline', color: '#6366F1' },
 ] as const;
 
-const QUICK_ACTIONS = [
-  { label: 'Mortgage', icon: 'home-outline', color: Colors.light.mortgage, route: '/(tabs)/mortgage' },
-  { label: 'Super', icon: 'trending-up-outline', color: Colors.light.super, route: '/(tabs)/super' },
-  { label: 'Budget', icon: 'wallet-outline', color: '#6366F1', route: '/(tabs)/budget' },
-  { label: 'Fact Find', icon: 'document-text-outline', color: '#EC4899', route: '/(tabs)/fact-find' },
-  { label: 'Investor', icon: 'bar-chart-outline', color: '#D97706', route: '/(tabs)/investor' },
-  { label: 'Planning', icon: 'analytics-outline', color: '#0D9488', route: '/(tabs)/planning' },
+const QUEST_SECTIONS = [
+  { key: 'onboarding', title: 'Getting Started', icon: 'rocket-outline', color: '#0D9488' },
+  { key: 'factfind', title: 'Fact Find', icon: 'document-text-outline', color: '#3B82F6' },
+  { key: 'liquidity', title: 'Liquidity', icon: 'water-outline', color: '#06B6D4' },
+  { key: 'debt', title: 'Debt', icon: 'trending-down-outline', color: '#EF4444' },
+  { key: 'risk', title: 'Risk & Protection', icon: 'shield-checkmark-outline', color: '#F59E0B' },
+  { key: 'diversification', title: 'Diversification', icon: 'pie-chart-outline', color: '#8B5CF6' },
+  { key: 'retention', title: 'Retention', icon: 'refresh-outline', color: '#06B6D4' },
 ] as const;
+
+function QuestCard({ quest, fs, is }: { quest: FSVQuest; fs: (n: number) => number; is: (n: number) => number }) {
+  return (
+    <View style={[s.questCard, quest.completed && s.questCardDone]}>
+      <View style={[s.questIcon, { backgroundColor: quest.iconColor + '18' }]}>
+        <Ionicons name={quest.icon as any} size={is(20)} color={quest.iconColor} />
+      </View>
+      <View style={s.questContent}>
+        <Text style={[s.questTitle, { fontSize: fs(13) }]} numberOfLines={1}>{quest.title}</Text>
+        <Text style={[s.questDesc, { fontSize: fs(11) }]} numberOfLines={2}>{quest.description}</Text>
+        <View style={s.questRewards}>
+          <View style={s.questCoinPill}>
+            <View style={s.miniCoin}><Text style={s.miniCoinText}>G</Text></View>
+            <Text style={[s.questCoinText, { fontSize: fs(11) }]}>+{quest.coinReward}</Text>
+          </View>
+          {quest.fsvWeight > 0 && (
+            <Text style={[s.questFsvText, { fontSize: fs(10) }]}>+{quest.fsvWeight} Score</Text>
+          )}
+        </View>
+      </View>
+      <View style={[s.questStatus, quest.completed ? s.questStatusDone : s.questStatusPending]}>
+        {quest.completed ? (
+          <Ionicons name="checkmark" size={is(14)} color="#fff" />
+        ) : (
+          <View style={s.questStatusDot} />
+        )}
+      </View>
+    </View>
+  );
+}
 
 export default function HomeScreen() {
   const { fs, is } = useAccessibility();
   const { isMobile, contentWidth, sidePadding } = useResponsive();
-  const { fsvScore } = useFSV();
+  const {
+    fsvScore, onboardingQuests, liquidityQuests, debtQuests, riskQuests,
+    diversificationQuests, retentionQuests, factFindQuests, checkAndCompleteQuests,
+  } = useFSV();
   const {
     mortgage, superDetails, insurancePolicies, goals,
     getTotalIncome, getTotalExpenses,
     calculateMortgageRepayment, calculateSuperProjection, getTotalInsuranceCost,
   } = useFinance();
   const { state: rewardsState, missions, xpForLevel: xpForLevelFn } = useRewards();
+
+  useEffect(() => { checkAndCompleteQuests(); }, []);
+
+  const questMap: Record<string, FSVQuest[]> = {
+    onboarding: onboardingQuests,
+    factfind: factFindQuests,
+    liquidity: liquidityQuests,
+    debt: debtQuests,
+    risk: riskQuests,
+    diversification: diversificationQuests,
+    retention: retentionQuests,
+  };
+  const allQuests = Object.values(questMap).flat();
+  const completedQuests = allQuests.filter(q => q.completed).length;
+  const totalQuests = allQuests.length;
 
   const income = getTotalIncome();
   const expenses = getTotalExpenses();
@@ -208,21 +257,32 @@ export default function HomeScreen() {
             </LinearGradient>
           </Pressable>
 
-          <Text style={[s.sectionTitle, { fontSize: fs(17) }]}>Quick Actions</Text>
-          <View style={s.quickGrid}>
-            {QUICK_ACTIONS.map(action => (
-              <Pressable
-                key={action.label}
-                onPress={() => router.push(action.route as any)}
-                style={({ pressed }) => [s.quickItem, pressed && { opacity: 0.8, transform: [{ scale: 0.95 }] }]}
-              >
-                <View style={[s.quickCircle, { backgroundColor: action.color + '15' }]}>
-                  <Ionicons name={action.icon as any} size={is(22)} color={action.color} />
+          <Pressable onPress={() => router.push('/fsv-missions' as any)} style={({ pressed }) => [pressed && { opacity: 0.95 }]}>
+            <View style={s.questsSectionHeader}>
+              <Text style={[s.sectionTitle, { fontSize: fs(17), marginBottom: 0 }]}>Quests</Text>
+              <View style={s.questsCountRow}>
+                <Text style={[s.questsCountText, { fontSize: fs(12) }]}>{completedQuests}/{totalQuests}</Text>
+                <Ionicons name="chevron-forward" size={is(16)} color={Colors.light.textMuted} />
+              </View>
+            </View>
+          </Pressable>
+          {QUEST_SECTIONS.map(section => {
+            const quests = questMap[section.key];
+            if (!quests || quests.length === 0) return null;
+            const done = quests.filter(q => q.completed).length;
+            return (
+              <View key={section.key} style={s.questSection}>
+                <View style={s.questSectionHeader}>
+                  <View style={[s.questSectionIconWrap, { backgroundColor: section.color + '15' }]}>
+                    <Ionicons name={section.icon as any} size={is(14)} color={section.color} />
+                  </View>
+                  <Text style={[s.questSectionTitle, { fontSize: fs(13) }]}>{section.title}</Text>
+                  <Text style={[s.questSectionCount, { fontSize: fs(11) }]}>{done}/{quests.length}</Text>
                 </View>
-                <Text style={[s.quickLabel, { fontSize: fs(11) }]} numberOfLines={1}>{action.label}</Text>
-              </Pressable>
-            ))}
-          </View>
+                {quests.map(q => <QuestCard key={q.id} quest={q} fs={fs} is={is} />)}
+              </View>
+            );
+          })}
 
         </View>
       </ScrollView>
@@ -402,29 +462,135 @@ const s = StyleSheet.create({
     fontFamily: 'DMSans_600SemiBold',
     color: '#D4AF37',
   },
-  quickGrid: {
+  questsSectionHeader: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 12,
     justifyContent: 'space-between',
-    marginBottom: 20,
-  },
-  quickItem: {
-    width: '30%',
     alignItems: 'center',
+    marginBottom: 14,
+  },
+  questsCountRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  questsCountText: {
+    fontFamily: 'DMSans_600SemiBold',
+    color: Colors.light.textMuted,
+  },
+  questSection: {
+    marginBottom: 16,
+  },
+  questSectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
     marginBottom: 8,
   },
-  quickCircle: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
+  questSectionIconWrap: {
+    width: 28,
+    height: 28,
+    borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 6,
   },
-  quickLabel: {
-    fontFamily: 'DMSans_500Medium',
+  questSectionTitle: {
+    fontFamily: 'DMSans_700Bold',
     color: Colors.light.text,
-    textAlign: 'center',
+    flex: 1,
+  },
+  questSectionCount: {
+    fontFamily: 'DMSans_600SemiBold',
+    color: Colors.light.textMuted,
+  },
+  questCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.light.card,
+    borderRadius: 14,
+    padding: 12,
+    marginBottom: 8,
+    gap: 10,
+    borderWidth: 1,
+    borderColor: '#F3F4F6',
+  },
+  questCardDone: {
+    borderColor: '#10B98130',
+    backgroundColor: '#10B98108',
+  },
+  questIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  questContent: {
+    flex: 1,
+  },
+  questTitle: {
+    fontFamily: 'DMSans_600SemiBold',
+    color: Colors.light.text,
+    marginBottom: 2,
+  },
+  questDesc: {
+    fontFamily: 'DMSans_400Regular',
+    color: Colors.light.textMuted,
+    marginBottom: 4,
+  },
+  questRewards: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    flexWrap: 'wrap',
+  },
+  questCoinPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    backgroundColor: '#D4AF3712',
+    borderRadius: 6,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+  },
+  miniCoin: {
+    width: 14,
+    height: 14,
+    borderRadius: 7,
+    backgroundColor: '#D4AF37',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  miniCoinText: {
+    fontFamily: 'DMSans_700Bold',
+    fontSize: 8,
+    color: '#fff',
+  },
+  questCoinText: {
+    fontFamily: 'DMSans_700Bold',
+    color: '#D4AF37',
+  },
+  questFsvText: {
+    fontFamily: 'DMSans_600SemiBold',
+    color: '#0D9488',
+    fontSize: 10,
+  },
+  questStatus: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  questStatusDone: {
+    backgroundColor: '#10B981',
+  },
+  questStatusPending: {
+    backgroundColor: '#E5E7EB',
+  },
+  questStatusDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#D1D5DB',
   },
 });
