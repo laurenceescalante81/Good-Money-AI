@@ -20,12 +20,12 @@ import { useAccessibility } from "@/contexts/AccessibilityContext";
 import { useTheme } from "@/contexts/ThemeContext";
 
 const TAB_META: Record<string, { active: string; inactive: string; color: string; label: string }> = {
-  index: { active: "star", inactive: "star-outline", color: "#F59E0B", label: "Rewards" },
+  index: { active: "apps", inactive: "apps-outline", color: "#0D9488", label: "Home" },
   overview: { active: "pie-chart", inactive: "pie-chart-outline", color: "#0D9488", label: "Overview" },
   mortgage: { active: "home", inactive: "home-outline", color: "#3B82F6", label: "Mortgage" },
   super: { active: "trending-up", inactive: "trending-up-outline", color: "#8B5CF6", label: "Super" },
   budget: { active: "wallet", inactive: "wallet-outline", color: "#10B981", label: "Budget" },
-  rewards: { active: "apps", inactive: "apps-outline", color: "#0D9488", label: "Home" },
+  rewards: { active: "star", inactive: "star-outline", color: "#F59E0B", label: "Rewards" },
   insurance: { active: "shield-checkmark", inactive: "shield-checkmark-outline", color: "#EF4444", label: "Insurance" },
   investor: { active: "bar-chart", inactive: "bar-chart-outline", color: "#D97706", label: "Investor" },
   "fact-find": { active: "document-text", inactive: "document-text-outline", color: "#EC4899", label: "Fact Find" },
@@ -188,12 +188,12 @@ function ClassicTabLayout() {
       tabBar={(props) => <ResponsiveTabBar {...props} />}
       screenOptions={{ headerShown: false }}
     >
-      <Tabs.Screen name="index" options={{ title: "Rewards" }} />
+      <Tabs.Screen name="index" options={{ title: "Home" }} />
       <Tabs.Screen name="overview" options={{ title: "Overview" }} />
       <Tabs.Screen name="mortgage" options={{ title: "Mortgage" }} />
       <Tabs.Screen name="super" options={{ title: "Super" }} />
       <Tabs.Screen name="budget" options={{ title: "Budget" }} />
-      <Tabs.Screen name="rewards" options={{ title: "Home" }} />
+      <Tabs.Screen name="rewards" options={{ title: "Rewards" }} />
       <Tabs.Screen name="insurance" options={{ title: "Insurance" }} />
       <Tabs.Screen name="investor" options={{ title: "Investor" }} />
       <Tabs.Screen name="fact-find" options={{ title: "Fact Find" }} />

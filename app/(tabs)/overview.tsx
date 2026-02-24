@@ -260,7 +260,7 @@ export default function DashboardScreen() {
             />
           </View>
 
-          <Pressable onPress={() => router.push("/(tabs)/index")} style={({ pressed }) => [pressed && { opacity: 0.95 }]}>
+          <Pressable onPress={() => router.push("/(tabs)/rewards")} style={({ pressed }) => [pressed && { opacity: 0.95 }]}>
             <LinearGradient colors={['#0C1B2A', '#1B3A5C']} style={styles.rewardsSummary}>
               <View style={styles.rewardsSummaryHeader}>
                 <View style={styles.rewardsTitleRow}>

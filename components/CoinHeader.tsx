@@ -54,7 +54,7 @@ export default function CoinHeader({ title, subtitle, rightElement, transparent,
       </Pressable>
 
       <View style={styles.rightSection}>
-        <Pressable onPress={() => router.push('/coin-balance')} style={styles.coinPill}>
+        <Pressable onPress={() => router.push('/(tabs)/rewards')} style={styles.coinPill}>
           <View style={[styles.coinIcon, { width: is(20), height: is(20), borderRadius: is(10) }]}>
             <Text style={[styles.coinIconText, { fontSize: fs(10) }]}>G</Text>
           </View>

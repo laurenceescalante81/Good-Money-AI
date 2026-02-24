@@ -12,10 +12,10 @@ import { LinearGradient } from 'expo-linear-gradient';
 function goBack() { if (router.canGoBack()) router.back(); else router.replace('/(tabs)'); }
 
 const REWARD_CTAS = [
-  { icon: 'gift-outline', title: 'Daily Spin', desc: 'Spin the wheel for bonus coins', route: '/(tabs)/index', color: '#F59E0B', gradient: ['#F59E0B', '#FBBF24'] as [string, string] },
-  { icon: 'star-outline', title: 'Missions', desc: 'Complete tasks to earn rewards', route: '/(tabs)/index', color: '#8B5CF6', gradient: ['#8B5CF6', '#A78BFA'] as [string, string] },
-  { icon: 'trophy-outline', title: 'Badges', desc: 'Collect badges for achievements', route: '/(tabs)/index', color: '#0D9488', gradient: ['#0D9488', '#14B8A6'] as [string, string] },
-  { icon: 'cart-outline', title: 'Redeem Store', desc: 'Spend coins on rewards', route: '/(tabs)/index', color: '#EF4444', gradient: ['#EF4444', '#F87171'] as [string, string] },
+  { icon: 'gift-outline', title: 'Daily Spin', desc: 'Spin the wheel for bonus coins', route: '/(tabs)/rewards', color: '#F59E0B', gradient: ['#F59E0B', '#FBBF24'] as [string, string] },
+  { icon: 'star-outline', title: 'Missions', desc: 'Complete tasks to earn rewards', route: '/(tabs)/rewards', color: '#8B5CF6', gradient: ['#8B5CF6', '#A78BFA'] as [string, string] },
+  { icon: 'trophy-outline', title: 'Badges', desc: 'Collect badges for achievements', route: '/(tabs)/rewards', color: '#0D9488', gradient: ['#0D9488', '#14B8A6'] as [string, string] },
+  { icon: 'cart-outline', title: 'Redeem Store', desc: 'Spend coins on rewards', route: '/(tabs)/rewards', color: '#EF4444', gradient: ['#EF4444', '#F87171'] as [string, string] },
 ];
 
 export default function CoinBalancePage() {
