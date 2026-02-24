@@ -24,14 +24,14 @@ function SpinWheel() {
   const [prize, setPrize] = useState<number | null>(null);
   const rotation = useSharedValue(0);
   const SEGMENTS = [
-    { label: '25', color: '#6366F1' },
-    { label: '75', color: '#8B5CF6' },
-    { label: '150', color: '#A855F7' },
-    { label: '300', color: '#7C3AED' },
-    { label: '50', color: '#6D28D9' },
-    { label: '200', color: '#5B21B6' },
-    { label: '100', color: '#4C1D95' },
-    { label: '500', color: '#581C87' },
+    { label: '+10', color: '#6366F1' },
+    { label: '+25', color: '#8B5CF6' },
+    { label: '+50', color: '#A855F7' },
+    { label: '2x', color: '#7C3AED' },
+    { label: '+10', color: '#6D28D9' },
+    { label: '+25', color: '#5B21B6' },
+    { label: '+50', color: '#4C1D95' },
+    { label: 'Insight', color: '#581C87' },
   ];
 
   const wheelStyle = useAnimatedStyle(() => ({
@@ -65,7 +65,7 @@ function SpinWheel() {
         </View>
       </View>
       <Text style={[s.spinTitle, { fontSize: fs(20) }]}>Spin for bonus Good Coins</Text>
-      <Text style={[s.spinSub, { fontSize: fs(13) }]}>1 free spin per day — up to 500 coins</Text>
+      <Text style={[s.spinSub, { fontSize: fs(13) }]}>1 free spin per day — coins, multipliers & insights</Text>
 
       <View style={s.wheelContainer}>
         <Animated.View style={[s.wheel, wheelStyle]}>
@@ -157,7 +157,7 @@ function ScratchCard() {
                   <Ionicons name="gift" size={is(32)} color="#D4AF37" />
                 </View>
                 <Text style={[s.scratchTapText, { fontSize: fs(16) }]}>Tap to Scratch</Text>
-                <Text style={[s.scratchTapSub, { fontSize: fs(12) }]}>PP Bonus Card</Text>
+                <Text style={[s.scratchTapSub, { fontSize: fs(12) }]}>Good Money Bonus Card</Text>
               </>
             ) : (
               <>

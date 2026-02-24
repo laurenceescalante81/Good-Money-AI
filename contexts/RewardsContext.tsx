@@ -618,7 +618,7 @@ export function RewardsProvider({ children }: { children: ReactNode }) {
     return earned;
   }, [today, dayOfWeek, updateState]);
 
-  const SPIN_PRIZES = [25, 50, 75, 100, 150, 200, 300, 500];
+  const SPIN_PRIZES = [10, 25, 50, 10, 25, 50, 10, 25];
 
   const spinWheel = useCallback((): number => {
     if (!canSpin) return 0;
@@ -639,8 +639,15 @@ export function RewardsProvider({ children }: { children: ReactNode }) {
   }, [canSpin, today, updateState]);
 
   const scratchCard = useCallback((): number => {
-    const prizes = [50, 100, 150, 200, 250, 500];
-    const prize = prizes[Math.floor(Math.random() * prizes.length)];
+    const roll = Math.random();
+    let prize: number;
+    if (roll < 0.5) {
+      prize = [10, 15, 20, 25][Math.floor(Math.random() * 4)];
+    } else if (roll < 0.85) {
+      prize = [30, 40, 50][Math.floor(Math.random() * 3)];
+    } else {
+      prize = [75, 100][Math.floor(Math.random() * 2)];
+    }
     updateState(prev => {
       const newPoints = prev.points + prize;
       const newTotal = prev.totalPointsEarned + prize;
