@@ -1,0 +1,1466 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>STUDIO — AI App Builder</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&display=swap');
+
+:root {
+–bg: #080C14;
+–surface: #0D1320;
+–surface2: #111827;
+–border: #1E2D45;
+–border2: #243552;
+–accent: #3B82F6;
+–accent2: #10B981;
+–gold: #F59E0B;
+–red: #EF4444;
+–text: #E8EDF5;
+–muted: #5B7394;
+–muted2: #3D5270;
+–radius: 12px;
+}
+
+- { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+font-family: ‘DM Mono’, monospace;
+background: var(–bg);
+color: var(–text);
+height: 100vh;
+display: flex;
+flex-direction: column;
+overflow: hidden;
+}
+
+/* ===================== TOP BAR ===================== */
+.topbar {
+height: 48px;
+background: var(–surface);
+border-bottom: 1px solid var(–border);
+display: flex;
+align-items: center;
+padding: 0 16px;
+gap: 16px;
+flex-shrink: 0;
+z-index: 100;
+}
+
+.logo {
+font-family: ‘Syne’, sans-serif;
+font-weight: 800;
+font-size: 15px;
+letter-spacing: 3px;
+color: var(–text);
+white-space: nowrap;
+}
+.logo span { color: var(–accent); }
+
+.topbar-divider { width: 1px; height: 20px; background: var(–border); }
+
+.app-tabs {
+display: flex;
+gap: 4px;
+flex: 1;
+overflow-x: auto;
+scrollbar-width: none;
+}
+.app-tabs::-webkit-scrollbar { display: none; }
+
+.app-tab {
+display: flex;
+align-items: center;
+gap: 8px;
+padding: 5px 12px;
+border-radius: 6px;
+border: 1px solid transparent;
+cursor: pointer;
+white-space: nowrap;
+font-family: ‘DM Mono’, monospace;
+font-size: 12px;
+color: var(–muted);
+background: transparent;
+transition: all 0.15s;
+}
+.app-tab:hover { background: var(–surface2); color: var(–text); }
+.app-tab.active {
+background: var(–surface2);
+border-color: var(–border2);
+color: var(–text);
+}
+.app-tab .tab-dot { width: 6px; height: 6px; border-radius: 50%; }
+.app-tab .tab-close {
+width: 14px; height: 14px;
+border-radius: 3px;
+display: flex; align-items: center; justify-content: center;
+font-size: 10px;
+color: var(–muted2);
+transition: all 0.1s;
+}
+.app-tab .tab-close:hover { background: var(–border); color: var(–text); }
+
+.new-app-btn {
+padding: 6px 14px;
+background: var(–accent);
+color: white;
+border: none;
+border-radius: 6px;
+font-family: ‘Syne’, sans-serif;
+font-size: 12px;
+font-weight: 700;
+letter-spacing: 1px;
+cursor: pointer;
+white-space: nowrap;
+transition: all 0.15s;
+flex-shrink: 0;
+}
+.new-app-btn:hover { background: #2563EB; }
+
+/* ===================== MAIN LAYOUT ===================== */
+.main {
+display: flex;
+flex: 1;
+overflow: hidden;
+}
+
+/* ===================== LEFT SIDEBAR ===================== */
+.sidebar {
+width: 260px;
+flex-shrink: 0;
+background: var(–surface);
+border-right: 1px solid var(–border);
+display: flex;
+flex-direction: column;
+transition: width 0.2s;
+}
+
+.sidebar-section {
+padding: 12px 14px 8px;
+font-size: 9px;
+letter-spacing: 2px;
+text-transform: uppercase;
+color: var(–muted2);
+font-weight: 600;
+}
+
+.app-list { flex: 1; overflow-y: auto; }
+.app-list::-webkit-scrollbar { width: 3px; }
+.app-list::-webkit-scrollbar-thumb { background: var(–border); }
+
+.app-item {
+display: flex;
+align-items: center;
+gap: 10px;
+padding: 10px 14px;
+cursor: pointer;
+border-left: 2px solid transparent;
+transition: all 0.12s;
+}
+.app-item:hover { background: var(–surface2); }
+.app-item.active {
+background: var(–surface2);
+border-left-color: var(–accent);
+}
+
+.app-item-icon {
+width: 32px; height: 32px;
+border-radius: 8px;
+display: flex; align-items: center; justify-content: center;
+font-size: 15px;
+flex-shrink: 0;
+}
+
+.app-item-info { flex: 1; min-width: 0; }
+.app-item-name {
+font-size: 12px;
+font-weight: 500;
+color: var(–text);
+white-space: nowrap;
+overflow: hidden;
+text-overflow: ellipsis;
+}
+.app-item-meta { font-size: 10px; color: var(–muted); margin-top: 1px; }
+
+.app-item-status {
+width: 6px; height: 6px;
+border-radius: 50%;
+flex-shrink: 0;
+}
+
+.sidebar-bottom {
+border-top: 1px solid var(–border);
+padding: 12px 14px;
+display: flex;
+flex-direction: column;
+gap: 8px;
+}
+
+.sidebar-btn {
+display: flex;
+align-items: center;
+gap: 8px;
+padding: 8px 10px;
+border-radius: 8px;
+border: 1px solid var(–border);
+background: transparent;
+color: var(–muted);
+font-family: ‘DM Mono’, monospace;
+font-size: 11px;
+cursor: pointer;
+transition: all 0.12s;
+text-align: left;
+}
+.sidebar-btn:hover { background: var(–surface2); color: var(–text); }
+
+/* ===================== CENTER: PREVIEW ===================== */
+.preview-panel {
+flex: 1;
+display: flex;
+flex-direction: column;
+background: #060A10;
+min-width: 0;
+}
+
+.preview-toolbar {
+height: 40px;
+background: var(–surface2);
+border-bottom: 1px solid var(–border);
+display: flex;
+align-items: center;
+padding: 0 14px;
+gap: 10px;
+flex-shrink: 0;
+}
+
+.preview-device-btns { display: flex; gap: 4px; }
+.device-btn {
+padding: 4px 10px;
+border-radius: 5px;
+border: 1px solid transparent;
+background: transparent;
+color: var(–muted);
+font-family: ‘DM Mono’, monospace;
+font-size: 10px;
+cursor: pointer;
+transition: all 0.12s;
+}
+.device-btn.active { background: var(–border); color: var(–text); border-color: var(–border2); }
+.device-btn:hover:not(.active) { color: var(–text); }
+
+.preview-url {
+flex: 1;
+background: var(–bg);
+border: 1px solid var(–border);
+border-radius: 5px;
+padding: 4px 10px;
+font-size: 11px;
+color: var(–muted);
+display: flex;
+align-items: center;
+gap: 6px;
+}
+
+.preview-actions { display: flex; gap: 6px; margin-left: auto; }
+.preview-btn {
+padding: 5px 12px;
+border-radius: 5px;
+border: 1px solid var(–border);
+background: transparent;
+color: var(–muted);
+font-family: ‘DM Mono’, monospace;
+font-size: 10px;
+cursor: pointer;
+transition: all 0.12s;
+letter-spacing: 0.5px;
+text-transform: uppercase;
+}
+.preview-btn:hover { color: var(–text); border-color: var(–border2); }
+.preview-btn.deploy {
+background: var(–accent2);
+border-color: var(–accent2);
+color: #fff;
+font-weight: 600;
+}
+.preview-btn.deploy:hover { background: #059669; }
+
+.preview-frame {
+flex: 1;
+display: flex;
+align-items: center;
+justify-content: center;
+overflow: hidden;
+position: relative;
+background: #0A0F1A;
+}
+
+.device-frame {
+transition: all 0.3s ease;
+position: relative;
+}
+
+.device-frame.mobile {
+width: 390px;
+height: 844px;
+max-height: calc(100% - 32px);
+border-radius: 40px;
+overflow: hidden;
+box-shadow: 0 0 0 10px #1a2438, 0 30px 80px rgba(0,0,0,0.6);
+border: 1px solid #243552;
+}
+
+.device-frame.tablet {
+width: 768px;
+height: calc(100% - 32px);
+max-width: calc(100% - 32px);
+border-radius: 20px;
+overflow: hidden;
+box-shadow: 0 0 0 8px #1a2438, 0 20px 60px rgba(0,0,0,0.5);
+border: 1px solid #243552;
+}
+
+.device-frame.desktop {
+width: calc(100% - 32px);
+height: calc(100% - 32px);
+border-radius: 8px;
+overflow: hidden;
+box-shadow: 0 8px 40px rgba(0,0,0,0.4);
+}
+
+.preview-iframe {
+width: 100%;
+height: 100%;
+border: none;
+background: white;
+}
+
+/* Empty state */
+.empty-preview {
+position: absolute;
+inset: 0;
+display: flex;
+flex-direction: column;
+align-items: center;
+justify-content: center;
+gap: 14px;
+color: var(–muted);
+}
+.empty-preview h2 {
+font-family: ‘Syne’, sans-serif;
+font-size: 18px;
+font-weight: 700;
+color: var(–border2);
+letter-spacing: 2px;
+}
+.empty-preview p { font-size: 12px; color: var(–muted2); }
+
+/* Building overlay */
+.build-overlay {
+position: absolute;
+inset: 0;
+background: rgba(6,10,16,0.92);
+display: flex;
+flex-direction: column;
+align-items: center;
+justify-content: center;
+gap: 16px;
+display: none;
+z-index: 10;
+}
+.build-overlay.active { display: flex; }
+.build-spinner {
+width: 40px; height: 40px;
+border: 2px solid var(–border);
+border-top-color: var(–accent);
+border-radius: 50%;
+animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.build-title {
+font-family: ‘Syne’, sans-serif;
+font-weight: 700;
+font-size: 14px;
+letter-spacing: 3px;
+color: var(–accent);
+}
+.build-step { font-size: 11px; color: var(–muted); }
+.build-progress {
+width: 200px; height: 2px;
+background: var(–border);
+border-radius: 1px;
+overflow: hidden;
+}
+.build-bar {
+height: 100%;
+background: var(–accent);
+width: 0%;
+transition: width 0.4s ease;
+box-shadow: 0 0 10px var(–accent);
+}
+
+/* ===================== RIGHT PANEL: CHAT ===================== */
+.chat-panel {
+width: 320px;
+flex-shrink: 0;
+background: var(–surface);
+border-left: 1px solid var(–border);
+display: flex;
+flex-direction: column;
+}
+
+.chat-header {
+padding: 12px 14px;
+border-bottom: 1px solid var(–border);
+display: flex;
+align-items: center;
+justify-content: space-between;
+flex-shrink: 0;
+}
+.chat-header-title { font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: var(–muted); }
+.chat-model { font-size: 10px; color: var(–accent); padding: 3px 8px; border: 1px solid var(–border); border-radius: 4px; }
+
+.messages {
+flex: 1;
+overflow-y: auto;
+padding: 14px;
+display: flex;
+flex-direction: column;
+gap: 14px;
+}
+.messages::-webkit-scrollbar { width: 3px; }
+.messages::-webkit-scrollbar-thumb { background: var(–border); }
+
+.msg { display: flex; flex-direction: column; gap: 4px; }
+.msg-who { font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase; color: var(–muted2); }
+.msg-body {
+padding: 10px 12px;
+border-radius: 8px;
+font-size: 12px;
+line-height: 1.6;
+}
+.msg.user .msg-body {
+background: var(–accent);
+color: white;
+align-self: flex-end;
+max-width: 90%;
+border-radius: 8px 8px 2px 8px;
+}
+.msg.user .msg-who { text-align: right; }
+.msg.ai .msg-body {
+background: var(–surface2);
+border: 1px solid var(–border);
+color: var(–text);
+border-radius: 8px 8px 8px 2px;
+}
+.msg.system .msg-body {
+background: transparent;
+border: 1px solid var(–border);
+color: var(–muted);
+font-size: 11px;
+font-style: italic;
+}
+
+.typing-indicator {
+display: flex; gap: 4px; align-items: center;
+padding: 10px 12px;
+background: var(–surface2);
+border: 1px solid var(–border);
+border-radius: 8px;
+width: fit-content;
+}
+.typing-indicator span {
+width: 5px; height: 5px;
+border-radius: 50%;
+background: var(–accent);
+animation: bounce 1.2s infinite;
+}
+.typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+.typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes bounce {
+0%,60%,100% { transform: translateY(0); }
+30% { transform: translateY(-5px); }
+}
+
+.quick-chips {
+display: flex;
+flex-wrap: wrap;
+gap: 5px;
+padding: 10px 14px;
+border-top: 1px solid var(–border);
+}
+.chip {
+padding: 4px 10px;
+border: 1px solid var(–border);
+border-radius: 20px;
+font-size: 10px;
+color: var(–muted);
+cursor: pointer;
+background: transparent;
+font-family: ‘DM Mono’, monospace;
+transition: all 0.12s;
+white-space: nowrap;
+}
+.chip:hover { border-color: var(–accent); color: var(–accent); }
+
+.chat-input-area {
+padding: 12px 14px;
+border-top: 1px solid var(–border);
+display: flex;
+flex-direction: column;
+gap: 8px;
+flex-shrink: 0;
+}
+
+textarea#chatInput {
+width: 100%;
+background: var(–surface2);
+border: 1px solid var(–border);
+border-radius: 8px;
+padding: 10px 12px;
+color: var(–text);
+font-family: ‘DM Mono’, monospace;
+font-size: 12px;
+resize: none;
+min-height: 70px;
+outline: none;
+line-height: 1.5;
+transition: border-color 0.15s;
+}
+textarea#chatInput:focus { border-color: var(–accent); }
+textarea#chatInput::placeholder { color: var(–muted2); }
+
+.chat-submit {
+display: flex;
+justify-content: space-between;
+align-items: center;
+}
+.submit-btn {
+padding: 8px 18px;
+background: var(–accent);
+color: white;
+border: none;
+border-radius: 6px;
+font-family: ‘Syne’, sans-serif;
+font-weight: 700;
+font-size: 12px;
+letter-spacing: 1px;
+cursor: pointer;
+transition: all 0.15s;
+}
+.submit-btn:hover { background: #2563EB; }
+.submit-btn:disabled { background: var(–border); color: var(–muted); cursor: not-allowed; }
+.submit-hint { font-size: 10px; color: var(–muted2); }
+
+/* ===================== NEW APP MODAL ===================== */
+.modal-overlay {
+position: fixed; inset: 0;
+background: rgba(0,0,0,0.7);
+z-index: 1000;
+display: none;
+align-items: center;
+justify-content: center;
+}
+.modal-overlay.active { display: flex; }
+.modal {
+background: var(–surface);
+border: 1px solid var(–border2);
+border-radius: 16px;
+padding: 28px;
+width: 480px;
+max-width: 90vw;
+animation: slideUp 0.2s ease;
+}
+@keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+.modal h2 {
+font-family: ‘Syne’, sans-serif;
+font-size: 20px;
+font-weight: 800;
+margin-bottom: 6px;
+}
+.modal p { font-size: 12px; color: var(–muted); margin-bottom: 20px; line-height: 1.5; }
+.modal-input {
+width: 100%;
+background: var(–surface2);
+border: 1px solid var(–border2);
+border-radius: 8px;
+padding: 12px 14px;
+color: var(–text);
+font-family: ‘DM Mono’, monospace;
+font-size: 13px;
+outline: none;
+margin-bottom: 12px;
+transition: border-color 0.15s;
+}
+.modal-input:focus { border-color: var(–accent); }
+
+.modal-templates { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 20px; }
+.template-card {
+padding: 12px;
+border: 1px solid var(–border);
+border-radius: 8px;
+cursor: pointer;
+transition: all 0.12s;
+background: transparent;
+font-family: ‘DM Mono’, monospace;
+text-align: left;
+color: var(–text);
+}
+.template-card:hover { border-color: var(–accent); background: rgba(59,130,246,0.05); }
+.template-card.selected { border-color: var(–accent); background: rgba(59,130,246,0.1); }
+.template-icon { font-size: 20px; margin-bottom: 6px; }
+.template-name { font-size: 12px; font-weight: 500; }
+.template-desc { font-size: 10px; color: var(–muted); margin-top: 2px; }
+
+.modal-actions { display: flex; justify-content: flex-end; gap: 10px; }
+.modal-cancel {
+padding: 10px 18px;
+background: transparent;
+border: 1px solid var(–border);
+border-radius: 8px;
+color: var(–muted);
+font-family: ‘DM Mono’, monospace;
+font-size: 12px;
+cursor: pointer;
+}
+.modal-create {
+padding: 10px 20px;
+background: var(–accent);
+border: none;
+border-radius: 8px;
+color: white;
+font-family: ‘Syne’, sans-serif;
+font-weight: 700;
+font-size: 12px;
+letter-spacing: 1px;
+cursor: pointer;
+}
+.modal-create:hover { background: #2563EB; }
+
+/* ===================== STATUS BAR ===================== */
+.statusbar {
+height: 24px;
+background: var(–surface);
+border-top: 1px solid var(–border);
+display: flex;
+align-items: center;
+padding: 0 14px;
+gap: 16px;
+flex-shrink: 0;
+}
+.status-item { font-size: 10px; color: var(–muted); display: flex; align-items: center; gap: 5px; }
+.status-dot { width: 5px; height: 5px; border-radius: 50%; }
+
+/* Animations */
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+</style>
+
+</head>
+<body>
+
+<!-- ===================== TOP BAR ===================== -->
+
+<div class="topbar">
+  <div class="logo">STU<span>DIO</span></div>
+  <div class="topbar-divider"></div>
+  <div class="app-tabs" id="appTabs">
+    <button class="app-tab active" data-app="goodmoney" onclick="switchApp('goodmoney', this)">
+      <div class="tab-dot" style="background:#10B981;"></div>
+      Good Money AI
+      <div class="tab-close" onclick="event.stopPropagation()">×</div>
+    </button>
+  </div>
+  <button class="new-app-btn" onclick="showNewAppModal()">+ New App</button>
+</div>
+
+<!-- ===================== MAIN ===================== -->
+
+<div class="main">
+
+  <!-- SIDEBAR -->
+
+  <div class="sidebar">
+    <div class="sidebar-section">Your Apps</div>
+    <div class="app-list" id="appList">
+      <div class="app-item active" data-app="goodmoney" onclick="switchApp('goodmoney', this)">
+        <div class="app-item-icon" style="background:#064E3B;">💚</div>
+        <div class="app-item-info">
+          <div class="app-item-name">Good Money AI</div>
+          <div class="app-item-meta">Financial Planning App</div>
+        </div>
+        <div class="app-item-status" style="background:#10B981;"></div>
+      </div>
+    </div>
+    <div class="sidebar-bottom">
+      <button class="sidebar-btn" onclick="showNewAppModal()">
+        <span>＋</span> New App
+      </button>
+      <button class="sidebar-btn" onclick="deployCurrentApp()">
+        <span>↑</span> Deploy App
+      </button>
+    </div>
+  </div>
+
+  <!-- PREVIEW -->
+
+  <div class="preview-panel">
+    <div class="preview-toolbar">
+      <div class="preview-device-btns">
+        <button class="device-btn" onclick="setDevice('desktop', this)">⬜ Desktop</button>
+        <button class="device-btn" onclick="setDevice('tablet', this)">▭ Tablet</button>
+        <button class="device-btn active" onclick="setDevice('mobile', this)">📱 Mobile</button>
+      </div>
+      <div class="preview-url">
+        <span style="color:var(--accent2);">●</span>
+        <span id="previewUrl">studio://good-money-ai</span>
+      </div>
+      <div class="preview-actions">
+        <button class="preview-btn" onclick="refreshPreview()">↻ Refresh</button>
+        <button class="preview-btn" onclick="openFullscreen()">⤢ Fullscreen</button>
+        <button class="preview-btn deploy" onclick="deployCurrentApp()">↑ Deploy</button>
+      </div>
+    </div>
+
+```
+<div class="preview-frame">
+  <div class="empty-preview" id="emptyPreview" style="display:none;">
+    <div style="font-size:40px;">⬡</div>
+    <h2>NO APP LOADED</h2>
+    <p>Select an app or create a new one</p>
+  </div>
+
+  <div class="build-overlay" id="buildOverlay">
+    <div class="build-spinner"></div>
+    <div class="build-title" id="buildTitle">BUILDING</div>
+    <div class="build-progress"><div class="build-bar" id="buildBar"></div></div>
+    <div class="build-step" id="buildStep">Generating code...</div>
+  </div>
+
+  <div class="device-frame mobile" id="deviceFrame">
+    <iframe class="preview-iframe" id="previewIframe" sandbox="allow-scripts allow-same-origin allow-forms"></iframe>
+  </div>
+</div>
+```
+
+  </div>
+
+  <!-- CHAT PANEL -->
+
+  <div class="chat-panel">
+    <div class="chat-header">
+      <div class="chat-header-title">AI Assistant</div>
+      <div class="chat-model">Claude Sonnet</div>
+    </div>
+
+```
+<div class="messages" id="messages">
+  <div class="msg system">
+    <div class="msg-body">Good Money AI loaded. Ask me to change anything — layout, features, data, colors, logic.</div>
+  </div>
+  <div class="msg ai">
+    <div class="msg-who">Studio AI</div>
+    <div class="msg-body">Your Good Money AI app is live in the preview. What would you like to change or add?</div>
+  </div>
+</div>
+
+<div class="quick-chips">
+  <button class="chip" onclick="quickSend('Change the color theme to dark green')">Dark theme</button>
+  <button class="chip" onclick="quickSend('Add a tax calculator screen')">Tax calc</button>
+  <button class="chip" onclick="quickSend('Make the dashboard more visual with charts')">More charts</button>
+  <button class="chip" onclick="quickSend('Add push notification examples')">Notifications</button>
+  <button class="chip" onclick="quickSend('Add a crypto portfolio tracker')">Crypto</button>
+  <button class="chip" onclick="quickSend('Change the name and branding')">Rebrand</button>
+</div>
+
+<div class="chat-input-area">
+  <textarea id="chatInput" placeholder="Describe a change, add a feature, fix something..."></textarea>
+  <div class="chat-submit">
+    <div class="submit-hint">⏎ Enter to send</div>
+    <button class="submit-btn" id="submitBtn" onclick="sendMessage()">BUILD →</button>
+  </div>
+</div>
+```
+
+  </div>
+
+</div>
+
+<!-- ===================== STATUS BAR ===================== -->
+
+<div class="statusbar">
+  <div class="status-item"><div class="status-dot" style="background:#10B981;"></div>Claude API Connected</div>
+  <div class="status-item"><div class="status-dot" style="background:#3B82F6;"></div>1 App Active</div>
+  <div class="status-item" id="lastBuilt">Last built: just now</div>
+</div>
+
+<!-- ===================== NEW APP MODAL ===================== -->
+
+<div class="modal-overlay" id="newAppModal">
+  <div class="modal">
+    <h2>Create New App</h2>
+    <p>Describe your app or pick a starting template. The AI will build it instantly.</p>
+
+```
+<input type="text" class="modal-input" id="newAppName" placeholder="App name (e.g. Fitness Tracker)">
+<textarea class="modal-input" id="newAppPrompt" placeholder="Describe what this app does..." style="min-height:80px;resize:none;"></textarea>
+
+<div style="font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted2);margin-bottom:10px;">Or start from a template</div>
+<div class="modal-templates">
+  <button class="template-card" onclick="selectTemplate(this, 'A fitness tracking app with workout logging, calorie counter, and progress charts')">
+    <div class="template-icon">💪</div>
+    <div class="template-name">Fitness Tracker</div>
+    <div class="template-desc">Workouts, calories, progress</div>
+  </button>
+  <button class="template-card" onclick="selectTemplate(this, 'An e-commerce app with product listings, cart, checkout, and order tracking')">
+    <div class="template-icon">🛍️</div>
+    <div class="template-name">E-Commerce</div>
+    <div class="template-desc">Products, cart, checkout</div>
+  </button>
+  <button class="template-card" onclick="selectTemplate(this, 'A task and project management app like Todoist with projects, tasks, due dates, and priorities')">
+    <div class="template-icon">✅</div>
+    <div class="template-name">Task Manager</div>
+    <div class="template-desc">Projects, tasks, deadlines</div>
+  </button>
+  <button class="template-card" onclick="selectTemplate(this, 'A recipe and meal planning app with ingredient lists, cooking steps, and weekly meal plans')">
+    <div class="template-icon">🍳</div>
+    <div class="template-name">Recipe App</div>
+    <div class="template-desc">Recipes, meal planning</div>
+  </button>
+  <button class="template-card" onclick="selectTemplate(this, 'A real estate app showing property listings, prices, maps, and mortgage calculators')">
+    <div class="template-icon">🏠</div>
+    <div class="template-name">Real Estate</div>
+    <div class="template-desc">Listings, maps, calculator</div>
+  </button>
+  <button class="template-card" onclick="selectTemplate(this, 'A social media app with feed, posts, likes, comments, and user profiles')">
+    <div class="template-icon">📱</div>
+    <div class="template-name">Social App</div>
+    <div class="template-desc">Feed, posts, profiles</div>
+  </button>
+</div>
+
+<div class="modal-actions">
+  <button class="modal-cancel" onclick="closeNewAppModal()">Cancel</button>
+  <button class="modal-create" onclick="createNewApp()">Build App →</button>
+</div>
+```
+
+  </div>
+</div>
+
+<script>
+// ===================== STATE =====================
+const ANTHROPIC_API = 'https://api.anthropic.com/v1/messages';
+
+const apps = {
+  goodmoney: {
+    name: 'Good Money AI',
+    icon: '💚',
+    color: '#064E3B',
+    dotColor: '#10B981',
+    description: 'Financial Planning App',
+    history: [],
+    code: null
+  }
+};
+
+let currentAppId = 'goodmoney';
+let currentDevice = 'mobile';
+let isBuilding = false;
+
+// ===================== GOOD MONEY APP CODE =====================
+const GOOD_MONEY_CODE = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Good Money</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+:root{--green:#00C853;--green-light:#E8F9EF;--green-dark:#009940;--navy:#0A1628;--blue:#1E6FE8;--gold:#FFB300;--red:#FF4444;--bg:#F4F6FA;--white:#FFFFFF;--text:#0A1628;--muted:#6B7A99;--border:#E2E8F4;--card:#FFFFFF;--radius:16px;--shadow:0 2px 16px rgba(10,22,40,.08);}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;max-width:430px;margin:0 auto;overflow-x:hidden;}
+.screen{display:none;min-height:100vh;flex-direction:column;animation:fadeIn .25s ease;}
+.screen.active{display:flex;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.topbar{background:var(--white);padding:52px 20px 16px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;border-bottom:1px solid var(--border);}
+.topbar-title{font-size:18px;font-weight:700;color:var(--navy);}
+.logo{display:flex;align-items:center;gap:8px;}
+.logo-mark{width:32px;height:32px;background:var(--green);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px;}
+.logo-text{font-weight:800;font-size:17px;color:var(--navy);}
+.logo-text span{color:var(--green);}
+.avatar-btn{width:36px;height:36px;border-radius:50%;background:var(--navy);color:white;border:none;font-weight:700;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:inherit;}
+.tabbar{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;background:var(--white);border-top:1px solid var(--border);display:flex;padding:8px 0 24px;z-index:200;}
+.tab-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;cursor:pointer;padding:6px 0;font-family:inherit;}
+.tab-icon{font-size:22px;line-height:1;transition:transform .15s;}
+.tab-label{font-size:10px;font-weight:600;color:var(--muted);}
+.tab-btn.active .tab-label{color:var(--green);}
+.tab-btn.active .tab-icon{transform:scale(1.15);}
+.scroll-content{flex:1;overflow-y:auto;padding-bottom:100px;}
+.card{background:var(--card);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow);margin:0 16px 14px;}
+.card-label{font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;}
+.card-value{font-size:30px;font-weight:800;color:var(--navy);line-height:1.1;}
+.card-sub{font-size:13px;color:var(--muted);margin-top:4px;}
+.hero-card{background:linear-gradient(135deg,var(--navy) 0%,#1a3560 100%);border-radius:var(--radius);padding:24px;margin:16px 16px 14px;color:white;position:relative;overflow:hidden;}
+.hero-card::before{content:'';position:absolute;top:-40px;right:-40px;width:160px;height:160px;background:rgba(0,200,83,.12);border-radius:50%;}
+.hero-greeting{font-size:13px;opacity:.7;margin-bottom:4px;}
+.hero-name{font-size:22px;font-weight:800;margin-bottom:20px;}
+.hero-wealth-label{font-size:11px;letter-spacing:1px;text-transform:uppercase;opacity:.6;}
+.hero-wealth{font-size:36px;font-weight:800;letter-spacing:-1px;}
+.hero-wealth span{color:var(--green);}
+.hero-change{font-size:13px;opacity:.7;margin-top:4px;}
+.hero-change.up{color:#4dff91;opacity:1;}
+.quick-actions{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:0 16px 14px;}
+.qa-btn{background:var(--white);border:none;border-radius:14px;padding:14px 8px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;box-shadow:var(--shadow);transition:all .15s;font-family:inherit;}
+.qa-btn:active{transform:scale(.95);}
+.qa-icon{font-size:24px;}
+.qa-label{font-size:10px;font-weight:600;color:var(--muted);}
+.section-header{display:flex;align-items:center;justify-content:space-between;padding:8px 20px 10px;}
+.section-title{font-size:17px;font-weight:700;color:var(--navy);}
+.section-link{font-size:13px;font-weight:600;color:var(--green);}
+.pillar-cards{display:flex;gap:10px;padding:0 16px;overflow-x:auto;scrollbar-width:none;margin-bottom:14px;}
+.pillar-cards::-webkit-scrollbar{display:none;}
+.pillar-card{min-width:150px;background:var(--white);border-radius:14px;padding:16px;box-shadow:var(--shadow);cursor:pointer;transition:all .15s;border:2px solid transparent;}
+.pillar-card:active{transform:scale(.97);}
+.pillar-icon{font-size:28px;margin-bottom:8px;}
+.pillar-name{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;}
+.pillar-value{font-size:18px;font-weight:800;color:var(--navy);}
+.pillar-sub{font-size:11px;color:var(--muted);margin-top:2px;}
+.progress-bar{height:6px;background:var(--border);border-radius:3px;overflow:hidden;margin-top:10px;}
+.progress-fill{height:100%;border-radius:3px;transition:width .6s ease;}
+.coins-card{background:linear-gradient(135deg,#FF8F00,#FFB300);border-radius:var(--radius);padding:20px;margin:0 16px 14px;color:white;display:flex;align-items:center;justify-content:space-between;cursor:pointer;}
+.list-item{display:flex;align-items:center;padding:14px 20px;background:var(--white);border-bottom:1px solid var(--border);cursor:pointer;}
+.list-item:last-child{border-bottom:none;}
+.list-icon{font-size:22px;margin-right:14px;width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:var(--bg);}
+.list-info{flex:1;}
+.list-name{font-size:15px;font-weight:600;color:var(--navy);}
+.list-sub{font-size:12px;color:var(--muted);margin-top:2px;}
+.list-right{text-align:right;}
+.list-value{font-size:15px;font-weight:700;color:var(--navy);}
+.list-badge{font-size:11px;font-weight:600;padding:3px 8px;border-radius:20px;}
+.badge-green{background:var(--green-light);color:var(--green-dark);}
+.badge-red{background:#FEEAEA;color:var(--red);}
+.badge-orange{background:#FFF3E0;color:#E65100;}
+.form-group{margin-bottom:16px;}
+.form-label{font-size:13px;font-weight:600;color:var(--muted);margin-bottom:6px;display:block;}
+.form-input{width:100%;padding:13px 16px;border:2px solid var(--border);border-radius:12px;font-family:inherit;font-size:16px;font-weight:500;color:var(--navy);background:var(--white);outline:none;transition:border-color .15s;}
+.form-input:focus{border-color:var(--green);}
+.form-select{width:100%;padding:13px 16px;border:2px solid var(--border);border-radius:12px;font-family:inherit;font-size:15px;font-weight:500;color:var(--navy);background:var(--white);outline:none;appearance:none;}
+.btn{width:100%;padding:16px;border-radius:14px;border:none;font-family:inherit;font-size:16px;font-weight:700;cursor:pointer;transition:all .15s;}
+.btn-primary{background:var(--green);color:white;}
+.bank-logo{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;margin-right:14px;flex-shrink:0;}
+.wealth-chart{position:relative;height:180px;margin:20px 0 10px;}
+.wealth-svg{width:100%;height:100%;}
+.mission-card{background:var(--white);border-radius:14px;padding:16px;margin:0 16px 10px;display:flex;align-items:center;gap:14px;box-shadow:var(--shadow);border-left:4px solid var(--green);}
+.streak-row{display:flex;gap:6px;justify-content:center;margin:16px;}
+.streak-day{flex:1;max-width:40px;aspect-ratio:1;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;background:var(--border);color:var(--muted);}
+.streak-day.done{background:var(--green);color:white;}
+.streak-day.today{background:var(--navy);color:white;}
+.period-btn{padding:6px 16px;border-radius:20px;border:2px solid var(--border);background:transparent;font-family:inherit;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer;white-space:nowrap;}
+.period-btn.active{background:var(--navy);color:white;border-color:var(--navy);}
+.toggle-btn{flex:1;padding:8px;border:none;border-radius:8px;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;background:transparent;color:var(--muted);}
+.toggle-btn.active{background:var(--white);color:var(--navy);box-shadow:0 1px 6px rgba(0,0,0,.1);}
+</style>
+
+</head>
+<body>
+<!-- DASHBOARD -->
+<div class="screen active" id="screen-dashboard">
+  <div class="topbar">
+    <div class="logo"><div class="logo-mark">💚</div><div class="logo-text">Good <span>Money</span></div></div>
+    <button class="avatar-btn" onclick="showScreen('screen-profile')">LE</button>
+  </div>
+  <div class="scroll-content">
+    <div class="hero-card">
+      <div class="hero-greeting">Good evening 👋</div>
+      <div class="hero-name">Laurence Escalante</div>
+      <div class="hero-wealth-label">Total Net Wealth</div>
+      <div class="hero-wealth">$<span>847,230</span></div>
+      <div class="hero-change up">▲ $12,450 this month (+1.5%)</div>
+    </div>
+    <div class="quick-actions">
+      <button class="qa-btn" onclick="showScreen('screen-mortgage')"><div class="qa-icon">🏠</div><div class="qa-label">Mortgage</div></button>
+      <button class="qa-btn" onclick="showScreen('screen-super')"><div class="qa-icon">🛡️</div><div class="qa-label">Super</div></button>
+      <button class="qa-btn" onclick="showScreen('screen-budget')"><div class="qa-icon">💰</div><div class="qa-label">Budget</div></button>
+      <button class="qa-btn" onclick="showScreen('screen-insurance')"><div class="qa-icon">📋</div><div class="qa-label">Insurance</div></button>
+    </div>
+    <div class="section-header"><div class="section-title">Your Pillars</div><div class="section-link">See All</div></div>
+    <div class="pillar-cards">
+      <div class="pillar-card" onclick="showScreen('screen-mortgage')"><div class="pillar-icon">🏠</div><div class="pillar-name">Mortgage</div><div class="pillar-value">$485,000</div><div class="pillar-sub">62% LVR</div><div class="progress-bar"><div class="progress-fill" style="width:38%;background:#1E6FE8;"></div></div></div>
+      <div class="pillar-card" onclick="showScreen('screen-super')"><div class="pillar-icon">🛡️</div><div class="pillar-name">Super</div><div class="pillar-value">$142,800</div><div class="pillar-sub">AustralianSuper</div><div class="progress-bar"><div class="progress-fill" style="width:55%;background:#FF8F00;"></div></div></div>
+      <div class="pillar-card" onclick="showScreen('screen-insurance')"><div class="pillar-icon">📋</div><div class="pillar-name">Insurance</div><div class="pillar-value">4 Policies</div><div class="pillar-sub">$3,240/yr</div><div class="progress-bar"><div class="progress-fill" style="width:100%;background:#E91E63;"></div></div></div>
+      <div class="pillar-card" onclick="showScreen('screen-budget')"><div class="pillar-icon">💰</div><div class="pillar-name">Budget</div><div class="pillar-value">$2,340</div><div class="pillar-sub">Saved this month</div><div class="progress-bar"><div class="progress-fill" style="width:70%;background:#00C853;"></div></div></div>
+    </div>
+    <div class="coins-card" onclick="showScreen('screen-rewards')"><div><h3 style="font-size:13px;opacity:.85;margin-bottom:4px;">Good Coins 🪙</h3><div style="font-size:28px;font-weight:800;">2,480</div><p style="font-size:11px;opacity:.75;margin-top:2px;">12-day streak • Gold</p></div><div style="font-size:48px;">🏆</div></div>
+    <div class="section-header"><div class="section-title">Connected Accounts</div><button onclick="showScreen('screen-banking')" style="background:none;border:none;cursor:pointer;font-family:inherit;font-size:13px;font-weight:600;color:var(--green);">Manage</button></div>
+    <div class="card" style="padding:0;overflow:hidden;">
+      <div class="list-item"><div class="bank-logo" style="background:#fff5f5;color:#CC0000;">CBA</div><div class="list-info"><div class="list-name">Commonwealth Bank</div><div class="list-sub">Everyday •••• 4521</div></div><div class="list-right"><div class="list-value">$8,342</div><div class="list-badge badge-green">Live</div></div></div>
+      <div class="list-item"><div class="bank-logo" style="background:#f0f7ff;color:#003087;">ANZ</div><div class="list-info"><div class="list-name">ANZ Bank</div><div class="list-sub">Savings •••• 8890</div></div><div class="list-right"><div class="list-value">$24,100</div><div class="list-badge badge-green">Live</div></div></div>
+    </div>
+    <div class="section-header"><div class="section-title">Wealth Projection</div><button onclick="showScreen('screen-wealth')" style="background:none;border:none;cursor:pointer;font-family:inherit;font-size:13px;font-weight:600;color:var(--green);">Full View</button></div>
+    <div class="card"><div class="card-label">Projected at 67</div><div class="card-value">$2.4M</div><div class="card-sub">Based on current trajectory</div><div class="wealth-chart"><svg class="wealth-svg" viewBox="0 0 300 160" preserveAspectRatio="none"><defs><linearGradient id="wg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#00C853" stop-opacity=".3"/><stop offset="100%" stop-color="#00C853" stop-opacity="0"/></linearGradient></defs><path d="M0,140 C40,130 80,110 120,90 C160,70 200,40 250,20 L300,10 L300,160 L0,160 Z" fill="url(#wg)"/><path d="M0,140 C40,130 80,110 120,90 C160,70 200,40 250,20 L300,10" fill="none" stroke="#00C853" stroke-width="2.5" stroke-linecap="round"/><circle cx="300" cy="10" r="4" fill="#00C853"/></svg></div></div>
+  </div>
+</div>
+
+<!-- MORTGAGE -->
+
+<div class="screen" id="screen-mortgage">
+  <div class="topbar"><button onclick="showScreen('screen-dashboard')" style="background:none;border:none;font-size:24px;cursor:pointer;">‹</button><div class="topbar-title">Mortgage</div><div style="width:36px"></div></div>
+  <div class="scroll-content">
+    <div style="background:linear-gradient(135deg,#1565C0,#1E88E5);color:white;border-radius:var(--radius);padding:24px;margin:16px;">
+      <div style="font-size:11px;opacity:.7;text-transform:uppercase;letter-spacing:1px;">Outstanding Balance</div>
+      <div style="font-size:36px;font-weight:800;margin:4px 0;">$485,000</div>
+      <div style="font-size:13px;opacity:.75;">CBA • 6.14% p.a. • 22 years left</div>
+      <div style="display:flex;justify-content:space-between;margin-top:16px;">
+        <div><div style="font-size:10px;opacity:.7;">Monthly P&I</div><div style="font-size:18px;font-weight:700;">$2,847</div></div>
+        <div><div style="font-size:10px;opacity:.7;">Property Value</div><div style="font-size:18px;font-weight:700;">$780,000</div></div>
+        <div><div style="font-size:10px;opacity:.7;">Equity</div><div style="font-size:18px;font-weight:700;color:#4dff91;">$295K</div></div>
+      </div>
+    </div>
+    <div class="card"><div class="card-label">Extra Repayment Calculator</div><div class="form-group"><label class="form-label">Extra monthly amount (AUD)</label><input type="number" class="form-input" value="500" id="extra" oninput="calcExtra()"></div><div id="extra-result" style="background:var(--green-light);border-radius:10px;padding:14px;"><div style="font-size:13px;color:var(--green-dark);font-weight:600;">With $500/month extra:</div><div style="display:flex;justify-content:space-between;margin-top:8px;"><div><div style="font-size:11px;color:var(--muted);">Time saved</div><div style="font-weight:800;font-size:18px;">4.2 yrs</div></div><div><div style="font-size:11px;color:var(--muted);">Interest saved</div><div style="font-weight:800;font-size:18px;color:var(--green);">$87,400</div></div></div></div></div>
+    <div class="card"><div class="form-group"><label class="form-label">Lender</label><select class="form-select"><option>Commonwealth Bank (CBA)</option><option>ANZ Bank</option><option>NAB</option><option>Westpac</option><option>Macquarie</option></select></div><button class="btn btn-primary">Update Details</button></div>
+  </div>
+</div>
+
+<!-- SUPER -->
+
+<div class="screen" id="screen-super">
+  <div class="topbar"><button onclick="showScreen('screen-dashboard')" style="background:none;border:none;font-size:24px;cursor:pointer;">‹</button><div class="topbar-title">Superannuation</div><div style="width:36px"></div></div>
+  <div class="scroll-content">
+    <div style="background:linear-gradient(135deg,#E65100,#FF8F00);color:white;border-radius:var(--radius);padding:24px;margin:16px;">
+      <div style="font-size:11px;opacity:.7;text-transform:uppercase;letter-spacing:1px;">Super Balance</div>
+      <div style="font-size:36px;font-weight:800;margin:4px 0;">$142,800</div>
+      <div style="font-size:13px;opacity:.75;">AustralianSuper • Balanced Growth</div>
+      <div style="display:flex;justify-content:space-between;margin-top:16px;">
+        <div><div style="font-size:10px;opacity:.7;">This FY</div><div style="font-size:17px;font-weight:700;">+$18,240</div></div>
+        <div><div style="font-size:10px;opacity:.7;">Return</div><div style="font-size:17px;font-weight:700;">+11.4%</div></div>
+        <div><div style="font-size:10px;opacity:.7;">SG Rate</div><div style="font-size:17px;font-weight:700;">11.5%</div></div>
+      </div>
+    </div>
+    <div class="card"><div class="card-label">Retirement Projection</div><div class="card-value">$1,840,000</div><div class="card-sub">At age 67 • 29 years away</div><div class="wealth-chart" style="height:140px;"><svg class="wealth-svg" viewBox="0 0 300 140" preserveAspectRatio="none"><defs><linearGradient id="sg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#FF8F00" stop-opacity=".3"/><stop offset="100%" stop-color="#FF8F00" stop-opacity="0"/></linearGradient></defs><path d="M0,130 C60,120 120,100 180,75 C220,55 260,25 300,8 L300,140 L0,140 Z" fill="url(#sg)"/><path d="M0,130 C60,120 120,100 180,75 C220,55 260,25 300,8" fill="none" stroke="#FF8F00" stroke-width="2.5"/></svg></div></div>
+    <div class="card"><div class="form-group"><label class="form-label">Super Fund</label><select class="form-select"><option>AustralianSuper</option><option>Rest Super</option><option>UniSuper</option><option>Hostplus</option><option>HESTA</option><option>Cbus Super</option></select></div><button class="btn btn-primary">Update Super</button></div>
+  </div>
+</div>
+
+<!-- INSURANCE -->
+
+<div class="screen" id="screen-insurance">
+  <div class="topbar"><button onclick="showScreen('screen-dashboard')" style="background:none;border:none;font-size:24px;cursor:pointer;">‹</button><div class="topbar-title">Insurance</div><div style="width:36px"></div></div>
+  <div class="scroll-content">
+    <div class="card" style="margin-top:16px;"><div class="card-label">Total Premiums</div><div class="card-value">$3,240/yr</div><div class="card-sub">4 policies • $270/month</div></div>
+    <div class="card" style="padding:0;overflow:hidden;">
+      <div class="list-item"><div class="list-icon" style="background:#E3F2FD;">🏠</div><div class="list-info"><div class="list-name">Home & Contents</div><div class="list-sub">NRMA • Renews Aug 2025</div></div><div class="list-right"><div class="list-value">$1,240/yr</div><div class="list-badge badge-green">Active</div></div></div>
+      <div class="list-item"><div class="list-icon" style="background:#FFF3E0;">🚗</div><div class="list-info"><div class="list-name">Car Insurance</div><div class="list-sub">AAMI • Comprehensive</div></div><div class="list-right"><div class="list-value">$780/yr</div><div class="list-badge badge-green">Active</div></div></div>
+      <div class="list-item"><div class="list-icon" style="background:#FCE4EC;">❤️</div><div class="list-info"><div class="list-name">Health Insurance</div><div class="list-sub">Bupa • Gold Hospital</div></div><div class="list-right"><div class="list-value">$820/yr</div><div class="list-badge badge-green">Active</div></div></div>
+      <div class="list-item"><div class="list-icon" style="background:#E8F5E9;">🛡️</div><div class="list-info"><div class="list-name">Income Protection</div><div class="list-sub">TAL • 75% income cover</div></div><div class="list-right"><div class="list-value">$400/yr</div><div class="list-badge badge-orange">Review</div></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- BUDGET -->
+
+<div class="screen" id="screen-budget">
+  <div class="topbar"><button onclick="showScreen('screen-dashboard')" style="background:none;border:none;font-size:24px;cursor:pointer;">‹</button><div class="topbar-title">Budget & Savings</div><div style="width:36px"></div></div>
+  <div class="scroll-content">
+    <div style="background:linear-gradient(135deg,#1B5E20,#00C853);color:white;border-radius:var(--radius);padding:24px;margin:16px;">
+      <div style="font-size:11px;opacity:.7;text-transform:uppercase;letter-spacing:1px;">June Budget</div>
+      <div style="display:flex;justify-content:space-between;margin-top:8px;">
+        <div><div style="font-size:12px;opacity:.75;">Income</div><div style="font-size:22px;font-weight:800;">$11,667</div></div>
+        <div><div style="font-size:12px;opacity:.75;">Spent</div><div style="font-size:22px;font-weight:800;">$9,327</div></div>
+        <div><div style="font-size:12px;opacity:.75;">Saved</div><div style="font-size:22px;font-weight:800;">$2,340</div></div>
+      </div>
+    </div>
+    <div class="card" style="padding:0;overflow:hidden;">
+      <div class="list-item"><div class="list-icon">🛒</div><div class="list-info"><div class="list-name">Groceries</div><div class="list-sub">Woolworths, Coles, Aldi</div></div><div class="list-right"><div class="list-value">$680</div><div class="list-badge badge-green">On track</div></div></div>
+      <div class="list-item"><div class="list-icon">⛽</div><div class="list-info"><div class="list-name">Petrol</div><div class="list-sub">BP, Shell, 7-Eleven</div></div><div class="list-right"><div class="list-value">$180</div><div class="list-badge badge-green">On track</div></div></div>
+      <div class="list-item"><div class="list-icon">💡</div><div class="list-info"><div class="list-name">Utilities</div><div class="list-sub">AGL, Sydney Water, NBN</div></div><div class="list-right"><div class="list-value">$420</div><div class="list-badge badge-orange">High</div></div></div>
+      <div class="list-item"><div class="list-icon">🍽️</div><div class="list-info"><div class="list-name">Dining Out</div><div class="list-sub">Restaurants & takeaway</div></div><div class="list-right"><div class="list-value">$640</div><div class="list-badge badge-red">Over budget</div></div></div>
+      <div class="list-item"><div class="list-icon">🏠</div><div class="list-info"><div class="list-name">Mortgage</div><div class="list-sub">CBA Home Loan</div></div><div class="list-right"><div class="list-value">$2,847</div><div class="list-badge badge-green">Fixed</div></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- WEALTH -->
+
+<div class="screen" id="screen-wealth">
+  <div class="topbar"><button onclick="showScreen('screen-dashboard')" style="background:none;border:none;font-size:24px;cursor:pointer;">‹</button><div class="topbar-title">Wealth Projections</div><div style="width:36px"></div></div>
+  <div class="scroll-content">
+    <div class="hero-card" style="margin-top:16px;"><div class="hero-wealth-label">Total projected wealth</div><div class="hero-wealth" id="wp-amount">$2,400,000</div><div class="hero-change" id="wp-label">In 30 years (at age 67)</div></div>
+    <div style="display:flex;gap:8px;padding:0 16px 16px;overflow-x:auto;">
+      <button class="period-btn" onclick="setPeriod(this,5,'$1,020,000','5 years (age 43)')">5 yrs</button>
+      <button class="period-btn" onclick="setPeriod(this,10,'$1,340,000','10 years (age 48)')">10 yrs</button>
+      <button class="period-btn" onclick="setPeriod(this,20,'$1,840,000','20 years (age 58)')">20 yrs</button>
+      <button class="period-btn active" onclick="setPeriod(this,30,'$2,400,000','30 years (age 67)')">30 yrs</button>
+    </div>
+    <div class="card"><div style="display:flex;gap:10px;"><div style="flex:1;background:#EEF4FF;border-radius:10px;padding:12px;"><div style="font-size:11px;color:var(--blue);">🏠 Property</div><div style="font-size:18px;font-weight:800;">$840K</div></div><div style="flex:1;background:#FFF3E0;border-radius:10px;padding:12px;"><div style="font-size:11px;color:#E65100;">🛡️ Super</div><div style="font-size:18px;font-weight:800;">$1.84M</div></div><div style="flex:1;background:var(--green-light);border-radius:10px;padding:12px;"><div style="font-size:11px;color:var(--green-dark);">💰 Savings</div><div style="font-size:18px;font-weight:800;">$220K</div></div></div></div>
+  </div>
+</div>
+
+<!-- REWARDS -->
+
+<div class="screen" id="screen-rewards">
+  <div class="topbar"><button onclick="showScreen('screen-dashboard')" style="background:none;border:none;font-size:24px;cursor:pointer;">‹</button><div class="topbar-title">Rewards</div><div style="width:36px"></div></div>
+  <div class="scroll-content">
+    <div class="coins-card" style="margin-top:16px;flex-direction:column;gap:16px;"><div style="display:flex;justify-content:space-between;width:100%;align-items:center;"><div><div style="font-size:13px;opacity:.85;">Good Coins Balance</div><div style="font-size:40px;font-weight:800;">2,480 🪙</div><div style="font-size:12px;opacity:.75;">≈ $24.80 cashback value</div></div><div style="text-align:right;"><div style="font-size:12px;opacity:.75;">Level</div><div style="font-size:20px;font-weight:800;">🏆 Gold</div></div></div></div>
+    <div class="card"><div style="text-align:center;margin-bottom:12px;"><div style="font-size:32px;">🔥</div><div style="font-size:22px;font-weight:800;">12-Day Streak</div><div style="font-size:13px;color:var(--muted);">Keep going!</div></div><div class="streak-row"><div class="streak-day done">M</div><div class="streak-day done">T</div><div class="streak-day done">W</div><div class="streak-day done">T</div><div class="streak-day done">F</div><div class="streak-day done">S</div><div class="streak-day today">S</div></div></div>
+    <div class="mission-card"><div style="font-size:28px;width:48px;height:48px;background:var(--green-light);border-radius:12px;display:flex;align-items:center;justify-content:center;">🏠</div><div style="flex:1;"><div style="font-size:14px;font-weight:700;">Update mortgage details</div><div style="font-size:12px;color:var(--muted);margin-top:2px;">+50 🪙</div></div><div class="list-badge badge-green">Done!</div></div>
+    <div class="mission-card"><div style="font-size:28px;width:48px;height:48px;background:var(--green-light);border-radius:12px;display:flex;align-items:center;justify-content:center;">💰</div><div style="flex:1;"><div style="font-size:14px;font-weight:700;">Set a savings goal</div><div style="font-size:12px;color:var(--muted);margin-top:2px;">+30 🪙</div></div><div class="list-badge badge-orange">In Progress</div></div>
+  </div>
+</div>
+
+<!-- BANKING -->
+
+<div class="screen" id="screen-banking">
+  <div class="topbar"><button onclick="showScreen('screen-dashboard')" style="background:none;border:none;font-size:24px;cursor:pointer;">‹</button><div class="topbar-title">Open Banking</div><div style="width:36px"></div></div>
+  <div class="scroll-content">
+    <div class="card" style="margin-top:16px;background:var(--navy);color:white;"><div style="font-size:13px;opacity:.7;">Powered by Basiq CDR</div><div style="font-size:18px;font-weight:700;margin:4px 0;">Australian Open Banking</div><div style="font-size:13px;opacity:.75;">Securely connect via Consumer Data Right (CDR)</div></div>
+    <div class="card" style="padding:0;overflow:hidden;">
+      <div class="list-item"><div class="bank-logo" style="background:#fff5f5;color:#CC0000;">CBA</div><div class="list-info"><div class="list-name">Commonwealth Bank</div><div class="list-sub">Everyday •••• 4521</div></div><div class="list-right"><div class="list-value">$8,342</div><div class="list-badge badge-green">Live</div></div></div>
+      <div class="list-item"><div class="bank-logo" style="background:#f0f7ff;color:#003087;">ANZ</div><div class="list-info"><div class="list-name">ANZ Bank</div><div class="list-sub">Savings •••• 8890</div></div><div class="list-right"><div class="list-value">$24,100</div><div class="list-badge badge-green">Live</div></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- PROFILE -->
+
+<div class="screen" id="screen-profile">
+  <div class="topbar"><button onclick="showScreen('screen-dashboard')" style="background:none;border:none;font-size:24px;cursor:pointer;">‹</button><div class="topbar-title">Profile</div><div style="width:36px"></div></div>
+  <div class="scroll-content">
+    <div style="display:flex;flex-direction:column;align-items:center;padding:24px 16px 8px;"><div style="width:72px;height:72px;border-radius:50%;background:var(--navy);display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:800;color:white;margin-bottom:12px;">LE</div><div style="font-size:20px;font-weight:800;">Laurence Escalante</div><div style="font-size:14px;color:var(--muted);">laurence@goodmoney.com.au</div><div class="list-badge badge-orange" style="margin-top:8px;font-size:12px;padding:6px 14px;">🏆 Gold Member</div></div>
+    <div class="card" style="padding:0;overflow:hidden;"><div class="list-item"><div class="list-icon">👤</div><div class="list-info"><div class="list-name">Personal Details</div></div><div style="color:var(--muted);">›</div></div><div class="list-item"><div class="list-icon">📊</div><div class="list-info"><div class="list-name">Risk Profile</div><div class="list-sub">Balanced Growth</div></div><div style="color:var(--muted);">›</div></div><div class="list-item"><div class="list-icon">🔔</div><div class="list-info"><div class="list-name">Notifications</div></div><div style="color:var(--muted);">›</div></div></div>
+  </div>
+</div>
+
+<!-- TABBAR -->
+
+<nav class="tabbar">
+  <button class="tab-btn active" id="t-home" onclick="showTab('dashboard','t-home')"><div class="tab-icon">🏠</div><div class="tab-label">Home</div></button>
+  <button class="tab-btn" id="t-wealth" onclick="showTab('wealth','t-wealth')"><div class="tab-icon">📈</div><div class="tab-label">Wealth</div></button>
+  <button class="tab-btn" id="t-banking" onclick="showTab('banking','t-banking')"><div class="tab-icon">🏦</div><div class="tab-label">Banking</div></button>
+  <button class="tab-btn" id="t-rewards" onclick="showTab('rewards','t-rewards')"><div class="tab-icon">🪙</div><div class="tab-label">Rewards</div></button>
+  <button class="tab-btn" id="t-profile" onclick="showTab('profile','t-profile')"><div class="tab-icon">👤</div><div class="tab-label">Profile</div></button>
+</nav>
+
+<script>
+function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');}
+function showTab(name,tabId){document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));document.getElementById(tabId).classList.add('active');showScreen('screen-'+name);}
+function calcExtra(){const v=parseFloat(document.getElementById('extra').value)||0;const ys=(v/500*4.2).toFixed(1);const is=Math.round(v/500*87400).toLocaleString();document.getElementById('extra-result').innerHTML='<div style="font-size:13px;color:var(--green-dark);font-weight:600;">With $'+v.toLocaleString()+'/month extra:</div><div style="display:flex;justify-content:space-between;margin-top:8px;"><div><div style="font-size:11px;color:var(--muted);">Time saved</div><div style="font-weight:800;font-size:18px;">'+ys+' yrs</div></div><div><div style="font-size:11px;color:var(--muted);">Interest saved</div><div style="font-weight:800;font-size:18px;color:var(--green);">$'+is+'</div></div></div>';}
+function setPeriod(btn,y,amt,lbl){document.querySelectorAll('.period-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');document.getElementById('wp-amount').textContent=amt;document.getElementById('wp-label').textContent='In '+lbl;}
+<\/script>
+</body>
+</html>`;
+
+// ===================== INIT =====================
+window.addEventListener('load', () => {
+  apps.goodmoney.code = GOOD_MONEY_CODE;
+  loadAppInFrame(GOOD_MONEY_CODE);
+});
+
+// ===================== FRAME LOADING =====================
+function loadAppInFrame(html) {
+  const iframe = document.getElementById('previewIframe');
+  const blob = new Blob([html], { type: 'text/html' });
+  const url = URL.createObjectURL(blob);
+  iframe.src = url;
+  document.getElementById('emptyPreview').style.display = 'none';
+}
+
+// ===================== DEVICE =====================
+function setDevice(type, btn) {
+  document.querySelectorAll('.device-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  currentDevice = type;
+  const frame = document.getElementById('deviceFrame');
+  frame.className = 'device-frame ' + type;
+}
+
+// ===================== APP SWITCHING =====================
+function switchApp(appId, el) {
+  currentAppId = appId;
+  document.querySelectorAll('.app-item').forEach(i => i.classList.remove('active'));
+  document.querySelectorAll('.app-tab').forEach(t => t.classList.remove('active'));
+  if (el) el.classList.add('active');
+  const app = apps[appId];
+  if (app && app.code) {
+    loadAppInFrame(app.code);
+    document.getElementById('previewUrl').textContent = 'studio://' + appId;
+  }
+  // Load chat history
+  const msgs = document.getElementById('messages');
+  msgs.innerHTML = `<div class="msg system"><div class="msg-body">${app.name} loaded. Describe any changes.</div></div>`;
+  app.history.forEach(m => addMessage(m.role, m.content, false));
+}
+
+// ===================== MESSAGING =====================
+function addMessage(role, content, scroll = true) {
+  const msgs = document.getElementById('messages');
+  const div = document.createElement('div');
+  div.className = `msg ${role}`;
+  div.innerHTML = `<div class="msg-who">${role === 'user' ? 'You' : 'Studio AI'}</div><div class="msg-body">${content}</div>`;
+  msgs.appendChild(div);
+  if (scroll) msgs.scrollTop = msgs.scrollHeight;
+}
+
+function showTyping() {
+  const msgs = document.getElementById('messages');
+  const div = document.createElement('div');
+  div.className = 'msg ai';
+  div.id = 'typing-msg';
+  div.innerHTML = `<div class="msg-who">Studio AI</div><div class="typing-indicator"><span></span><span></span><span></span></div>`;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function removeTyping() {
+  const t = document.getElementById('typing-msg');
+  if (t) t.remove();
+}
+
+function quickSend(text) {
+  document.getElementById('chatInput').value = text;
+  sendMessage();
+}
+
+document.getElementById('chatInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+});
+
+async function sendMessage() {
+  if (isBuilding) return;
+  const input = document.getElementById('chatInput');
+  const text = input.value.trim();
+  if (!text) return;
+
+  isBuilding = true;
+  input.value = '';
+  document.getElementById('submitBtn').disabled = true;
+
+  const app = apps[currentAppId];
+  addMessage('user', text);
+  app.history.push({ role: 'user', content: text });
+  showTyping();
+  startBuildAnimation();
+
+  const systemPrompt = `You are an expert UI developer inside an AI app studio. The user has an existing app and wants to modify it.
+
+You will receive the current HTML code of the app and a change request. You must output ONLY the complete updated HTML file — no explanations, no markdown, no code fences. Just raw HTML.
+
+Rules:
+- Preserve all existing functionality unless told to remove it
+- Keep the same overall structure and navigation
+- Make the requested changes precisely
+- The output must be a complete, self-contained HTML file
+- All CSS and JS must be inline
+- Make it polished and production quality`;
+
+  const messages = [
+    {
+      role: 'user',
+      content: `Current app code:\n\n${app.code}\n\n---\n\nChange request: ${text}\n\nOutput only the complete updated HTML.`
+    }
+  ];
+
+  try {
+    const response = await fetch(ANTHROPIC_API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 8000,
+        system: systemPrompt,
+        messages
+      })
+    });
+
+    const data = await response.json();
+    removeTyping();
+    stopBuildAnimation();
+
+    if (data.content && data.content[0]) {
+      let newCode = data.content[0].text;
+      // Strip any accidental markdown
+      newCode = newCode.replace(/^```html\n?/i, '').replace(/\n?```$/i, '').trim();
+
+      if (newCode.includes('<!DOCTYPE') || newCode.includes('<html')) {
+        app.code = newCode;
+        loadAppInFrame(newCode);
+        addMessage('ai', 'Done! The app has been updated. What else would you like to change?');
+        app.history.push({ role: 'assistant', content: 'Done! Updated.' });
+        document.getElementById('lastBuilt').textContent = 'Last built: just now';
+      } else {
+        addMessage('ai', 'I made that change. ' + (newCode.length > 200 ? newCode.substring(0, 200) + '...' : newCode));
+      }
+    } else {
+      addMessage('ai', 'Something went wrong. Please try again.');
+    }
+  } catch (err) {
+    removeTyping();
+    stopBuildAnimation();
+    addMessage('ai', 'Could not connect to the AI. Check your network and try again.');
+  }
+
+  isBuilding = false;
+  document.getElementById('submitBtn').disabled = false;
+}
+
+// ===================== BUILD ANIMATION =====================
+let buildInterval;
+const buildSteps = [
+  'Analyzing current code...',
+  'Planning changes...',
+  'Generating new components...',
+  'Applying styles...',
+  'Finalizing...'
+];
+let stepIdx = 0;
+
+function startBuildAnimation() {
+  document.getElementById('buildOverlay').classList.add('active');
+  stepIdx = 0;
+  let pct = 0;
+  buildInterval = setInterval(() => {
+    pct = Math.min(pct + 8, 90);
+    document.getElementById('buildBar').style.width = pct + '%';
+    if (stepIdx < buildSteps.length) {
+      document.getElementById('buildStep').textContent = buildSteps[stepIdx++];
+    }
+  }, 400);
+}
+
+function stopBuildAnimation() {
+  clearInterval(buildInterval);
+  document.getElementById('buildBar').style.width = '100%';
+  setTimeout(() => {
+    document.getElementById('buildOverlay').classList.remove('active');
+    document.getElementById('buildBar').style.width = '0%';
+  }, 300);
+}
+
+// ===================== NEW APP =====================
+let selectedTemplatePrompt = '';
+
+function showNewAppModal() {
+  document.getElementById('newAppModal').classList.add('active');
+}
+
+function closeNewAppModal() {
+  document.getElementById('newAppModal').classList.remove('active');
+  document.getElementById('newAppName').value = '';
+  document.getElementById('newAppPrompt').value = '';
+  selectedTemplatePrompt = '';
+  document.querySelectorAll('.template-card').forEach(c => c.classList.remove('selected'));
+}
+
+function selectTemplate(el, prompt) {
+  document.querySelectorAll('.template-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedTemplatePrompt = prompt;
+  document.getElementById('newAppPrompt').value = prompt;
+}
+
+async function createNewApp() {
+  const name = document.getElementById('newAppName').value.trim() || 'New App';
+  const prompt = document.getElementById('newAppPrompt').value.trim() || selectedTemplatePrompt;
+  if (!prompt) return alert('Please describe your app or pick a template.');
+
+  closeNewAppModal();
+
+  const appId = 'app_' + Date.now();
+  const icons = ['🚀','⚡','🎯','💎','🔥','🌟','🎨','🛠️'];
+  const icon = icons[Math.floor(Math.random() * icons.length)];
+  const colors = ['#1e3a5f','#3b1f5e','#1f3b2e','#3b2a1f','#1f2a3b'];
+  const color = colors[Math.floor(Math.random() * colors.length)];
+
+  apps[appId] = { name, icon, color, dotColor: '#3B82F6', description: prompt.slice(0, 40) + '...', history: [], code: null };
+
+  // Add to sidebar
+  const list = document.getElementById('appList');
+  const item = document.createElement('div');
+  item.className = 'app-item';
+  item.dataset.app = appId;
+  item.onclick = () => switchApp(appId, item);
+  item.innerHTML = `<div class="app-item-icon" style="background:${color};">${icon}</div><div class="app-item-info"><div class="app-item-name">${name}</div><div class="app-item-meta">Building...</div></div><div class="app-item-status" style="background:#F59E0B;"></div>`;
+  list.appendChild(item);
+
+  // Add tab
+  const tabs = document.getElementById('appTabs');
+  const tab = document.createElement('button');
+  tab.className = 'app-tab active';
+  tab.dataset.app = appId;
+  tab.onclick = () => switchApp(appId, tab);
+  tab.innerHTML = `<div class="tab-dot" style="background:#F59E0B;"></div>${name}<div class="tab-close" onclick="event.stopPropagation()">×</div>`;
+  document.querySelectorAll('.app-tab').forEach(t => t.classList.remove('active'));
+  tabs.appendChild(tab);
+
+  currentAppId = appId;
+  document.querySelectorAll('.app-item').forEach(i => i.classList.remove('active'));
+  item.classList.add('active');
+
+  document.getElementById('previewUrl').textContent = 'studio://' + appId;
+  document.getElementById('messages').innerHTML = `<div class="msg system"><div class="msg-body">Building "${name}"...</div></div>`;
+
+  startBuildAnimation();
+  document.getElementById('buildTitle').textContent = 'CREATING';
+
+  try {
+    const response = await fetch(ANTHROPIC_API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 8000,
+        system: `You are an expert app developer. Build complete, polished, production-quality single-file HTML apps. Output ONLY raw HTML — no markdown, no code fences, no explanations. The app must be fully functional, beautifully designed, mobile-first, with navigation, multiple screens, and real interactivity.`,
+        messages: [{ role: 'user', content: `Build a complete mobile app: ${prompt}\n\nMake it beautiful, fully functional, with multiple screens and smooth navigation. Output only raw HTML.` }]
+      })
+    });
+
+    const data = await response.json();
+    stopBuildAnimation();
+
+    if (data.content && data.content[0]) {
+      let code = data.content[0].text.replace(/^```html\n?/i, '').replace(/\n?```$/i, '').trim();
+      apps[appId].code = code;
+      loadAppInFrame(code);
+
+      item.querySelector('.app-item-meta').textContent = prompt.slice(0, 30) + '...';
+      item.querySelector('.app-item-status').style.background = '#10B981';
+      tab.querySelector('.tab-dot').style.background = '#10B981';
+
+      addMessage('ai', `"${name}" is ready! Click around to explore. Tell me what to change.`);
+      document.getElementById('lastBuilt').textContent = 'Last built: just now';
+    }
+  } catch (err) {
+    stopBuildAnimation();
+    addMessage('ai', 'Build failed. Check your connection and try again.');
+  }
+}
+
+// ===================== DEPLOY =====================
+function deployCurrentApp() {
+  const app = apps[currentAppId];
+  if (!app || !app.code) return;
+  const blob = new Blob([app.code], { type: 'text/html' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = currentAppId + '.html';
+  a.click();
+  addMessage('ai', `"${app.name}" downloaded. You can host this file on Netlify, Vercel, or any web server.`);
+}
+
+function refreshPreview() {
+  const app = apps[currentAppId];
+  if (app && app.code) loadAppInFrame(app.code);
+}
+
+function openFullscreen() {
+  const app = apps[currentAppId];
+  if (!app || !app.code) return;
+  const blob = new Blob([app.code], { type: 'text/html' });
+  window.open(URL.createObjectURL(blob), '_blank');
+}
+</script>
+
+</body>
+</html>
+`;
