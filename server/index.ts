@@ -182,6 +182,11 @@ function configureExpoAndLanding(app: express.Application) {
     res.sendFile(adviserPath);
   });
 
+  const studioPath = path.resolve(process.cwd(), "Studio.html");
+  app.get("/studio", (_req: Request, res: Response) => {
+    res.sendFile(studioPath);
+  });
+
   const distDir = path.resolve(process.cwd(), "dist");
   const hasWebBuild = fs.existsSync(path.join(distDir, "index.html"));
 
