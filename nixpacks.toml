@@ -1,0 +1,5 @@
+[phases.build]
+cmds = ["npm run server:build"]
+
+[start]
+cmd = "npm run server:prod"
